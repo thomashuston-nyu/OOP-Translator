@@ -16,7 +16,6 @@
  * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
  * USA.
  */
-package xtc.oop;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +48,7 @@ public class Translator extends xtc.util.Tool {
   }
 
   public String getCopy() {
-    return "My Group";
+    return "The Allan Gottlieb Fan Club";
   }
 
   public void init() {
@@ -57,7 +56,7 @@ public class Translator extends xtc.util.Tool {
 
     runtime.
       bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
-      bool("countMethods", "countMethods", false, "Count all Java methods.");
+	  bool("translateJava", "translateJava", false, "Translate Java to C++.");
   }
 
   public Node parse(Reader in, File file) throws IOException, ParseException {
@@ -72,27 +71,19 @@ public class Translator extends xtc.util.Tool {
       runtime.console().format(node).pln().flush();
     }
 
-    if (runtime.test("countMethods")) {
+    if (runtime.test("translateJava")) {
       new Visitor() {
-        private int count = 0;
 
-        public void visitCompilationUnit(GNode n) {
-          visit(n);
-          runtime.console().p("Number of methods: ").p(count).pln().flush();
-        }
+        public void visitClassDeclaration(GNode n) {
+			visit(n);
+			runtime.console().p(n.toString()).pln().flush();
+		}
 
         public void visitMethodDeclaration(GNode n) {
           visit(n);
-          count++;
         }
 
         public void visit(Node n) {
-          /*
-          for (Iterator<Object> iter = n.iterator(); iter.hasNext(); ) {
-            Object o = iter.next();
-
-            }*/
-
           for (Object o : n) if (o instanceof Node) dispatch((Node)o);
         }
 
