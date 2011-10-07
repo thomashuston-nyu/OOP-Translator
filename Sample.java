@@ -1,3 +1,5 @@
+import xtc.*;
+
 class Sample {
 	
 }
