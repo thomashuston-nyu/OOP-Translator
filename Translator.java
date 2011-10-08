@@ -110,9 +110,9 @@ public class Translator extends xtc.util.Tool {
             bufferedWriter = new BufferedWriter(new FileWriter("./Test.cc", true));
             String name = n.getName().toString();
             if (name.equals("ClassDeclaration")) {
-                bufferedWriter.write("class " + n.get(1).toString() + "() {\n");
+                bufferedWriter.write("class " + n.getString(1) + "() {\n");
             } else if (name.equals("MethodDeclaration")) {
-                bufferedWriter.write("  " + n.get(2).toString() + " " + n.get(3).toString() + "() {\n");
+                bufferedWriter.write("  " + n.getNode(2).getNode(0).getString(0) + " " + n.getString(3) + "() {\n");
             }
           } catch (IOException e) {
             } finally {
