@@ -16,8 +16,9 @@
  * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
  * USA.
  */
-
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 
@@ -76,12 +77,33 @@ public class Translator extends xtc.util.Tool {
         
         public void visitClassDeclaration(GNode n) {
           visit(n);
+          File file = new File("./Test.cc");
+          if (!file.exists()) {
+            try {
+              file.createNewFile();
+            } catch (IOException e) {}
+          }
           int size = n.size();
           Object o;
-          for (int i = 0; i < size; i++) {
-            o = n.get(i);
-            if (o != null)
-              runtime.console().p(n.get(i).toString()).pln().flush();
+              BufferedWriter bufferedWriter = null;
+              try {
+                bufferedWriter = new BufferedWriter(new FileWriter("./Test.cc"));
+                for (int i = 0; i < size; i++) {
+                  o = n.get(i);
+                  if (o != null) {
+                    runtime.console().p(n.get(i).toString()).pln().flush();
+                    bufferedWriter.write(n.get(i).toString());
+                  }
+                }
+              } catch (IOException e) {
+              } finally {
+                  try {
+                    if (bufferedWriter != null) {
+                      bufferedWriter.flush();
+                      bufferedWriter.close();
+                    }
+                  } catch (IOException e) {
+                  }
           }
         }
         
