@@ -1,2 +1,4 @@
 class Sample() {
   int test() {
+  }
+}
