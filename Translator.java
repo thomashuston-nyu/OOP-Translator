@@ -37,60 +37,79 @@ import xtc.lang.JavaFiveParser;
  * @version $Revision$
  */
 public class Translator extends xtc.util.Tool {
-
+  
   /** Create a new translator. */
   public Translator() {
     // Nothing to do.
   }
-
+  
   public String getName() {
     return "Java to C++ Translator";
   }
-
+  
   public String getCopy() {
     return "The Allan Gottlieb Fan Club";
   }
-
+  
   public void init() {
     super.init();
-
+    
     runtime.
-      bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
+    bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
 	  bool("translateJava", "translateJava", false, "Translate Java to C++.");
   }
-
+  
   public Node parse(Reader in, File file) throws IOException, ParseException {
     JavaFiveParser parser =
-      new JavaFiveParser(in, file.toString(), (int)file.length());
+    new JavaFiveParser(in, file.toString(), (int)file.length());
     Result result = parser.pCompilationUnit(0);
     return (Node)parser.value(result);
   }
-
+  
   public void process(Node node) {
     if (runtime.test("printJavaAST")) {
       runtime.console().format(node).pln().flush();
     }
-
+    
     if (runtime.test("translateJava")) {
       new Visitor() {
-
+        
         public void visitClassDeclaration(GNode n) {
-			visit(n);
-			runtime.console().p(n.toString()).pln().flush();
-		}
-
+          visit(n);
+          int size = n.size();
+          Object o;
+          for (int i = 0; i < size; i++) {
+            o = n.get(i);
+            if (o != null)
+              runtime.console().p(n.get(i).toString()).pln().flush();
+          }
+        }
+        
         public void visitMethodDeclaration(GNode n) {
           visit(n);
+          int size = n.size();
+          Object o;
+          for (int i = 0; i < size; i++) {
+            o = n.get(i);
+            if (o != null)
+              runtime.console().p(n.get(i).toString()).pln().flush();
+            
+          }
         }
-
+        
         public void visit(Node n) {
-          for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+          for (Object o : n) {
+            if (o instanceof Node) {
+              dispatch((Node)o);
+//              runtime.console().p("v:\t" + ((Node)o).getName()).pln().flush();
+            }
+          }
         }
-
+        
       }.dispatch(node);
     }
   }
-
+  
   /**
    * Run the translator with the specified command line arguments.
    *
@@ -99,5 +118,5 @@ public class Translator extends xtc.util.Tool {
   public static void main(String[] args) {
     new Translator().run(args);
   }
-
+  
 }
