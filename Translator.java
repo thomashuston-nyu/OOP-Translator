@@ -34,11 +34,10 @@ import xtc.lang.JavaFiveParser;
 /**
  * A translator from (a subset of) Java to (a subset of) C++.
  *
- * @author Robert Grimm
+ * @author Mike Morreale, Thomas Huston, Nabil Hassein, Susana Delgadillo, Marta Wilgan
  * @version $Revision$
  */
 public class Translator extends xtc.util.Tool {
-  
   /** Create a new translator. */
   public Translator() {
     // Nothing to do.
@@ -74,60 +73,57 @@ public class Translator extends xtc.util.Tool {
     
     if (runtime.test("translateJava")) {
       new Visitor() {
+        private File file;
         
         public void visitClassDeclaration(GNode n) {
-          visit(n);
-          File file = new File("./Test.cc");
-          if (!file.exists()) {
-            try {
-              file.createNewFile();
-            } catch (IOException e) {}
-          }
-          int size = n.size();
-          Object o;
-              BufferedWriter bufferedWriter = null;
-              try {
-                bufferedWriter = new BufferedWriter(new FileWriter("./Test.cc"));
-                for (int i = 0; i < size; i++) {
-                  o = n.get(i);
-                  if (o != null) {
-                    runtime.console().p(n.get(i).toString()).pln().flush();
-                    bufferedWriter.write(n.get(i).toString());
-                  }
-                }
-              } catch (IOException e) {
-              } finally {
-                  try {
-                    if (bufferedWriter != null) {
-                      bufferedWriter.flush();
-                      bufferedWriter.close();
-                    }
-                  } catch (IOException e) {
-                  }
-          }
+          writeToFile(n);
+          visit(n); 
         }
         
         public void visitMethodDeclaration(GNode n) {
+          writeToFile(n);
           visit(n);
-          int size = n.size();
-          Object o;
-          for (int i = 0; i < size; i++) {
-            o = n.get(i);
-            if (o != null)
-              runtime.console().p(n.get(i).toString()).pln().flush();
-            
-          }
         }
         
         public void visit(Node n) {
           for (Object o : n) {
             if (o instanceof Node) {
               dispatch((Node)o);
-//              runtime.console().p("v:\t" + ((Node)o).getName()).pln().flush();
             }
           }
         }
-        
+
+        public void createFile() {
+          file = new File("./Test.cc");
+          try {
+            if (file.exists())
+              file.delete();
+            file.createNewFile();
+          } catch (IOException e) {}
+        }
+
+        public void writeToFile(GNode n) {
+          if (file == null)
+            createFile();
+          BufferedWriter bufferedWriter = null;
+          try {
+            bufferedWriter = new BufferedWriter(new FileWriter("./Test.cc", true));
+            String name = n.getName().toString();
+            if (name.equals("ClassDeclaration")) {
+                bufferedWriter.write("class " + n.get(1).toString() + "() {\n");
+            } else if (name.equals("MethodDeclaration")) {
+                bufferedWriter.write("  " + n.get(2).toString() + " " + n.get(3).toString() + "() {\n");
+            }
+          } catch (IOException e) {
+            } finally {
+              try {
+                if (bufferedWriter != null) {
+                    bufferedWriter.flush();
+                    bufferedWriter.close();
+                }
+              } catch (IOException e) {}
+          }
+        }
       }.dispatch(node);
     }
   }
@@ -140,5 +136,4 @@ public class Translator extends xtc.util.Tool {
   public static void main(String[] args) {
     new Translator().run(args);
   }
-  
 }

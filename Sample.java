@@ -1,5 +1,5 @@
-import xtc.*;
-
 class Sample {
-	
+  int test() {
+    return 0;
+  }
 }
