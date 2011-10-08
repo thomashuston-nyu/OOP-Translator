@@ -76,13 +76,11 @@ public class Translator extends xtc.util.Tool {
         private File file;
         
         public void visitClassDeclaration(GNode n) {
-          writeToFile(n);
-          visit(n); 
+          writeToFile(n); 
         }
         
         public void visitMethodDeclaration(GNode n) {
           writeToFile(n);
-          visit(n);
         }
         
         public void visit(Node n) {
@@ -111,17 +109,23 @@ public class Translator extends xtc.util.Tool {
             String name = n.getName().toString();
             if (name.equals("ClassDeclaration")) {
                 bufferedWriter.write("class " + n.getString(1) + "() {\n");
+                bufferedWriter.flush();
+                visit(n);
+                bufferedWriter.write("}\n");
             } else if (name.equals("MethodDeclaration")) {
                 bufferedWriter.write("  " + n.getNode(2).getNode(0).getString(0) + " " + n.getString(3) + "() {\n");
+                bufferedWriter.flush();
+                visit(n);
+                bufferedWriter.write("  }\n");
             }
           } catch (IOException e) {
-            } finally {
-              try {
-                if (bufferedWriter != null) {
-                    bufferedWriter.flush();
-                    bufferedWriter.close();
-                }
-              } catch (IOException e) {}
+          } finally {
+            try {
+              if (bufferedWriter != null) {
+                  bufferedWriter.flush();
+                  bufferedWriter.close();
+              }
+            } catch (IOException e) {}
           }
         }
       }.dispatch(node);
