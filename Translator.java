@@ -90,7 +90,71 @@ public class Translator extends xtc.util.Tool {
             }
           }
         }
-
+        
+        
+        // Method parsing methods
+        
+        private String[] getModifiers(Node n) {
+          Node modifierArray = n.getNode(0);
+          int size = modifierArray.size();
+          if (size == 0)
+            return null;
+          String[] modifiers = new String[size];
+          for (int i = 0; i < size; i++) {
+            modifiers[i] = modifierArray.getNode(i).getString(0);
+          }
+          return modifiers;
+        }
+        
+        private String getName(Node n) {
+          return n.getString(3);
+        }
+        
+        private String getReturnType(Node n) {
+          Node returnType = n.getNode(2);
+          if (returnType.getName() == "VoidType") {
+            return "void";
+          } else if (returnType.getName() == "PrimitiveType") {
+            return returnType.getNode(0).getString(0);
+          } else {
+            String obj = returnType.getNode(0).getString(0);
+            if (returnType.getNode(1) != null && returnType.getNode(1).getString(0) == "[") {
+              obj += "[]";
+            }
+            return obj;
+          }
+        }
+        
+        private String getScope(String[] modifiers) {
+          if (modifiers != null) {
+            for (String s : modifiers) {
+              if (s == "public" || s == "private" || s == "protected") return s;
+            }
+          }
+          return "public";
+        }
+        
+        private boolean isFinal(String[] modifiers) {
+          if (modifiers != null) {
+            for (String s : modifiers) {
+              if (s == "final") return true;
+            }
+          }
+          return false;
+        }
+        
+        private boolean isStatic(String[] modifiers) {
+          if (modifiers != null) {
+            for (String s : modifiers) {
+              if (s == "static") return true;
+            }
+          }
+          return false;
+        }
+        
+        
+        // C++ output methods
+        
         public void createFile() {
           file = new File("./Test.cc");
           try {
@@ -99,7 +163,7 @@ public class Translator extends xtc.util.Tool {
             file.createNewFile();
           } catch (IOException e) {}
         }
-
+        
         public void writeToFile(GNode n) {
           if (file == null)
             createFile();
@@ -108,22 +172,28 @@ public class Translator extends xtc.util.Tool {
             bufferedWriter = new BufferedWriter(new FileWriter("./Test.cc", true));
             String name = n.getName().toString();
             if (name.equals("ClassDeclaration")) {
-                bufferedWriter.write("class " + n.getString(1) + "() {\n");
-                bufferedWriter.flush();
-                visit(n);
-                bufferedWriter.write("}\n");
+              bufferedWriter.write("class " + n.getString(1) + " {\n");
+              bufferedWriter.flush();
+              visit(n);
+              bufferedWriter.write("}\n");
             } else if (name.equals("MethodDeclaration")) {
-                bufferedWriter.write("  " + n.getNode(2).getNode(0).getString(0) + " " + n.getString(3) + "() {\n");
-                bufferedWriter.flush();
-                visit(n);
-                bufferedWriter.write("  }\n");
+              String[] modifiers = getModifiers(n);
+              String scope = getScope(modifiers);
+              boolean isStatic = isStatic(modifiers);
+              boolean isFinal = isFinal(modifiers);
+              String returnType = getReturnType(n);
+              String method = getName(n);
+              bufferedWriter.write("  " + scope + ":\n    " + (isFinal ? "const " : "") + returnType + " " + method + "() {\n");
+              bufferedWriter.flush();
+              visit(n);
+              bufferedWriter.write("    }\n");
             }
           } catch (IOException e) {
           } finally {
             try {
               if (bufferedWriter != null) {
-                  bufferedWriter.flush();
-                  bufferedWriter.close();
+                bufferedWriter.flush();
+                bufferedWriter.close();
               }
             } catch (IOException e) {}
           }
