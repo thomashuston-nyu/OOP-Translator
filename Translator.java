@@ -22,6 +22,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 
+import java.util.ArrayList;
+
 import translator.*;
 
 import xtc.parser.ParseException;
@@ -75,6 +77,9 @@ public class Translator extends xtc.util.Tool {
     if (runtime.test("translateJava")) {
       new Visitor() {
         private File file;
+        private List<MethodDeclaration> publicMethods = new ArrayList<MethodDeclaration>();
+        private List<MethodDeclaration> privateMethods = new ArrayList<MethodDeclaration>();
+        private List<MethodDeclaration> protectedMethods = new ArrayList<MethodDeclaration>();
         
         public void visitClassDeclaration(GNode n) {
           ClassDeclaration theClass = new ClassDeclaration(n); 
@@ -82,6 +87,14 @@ public class Translator extends xtc.util.Tool {
         
         public void visitMethodDeclaration(GNode n) {
           MethodDeclaration method = new MethodDeclaration(n);
+          Scope scope = method.getScope();
+          if (scope == Scope.PUBLIC) {
+            publicMethods.add(method);
+          } else if (scope == Scope.PRIVATE) {
+            privateMethods.add(method);
+          } else if (scope == Scope.PROTECTED) {
+            protectedMethods.add(method);
+          }
         }
         
         public void visit(Node n) {

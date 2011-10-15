@@ -2,6 +2,10 @@ public final class Sample extends Object implements Comparable {
   int test() {
     return 0;
   }
+  void test2() {
+    if (1 == 1)
+      System.out.println("math");
+  }
   String test3() throws Exception {
     return "";
   }
@@ -13,7 +17,6 @@ public final class Sample extends Object implements Comparable {
   }
   public static void main(String[] args) {
   }
-
   public int compareTo(Object o) {
     return 0;
   }
