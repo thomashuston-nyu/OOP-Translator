@@ -11,7 +11,8 @@ class Sample {
   final public static String[] test2(int x) {
     return new String[3];
   }
-  final public static void main(String[] args) {
-    
+  public static void main(String[] args) {
+    Scope scope = Scope.PUBLIC;
+    System.out.println(scope);
   }
 }
