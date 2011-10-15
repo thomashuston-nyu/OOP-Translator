@@ -83,6 +83,12 @@ public class Translator extends xtc.util.Tool {
         
         public void visitMethodDeclaration(GNode n) {
           MethodDeclaration method = new MethodDeclaration(n);
+          visit(n);
+        }
+        
+        public void visitType(GNode n) {
+          runtime.console().p(n.toString()).pln().flush();
+          visit(n);
         }
         
         public void visit(Node n) {
