@@ -60,7 +60,7 @@ public class Translator extends xtc.util.Tool {
     
     runtime.
     bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
-	    bool("translateJava", "translateJava", false, "Translate Java to C++.");
+    bool("translateJava", "translateJava", false, "Translate Java to C++.");
   }
   
   public Node parse(Reader in, File file) throws IOException, ParseException {
