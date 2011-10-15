@@ -12,7 +12,6 @@ class Sample {
     return new String[3];
   }
   public static void main(String[] args) {
-    Scope scope = Scope.PUBLIC;
-    System.out.println(scope);
+    
   }
 }
