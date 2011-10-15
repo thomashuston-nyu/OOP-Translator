@@ -58,12 +58,11 @@ public class Translator extends xtc.util.Tool {
     
     runtime.
     bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
-	  bool("translateJava", "translateJava", false, "Translate Java to C++.");
+	    bool("translateJava", "translateJava", false, "Translate Java to C++.");
   }
   
   public Node parse(Reader in, File file) throws IOException, ParseException {
-    JavaFiveParser parser =
-    new JavaFiveParser(in, file.toString(), (int)file.length());
+    JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
     Result result = parser.pCompilationUnit(0);
     return (Node)parser.value(result);
   }
@@ -78,7 +77,7 @@ public class Translator extends xtc.util.Tool {
         private File file;
         
         public void visitClassDeclaration(GNode n) {
-          writeToFile(n); 
+          ClassDeclaration theClass = new ClassDeclaration(n); 
         }
         
         public void visitMethodDeclaration(GNode n) {
@@ -99,47 +98,28 @@ public class Translator extends xtc.util.Tool {
           }
         }
         
-        public void createFile() {
+        public void createFile() throws IOException {
           file = new File("./Test.cc");
-          try {
-            if (file.exists())
-              file.delete();
-            file.createNewFile();
-          } catch (IOException e) {}
+          if (file.exists()) {
+            file.delete();
+          }
+          file.createNewFile();
         }
         
-        public void writeToFile(GNode n) {
-          if (file == null)
+        public void writeToFile(GNode n) throws IOException {
+          if (file == null) {
             createFile();
-          BufferedWriter bufferedWriter = null;
-          try {
-            bufferedWriter = new BufferedWriter(new FileWriter("./Test.cc", true));
-            String name = n.getName().toString();
-            if (name.equals("ClassDeclaration")) {
-//              bufferedWriter.write("class " + n.getString(1) + " {\n");
-//              bufferedWriter.flush();
-              visit(n);
-//              bufferedWriter.write("}\n");
-            } else if (name.equals("MethodDeclaration")) {
-              /*String[] modifiers = getModifiers(n);
-              String scope = getScope(modifiers);
-              boolean isStatic = isStatic(modifiers);
-              boolean isFinal = isFinal(modifiers);
-              String returnType = getReturnType(n);
-              String method = getName(n);
-              bufferedWriter.write("  " + scope + ":\n    " + (isFinal ? "const " : "") + returnType + " " + method + "() {\n");
-              bufferedWriter.flush();*/
-              visit(n);
-//              bufferedWriter.write("    }\n");
-            }
-          } catch (IOException e) {
-          } finally {
-            try {
-              if (bufferedWriter != null) {
-                bufferedWriter.flush();
-                bufferedWriter.close();
-              }
-            } catch (IOException e) {}
+          }
+          BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("./Test.cc", true));
+          String name = n.getName().toString();
+          if (name.equals("ClassDeclaration")) {
+            visit(n);
+          } else if (name.equals("MethodDeclaration")) {
+            visit(n);
+          }
+          if (bufferedWriter != null) {
+            bufferedWriter.flush();
+            bufferedWriter.close();
           }
         }
       }.dispatch(node);
