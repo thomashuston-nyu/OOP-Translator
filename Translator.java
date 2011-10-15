@@ -58,7 +58,7 @@ public class Translator extends xtc.util.Tool {
     
     runtime.
     bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
-	    bool("translateJava", "translateJava", false, "Translate Java to C++.");
+    bool("translateJava", "translateJava", false, "Translate Java to C++.");
   }
   
   public Node parse(Reader in, File file) throws IOException, ParseException {
@@ -82,12 +82,6 @@ public class Translator extends xtc.util.Tool {
         
         public void visitMethodDeclaration(GNode n) {
           MethodDeclaration method = new MethodDeclaration(n);
-          visit(n);
-        }
-        
-        public void visitType(GNode n) {
-          runtime.console().p(n.toString()).pln().flush();
-          visit(n);
         }
         
         public void visit(Node n) {
