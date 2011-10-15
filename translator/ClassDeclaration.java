@@ -12,6 +12,8 @@ public class ClassDeclaration {
   private String parent;
   
   public ClassDeclaration(GNode n) {
+    if (!n.getName().equals("ClassDeclaration"))
+      throw new RuntimeException("Invalid node type");
     this.n = n;
     this.name = n.getString(1);
     this.isAbstract = false;
