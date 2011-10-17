@@ -12,83 +12,83 @@
 
 package translator;
 
-import xtc.tree.GNode;
+import java.lang.StringBuilder;
+
 import xtc.tree.Node;
 
-public class MethodDeclaration {
+public class MethodDeclaration extends Translatable {
 
   private String name;
   private Type returnType;
   private Scope scope;
-  public Type[] parameters;
+  private FormalParameters parameters;
   private boolean isAbstract;
   private boolean isFinal;
   private boolean isStatic;
   
-  public MethodDeclaration(GNode n) {
+  public MethodDeclaration(Node n) {
     if (!n.getName().equals("MethodDeclaration"))
       throw new RuntimeException("Invalid node type");
     this.isAbstract = false;
     this.isFinal = false;
     this.isStatic = false;
     this.name = n.getString(3);
-    this.parameters = null;
+    this.parameters = new FormalParameters(n.getNode(4));
     modifiers(n);
-    parameters(n);
     returnType(n);
   }
   
   public Scope getScope() {
-    return scope;
+    return this.scope;
   }
   
-  private void modifiers(GNode n) {
-    Node modifiers = n.getNode(0);
+  private void modifiers(Node n) {
+    Modifiers modifiers = new Modifiers(n.getNode(0));
     if (modifiers.size() == 0) {
       scope = Scope.PRIVATE;
       return;
     }
-    for (Object o : modifiers) {
-      if (!(o instanceof Node))
-        continue;
-      Node modifier = (Node)o;
-      if (modifier.getString(0).equals("public")) {
+    for (int i = 0; i < modifiers.size(); i++) {
+      Modifier modifier = modifiers.get(i);
+      if (modifier.equals("public")) {
         scope = Scope.PUBLIC;
-      } else if (modifier.getString(0).equals("private")) {
+      } else if (modifier.equals("private")) {
         scope = Scope.PRIVATE;
-      } else if (modifier.getString(0).equals("protected")) {
+      } else if (modifier.equals("protected")) {
         scope = Scope.PROTECTED;
-      } else if (modifier.getString(0).equals("final")) {
+      } else if (modifier.equals("final")) {
         isFinal = true;
-      } else if (modifier.getString(0).equals("static")) {
+      } else if (modifier.equals("static")) {
         isStatic = true;
-      } else if (modifier.getString(0).equals("abstract")) {
+      } else if (modifier.equals("abstract")) {
         isAbstract = true;
       }
     }
   }
   
-  public void parameters(GNode n) {
-    Node params = n.getNode(4);
-    int size = params.size();
-    if (size == 0)
-      return;
-    parameters = new Type[size];
-    for (int i = 0; i < size; i++) {
-      if (!(params.get(i) instanceof Node))
-        continue;
-      Node parameter = (Node)params.get(i);
-      parameters[i] = new Type(parameter);
-    }
-  }
-  
-  public void returnType(GNode n) {
+  public void returnType(Node n) {
     Node type = n.getNode(2);
     if (type.getName() == "VoidType") {
       returnType = new VoidType();
     } else if (type.getName() == "Type") {
       returnType = new Type(type);
     }
+  }
+  
+  public StringBuilder translate(int indent) {
+    StringBuilder translation = new StringBuilder(getIndent(indent));
+    if (isFinal)
+      translation.append("const ");
+    if (isAbstract)
+      translation.append("abstract ");
+    if (isStatic)
+      translation.append("static ");
+    translation.append(returnType + " " + name + "(" + parameters + ") {\n");
+    translation.append(getIndent(indent + 1));
+    translation.append("\n");
+    translation.append(getIndent(indent));
+    translation.append("}");
+    return translation;
   }
 
 }

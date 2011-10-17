@@ -76,12 +76,9 @@ public class Translator extends xtc.util.Tool {
       new Visitor() {
         private File file;
         
-        public void visitClassDeclaration(GNode n) {
-          ClassDeclaration theClass = new ClassDeclaration(n); 
-        }
-        
-        public void visitMethodDeclaration(GNode n) {
-          MethodDeclaration method = new MethodDeclaration(n);
+        public void visitCompilationUnit(GNode n) {
+          CompilationUnit unit = new CompilationUnit(n);
+          visit(n);
         }
         
         public void visit(Node n) {

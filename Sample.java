@@ -1,4 +1,11 @@
+import java.util.*;
+import java.lang.StringBuffer;
+
 public final class Sample extends Object implements Comparable {
+    
+  private String string1;
+  public Object o1;
+  
   int test() {
     return 0;
   }
@@ -12,16 +19,15 @@ public final class Sample extends Object implements Comparable {
   Object test4() {
     return new Object();
   }
-  public final static String[] test2(int x) {
+  public final static String[] test2(int x, int y, Object[] z) {
     return new String[3];
   }
   public static void main(String[] args) {
-<<<<<<< HEAD
-    
-=======
->>>>>>> cebcb0269bd4537bc5c72d46c1b8e04d7a73e56b
+
   }
   public int compareTo(Object o) {
     return 0;
   }
+  
+  private String hey;
 }
