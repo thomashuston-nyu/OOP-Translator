@@ -1,10 +1,17 @@
-import java.util.*;
-import java.lang.StringBuffer;
+package test;
 
-public final class Sample extends Object implements Comparable {
+import java.lang.StringBuilder;
+
+import java.util.*;
+
+public class Sample extends Object {
     
   private String string1;
   public Object o1;
+  
+  protected Sample() {
+    
+  }
   
   int test() {
     return 0;

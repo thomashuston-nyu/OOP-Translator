@@ -63,6 +63,7 @@ public class Translator extends xtc.util.Tool {
   
   public Node parse(Reader in, File file) throws IOException, ParseException {
     JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
+//    runtime.console().format((Node)parser.value(parser.pCompilationUnit(0))).pln().flush();
     Result result = parser.pCompilationUnit(0);
     return (Node)parser.value(result);
   }
@@ -73,23 +74,23 @@ public class Translator extends xtc.util.Tool {
     }
     
     if (runtime.test("translateJava")) {
-      new Visitor() {
-        private File file;
+      CompilationUnit unit = new CompilationUnit((GNode)node);
+//      new Visitor() {
+//        private File file;
+//        
+//        public void visitCompilationUnit(GNode n) {
+//          CompilationUnit unit = new CompilationUnit(n);
+//        }
+//        
+//        public void visit(Node n) {
+//          for (Object o : n) {
+//            if (o instanceof Node) {
+//              dispatch((Node)o);
+//            }
+//          }
+//        }
         
-        public void visitCompilationUnit(GNode n) {
-          CompilationUnit unit = new CompilationUnit(n);
-          visit(n);
-        }
-        
-        public void visit(Node n) {
-          for (Object o : n) {
-            if (o instanceof Node) {
-              dispatch((Node)o);
-            }
-          }
-        }
-        
-        public void createFile() throws IOException {
+    /*    public void createFile() throws IOException {
           file = new File("./Test.cc");
           if (file.exists()) {
             file.delete();
@@ -112,8 +113,8 @@ public class Translator extends xtc.util.Tool {
             bufferedWriter.flush();
             bufferedWriter.close();
           }
-        }
-      }.dispatch(node);
+        }*/
+//      }.dispatch(node);
     }
   }
   

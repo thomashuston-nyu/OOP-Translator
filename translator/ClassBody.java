@@ -1,46 +1,54 @@
-/*
- * 0 - FieldDeclaration
- * 1 - MethodDeclaration
- */
 package translator;
 
-import java.lang.StringBuilder;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class ClassBody extends Translatable {
+public class ClassBody extends TranslationVisitor {
   
   private List<FieldDeclaration> fields;
-  private List<MethodDeclaration> publicMethods;
-  private List<MethodDeclaration> privateMethods;
-  private List<MethodDeclaration> protectedMethods;
+  private Map<Visibility, List<MethodDeclaration>> methods;
   
-  public ClassBody(Node n) {
-    if (!n.getName().equals("ClassBody"))
-      throw new RuntimeException("Invalid node type");
-    this.fields = new ArrayList<FieldDeclaration>();
-    this.publicMethods = new ArrayList<MethodDeclaration>();
-    this.privateMethods = new ArrayList<MethodDeclaration>();
-    this.protectedMethods = new ArrayList<MethodDeclaration>();
-    for (int i = 0; i < n.size(); i++) {
-      if (n.getNode(i).getName() == "FieldDeclaration") {
-        this.fields.add(new FieldDeclaration(n.getNode(i)));
-      } else if (n.getNode(i).getName() == "MethodDeclaration") {
-        MethodDeclaration method = new MethodDeclaration(n.getNode(i));
-        if (method.getScope() == Scope.PUBLIC)
-          publicMethods.add(method);
-        else if (method.getScope() == Scope.PRIVATE)
-          privateMethods.add(method);
-        else if (method.getScope() == Scope.PROTECTED)
-          protectedMethods.add(method);
-      }
-    }
+  public ClassBody(GNode n) {
+    fields = new ArrayList<FieldDeclaration>();
+    methods = new HashMap<Visibility, List<MethodDeclaration>>();
   }
   
-  public StringBuilder translate(int indent) {
+  public void visitBlockDeclaration(GNode n) {
+    
+  }
+  
+  public void visitConstructorDeclaration(GNode n) {
+    
+  }
+  
+  public void visitEmptyDeclaration(GNode n) {
+    
+  }
+  
+  public void visitFieldDeclaration(GNode n) {
+    fields.add(new FieldDeclaration(n));
+  }
+  
+  public void visitInterfaceDeclaration(GNode n) {
+    
+  }
+  
+  public void visitMethodDeclaration(GNode n) {
+    MethodDeclaration m = new MethodDeclaration(n);
+    Visibility v = m.getVisibility();
+    if (!methods.containsKey(v))
+      methods.put(v, new ArrayList<MethodDeclaration>());
+    methods.get(v).add(m);
+  }
+  
+  
+/*  public StringBuilder translate(int indent) {
     StringBuilder translation = new StringBuilder();
     if (publicMethods.size() > 0) {
       translation.append(getIndent(indent) + "public:\n");
@@ -62,5 +70,30 @@ public class ClassBody extends Translatable {
     }
     return translation;
   }
+  
+  public StringBuilder translateHeader(int indent, String name) {
+    StringBuilder translation = new StringBuilder();
+    String ind = getIndent(indent);
+    translation.append(ind + "__" + name + "_VT* __vptr;\n");
+    for (FieldDeclaration field : fields) {
+      translation.append(field.translate(indent).toString() + ";\n");
+    }
+    translation.append("\n");
+    for (MethodDeclaration m : publicMethods) {
+      if (!m.isStatic())
+        translation.append(m.translateHeader(indent,name).toString() + "\n");
+    }
+    return translation;
+  }
+  
+  public StringBuilder translateVT(int indent) {
+    StringBuilder translation = new StringBuilder();
+    return translation;
+  }
+  
+  public StringBuilder translateBody(int indent) {
+    StringBuilder translation = new StringBuilder();
+    return translation;
+  }*/
 
 }

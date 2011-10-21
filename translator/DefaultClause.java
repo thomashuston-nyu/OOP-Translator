@@ -1,0 +1,3 @@
+/**
+ * (VariableDeclaration/ClassDeclaration/InterfaceDeclaration/Statement)*
+ */
