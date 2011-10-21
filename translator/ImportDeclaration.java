@@ -1,26 +1,44 @@
-/*
- * 0 - ?
- * 1 - QualifiedIdentifier
- * 2 - ClassName
- */
 package translator;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class ImportDeclaration {
+/**
+ * Parses an xtc ImportDeclaration node.
+ *
+ * @author Nabil Hassein
+ * @author Thomas Huston
+ * @author Marta Magdalena
+ * @author Mike Morreale
+ *
+ * @version 0.1
+ */
+public class ImportDeclaration extends TranslationVisitor {
 
+  private boolean hasAsterisk;
   private QualifiedIdentifier packageName;
-  private String className;
   
-  public ImportDeclaration(Node n) {
-    if (!n.getName().equals("ImportDeclaration"))
-      throw new RuntimeException("Invalid node type");
-    this.packageName = new QualifiedIdentifier(n.getNode(1));
-    this.className = n.getString(2);
+  /**
+   * Constructs the ImportDeclaration.
+   * 
+   * @param n the ImportDeclaration node.
+   */
+  public ImportDeclaration(GNode n) {
+    if (n.get(2) != null)
+      hasAsterisk = true;
+    else
+      hasAsterisk = false;
+    visit(n);
   }
   
-  public String toString() {
-    return "";
+  /**
+   * Visits a QualifiedIdentifier node and sets it
+   *
+   * @param n the ImportDeclaration node to visit.
+   */
+  public void visitQualifiedIdentifier(GNode n) {
+    this.packageName = new QualifiedIdentifier(n);
   }
 
 }

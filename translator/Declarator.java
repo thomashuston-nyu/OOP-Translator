@@ -1,3 +1,6 @@
+/**
+ * Identifier Dimensions? VariableInitializer?
+ */
 package translator;
 
 import xtc.tree.Node;

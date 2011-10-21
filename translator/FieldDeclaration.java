@@ -1,9 +1,6 @@
-/*
- * 0 - Modifiers
- * 1 - Type
- * 2 - Declarators
+/**
+ * ("final":Word)? Modifiers Type Declarators
  */
-
 package translator;
 
 import xtc.tree.Node;
@@ -25,5 +22,11 @@ public class FieldDeclaration {
   public String toString() {
     return modifiers + " " + type + " " + declarators;
   }
+  
+/*  public StringBuilder translate(int indent) {
+    StringBuilder translation = new StringBuilder(getIndent(indent));
+    translation.append(type.toString() + " " + declarators.toString());
+    return translation;
+  }*/
 
 }

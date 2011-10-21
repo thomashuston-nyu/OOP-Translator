@@ -1,23 +1,44 @@
+/**
+ * ("final":Word)? Modifiers Type null Identifier Dimensions?
+ */
 package translator;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class FormalParameter {
-
+public class FormalParameter extends TranslationVisitor {
+  
+  private boolean isArray;
+  private boolean isFinal;
   private Modifiers modifiers;
-  private Type type;
   private String name;
+  private Type type;
   
   public FormalParameter(Node n) {
-    if (!n.getName().equals("FormalParameter"))
-      throw new RuntimeException("Invalid node type");
-    this.modifiers = new Modifiers(n.getNode(0));
-    this.type = new Type(n.getNode(1));
-    this.name = n.getString(3);
+    isArray = false;
+    isFinal = false;
+    visit(n);
   }
   
-  public String toString() {
-    return this.type + " " + this.name;
+  public void visitDimensions(GNode n) {
+    isArray = true;
+  }
+  
+  public void visitIdentifier(GNode n) {
+    name = n.getString(0);
+  }
+  
+  public void visitModifiers(GNode n) {
+    modifiers = new Modifiers(n);
+  }
+  
+  public void visitType(GNode n) {
+    type = new Type(n);
+  }
+  
+  public void visitWord(GNode n) {
+    isFinal = true;
   }
 
 }

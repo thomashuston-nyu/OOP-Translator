@@ -1,19 +1,22 @@
+/**
+ * Type Type*
+ */
 package translator;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class Extension {
+public class Extension extends TranslationVisitor {
 
   private Type extension;
   
-  public Extension(Node n) {
-    if (!n.getName().equals("Extension"))
-      throw new RuntimeException("Invalid node type");
-    this.extension = new Type(n.getNode(0));
+  public Extension(GNode n) {
+    visit(n);
   }
   
-  public String toString() {
-    return "";
+  public void visitType(GNode n) {
+    this.extension = new Type(n);
   }
 
 }

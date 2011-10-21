@@ -1,3 +1,6 @@
+/**
+ * Type Type*
+ */
 package translator;
 
 import xtc.tree.Node;

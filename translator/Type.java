@@ -1,34 +1,33 @@
+/**
+ * (PrimitiveType/QualifiedIdentifier) Dimensions?
+ */
 package translator;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class Type {
+public class Type extends TranslationVisitor {
   
-  private String type;
   private boolean isArray;
+  private String type;
   
-  public Type(Node n) {
-    if (n.getName() == "VoidType") {
-      this.type = "void";
-      this.isArray = false;
-    } else if (n.getName() == "Type") {
-      this.type = n.getNode(0).getString(0);
-      this.isArray = n.get(1) != null;
-    } else {
-      throw new RuntimeException("Invalid node type");
-    }
+  public Type(GNode n) {
+    visit(n);
   }
   
-  public Type(String type, boolean isArray) {
-    this.type = type;
-    this.isArray = isArray;
+  public void visitDimensions(GNode n) {
+    isArray = true;
   }
   
-  public String toString() {
-    if (isArray)
-      return type + "[]";
-    else
-      return type;
+  public void visitPrimitiveType(GNode n) {
+    type = n.getString(0);
+  }
+  
+  public void visitQualifiedIdentifier(GNode n) {
+    QualifiedIdentifier q = new QualifiedIdentifier(n);
+    type = q.get(0);
+    // TODO correct this to allow for explicit package references (e.g. java.lang.Object)
   }
   
 }

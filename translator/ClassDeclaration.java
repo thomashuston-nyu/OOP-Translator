@@ -1,76 +1,110 @@
-/*
- * 0 - Modifiers
- * 1 - Name
- * 2 - ?
- * 3 - Extends
- * 4 - Implements
- * 5 - ClassBody
- */
-
 package translator;
 
-import java.lang.StringBuilder;
+import java.util.ArrayList;
+import java.util.List;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class ClassDeclaration extends Translatable {
-  private String name;
-  private Scope scope;
+/**
+ * Parses an xtc ClassDeclaration node.
+ *
+ * @author Nabil Hassein
+ * @author Thomas Huston
+ * @author Marta Magdalena
+ * @author Mike Morreale
+ *
+ * @version 0.1
+ */
+public class ClassDeclaration extends TranslationVisitor {
+  
+  private ClassBody body;
+  private Extension extension;
+  private List<Implementation> implementation;
   private boolean isAbstract;
   private boolean isFinal;
-  private Extension extension;
-  private Implementation implementation;
-  private ClassBody body;
-  private String parent;
+  private String name;
+  private Visibility visibility;
   
-  public ClassDeclaration(Node n) {
-    if (!n.getName().equals("ClassDeclaration"))
-      throw new RuntimeException("Invalid node type");
-    this.name = n.getString(1);
-    this.isAbstract = false;
-    this.isFinal = false;
-    modifiers(n);
-    if (n.get(3) != null)
-      this.extension = new Extension(n.getNode(3));
-    else
-      this.extension = null;
-    if (n.get(4) != null)
-      this.implementation = new Implementation(n.getNode(4));
-    else
-      this.implementation = null;
-    this.body = new ClassBody(n.getNode(5));
+  /**
+   * Constructs the ClassDeclaration.
+   * 
+   * @param n the ClassDeclaration node.
+   */
+  public ClassDeclaration(GNode n) {
+    extension = null;
+    implementation = new ArrayList<Implementation>();
+    isAbstract = false;
+    isFinal = false;
+    visit(n);
   }
-
-  private void modifiers(Node n) {
-    Modifiers modifiers = new Modifiers(n.getNode(0));
-    if (modifiers.size() == 0) {
-      scope = Scope.PUBLIC;
-      return;
-    }
-    for (int i = 0; i < modifiers.size(); i++) {
-      Modifier modifier = modifiers.get(i);
-      if (modifier.equals("public")) {
-        scope = Scope.PUBLIC;
-      } else if (modifier.equals("private")) {
-        scope = Scope.PRIVATE;
-      } else if (modifier.equals("protected")) {
-        scope = Scope.PROTECTED;
-      } else if (modifier.equals("final")) {
+  
+  /**
+   * Gets the superclass.
+   *
+   * @return the extension.
+   */
+  public Extension getExtension() {
+    return extension;
+  }
+  
+  /**
+   * Gets the list of implemented interfaces.
+   *
+   * @return the implementation list.
+   */
+  public List<Implementation> getImplementation() {
+    return implementation;
+  }
+  
+  /**
+   * Gets the visibility of the class.
+   *
+   * @return the visibility.
+   */
+  public Visibility getVisibility() {
+    return visibility;
+  }
+  
+  public boolean isAbstract() {
+    return isAbstract;
+  }
+  
+  public boolean isFinal() {
+    return isFinal;
+  }
+  
+  public void visitClassBody(GNode n) {
+    body = new ClassBody(n);
+  }
+  
+  public void visitExtension(GNode n) {
+    extension = new Extension(n);
+  }
+  
+  public void visitIdentifier(GNode n) {
+    name = n.getString(0);
+  }
+  
+  public void visitImplementation(GNode n) {
+    implementation.add(new Implementation(n));
+  }
+  
+  public void visitModifiers(GNode n) {
+    Modifiers modifiers = new Modifiers(n);
+    for (String m : modifiers) {
+      if (m.equals("public"))
+        visibility = Visibility.PUBLIC;
+      else if (m.equals("private"))
+        visibility = Visibility.PRIVATE;
+      else if (m.equals("protected"))
+        visibility = Visibility.PROTECTED;
+      else if (m.equals("final"))
         isFinal = true;
-      } else if (modifier.equals("abstract")) {
+      else if (m.equals("abstract"))
         isAbstract = true;
-      }
     }
-  }
-  
-  public StringBuilder translate(int indent) {
-    StringBuilder translation = new StringBuilder(getIndent(indent));
-    if (isFinal)
-      translation.append("final ");
-    translation.append("class " + name + " {\n");
-    translation.append(body.translate(indent+1));
-    translation.append(getIndent(indent) + "}");
-    return translation;
   }
   
 }

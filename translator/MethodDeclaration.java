@@ -1,22 +1,13 @@
-/*
- * Children of GNode
- * 0 - Modifiers
- * 1 - ?
- * 2 - Type
- * 3 - String name
- * 4 - FormalParameters
- * 5 - ?
- * 6 - ThrowsClause
- * 7 - Body
+/**
+ * Modifiers null (VoidType/Type) Identifier FormalParameters Dimensions? ThrowsClause? Block/null
  */
-
 package translator;
 
 import java.lang.StringBuilder;
 
 import xtc.tree.Node;
 
-public class MethodDeclaration extends Translatable {
+public class MethodDeclaration {
 
   private String name;
   private Type returnType;
@@ -34,15 +25,39 @@ public class MethodDeclaration extends Translatable {
     this.isStatic = false;
     this.name = n.getString(3);
     this.parameters = new FormalParameters(n.getNode(4));
-    modifiers(n);
-    returnType(n);
+    setModifiers(n);
+    setReturnType(n);
+  }
+  
+  public String getName() {
+    return this.name;
+  }
+  
+  public FormalParameters getParameters() {
+    return this.parameters;
+  }
+  
+  public Type getReturnType() {
+    return this.returnType;
   }
   
   public Scope getScope() {
     return this.scope;
   }
   
-  private void modifiers(Node n) {
+  public boolean isAbstract() {
+    return this.isAbstract;
+  }
+  
+  public boolean isFinal() {
+    return this.isFinal;
+  }
+  
+  public boolean isStatic() {
+    return this.isStatic;
+  }
+  
+  private void setModifiers(Node n) {
     Modifiers modifiers = new Modifiers(n.getNode(0));
     if (modifiers.size() == 0) {
       scope = Scope.PRIVATE;
@@ -66,7 +81,7 @@ public class MethodDeclaration extends Translatable {
     }
   }
   
-  public void returnType(Node n) {
+  public void setReturnType(Node n) {
     Node type = n.getNode(2);
     if (type.getName() == "VoidType") {
       returnType = new VoidType();
@@ -75,7 +90,7 @@ public class MethodDeclaration extends Translatable {
     }
   }
   
-  public StringBuilder translate(int indent) {
+/*  public StringBuilder translate(int indent) {
     StringBuilder translation = new StringBuilder(getIndent(indent));
     if (isFinal)
       translation.append("const ");
@@ -90,5 +105,12 @@ public class MethodDeclaration extends Translatable {
     translation.append("}");
     return translation;
   }
-
+  
+  public StringBuilder translateHeader(int indent, String className) {
+    StringBuilder translation = new StringBuilder(getIndent(indent));
+    translation.append("static " + returnType.toString());
+    translation.append(" " + name + "(" + className + ");");
+    return translation;
+  }
+*/
 }

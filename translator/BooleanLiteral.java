@@ -1,0 +1,4 @@
+/**
+ * "true":Word/
+ * "false":Word
+ */
