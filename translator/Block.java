@@ -9,7 +9,7 @@ import xtc.tree.Visitor;
 
 public class Block extends TranslationVisitor { 
   
-  
+  // TODO how to deal with different declaration types
   
   public Block(GNode n) {
     
