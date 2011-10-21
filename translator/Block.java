@@ -7,7 +7,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class Block extends TranslationVisitor { 
+public class Block extends Statement { 
   
   // TODO how to deal with different declaration types
   
@@ -20,10 +20,6 @@ public class Block extends TranslationVisitor {
   }
   
   public void visitInterfaceDeclaration(GNode n) {
-    
-  }
-  
-  public void visitStatement(GNode n) {
     
   }
 

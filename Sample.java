@@ -18,7 +18,11 @@ public class Sample extends Object {
   }
   void test2() {
     if (1 == 1)
-      System.out.println("math");
+      System.out.println("1");
+    else if (2 == 2)
+      System.out.println("2");
+    else
+      System.out.println("3");
   }
   String test3() throws Exception {
     return "";
