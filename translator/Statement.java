@@ -51,51 +51,51 @@ public class Statement extends TranslationVisitor {
   }
   
   public void visitBlock(GNode n) {
-    
+    block = new Block(n);
   }
   
   public void visitBreakStatement(GNode n) {
-    
+    breakStatement = new BreakStatement(n);
   }
   
   public void visitConditionalStatement(GNode n) {
-    
+    conditional = new ConditionalStatement(n);
   }
   
   public void visitContinueStatement(GNode n) {
-    
+    continueStatement = new ContinueStatement(n);
   }
   
   public void visitDoWhileStatement(GNode n) {
-    
+    doWhile = new DoWhileStatement(n);
   }
   
   public void visitExpressionStatement(GNode n) {
-    
+    exp = new ExpressionStatement(n);
   }
   
   public void visitForStatement(GNode n) {
-    
+    forStatement = new ForStatement(n);
   }
   
   public void visitReturnStatement(GNode n) {
-    
+    returnStatement = new ReturnStatement(n);
   }
   
   public void visitSwitchStatement(GNode n) {
-    
+    switchStatement = new SwitchStatement(n);
   }
   
   public void visitThrowStatement(GNode n) {
-    
+    throwStatement = new ThrowStatement(n);
   }
   
   public void visitTryCatchFinallyStatement(GNode n) {
-    
+    tryCatch = new TryCatchFinallyStatement(n);
   }
   
   public void visitWhileStatement(GNode n) {
-    
+    whileStatement = new WhileStatement(n);
   }
   
 }
