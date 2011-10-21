@@ -15,10 +15,6 @@ public class Block extends TranslationVisitor {
     
   }
   
-  public void visitClassDeclaration(GNode n) {
-    // Nested class
-  }
-  
   public void visitFieldDeclaration(GNode n) {
     
   }

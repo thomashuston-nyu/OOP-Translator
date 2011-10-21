@@ -3,30 +3,36 @@
  */
 package translator;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class FieldDeclaration {
-
+public class FieldDeclaration extends TranslationVisitor {
+  
+  private boolean isFinal;
   private Modifiers modifiers;
   private Type type;
   private Declarators declarators;
   
-  public FieldDeclaration(Node n) {
-    if (!n.getName().equals("FieldDeclaration"))
-      throw new RuntimeException("Invalid node type");
-    this.modifiers = new Modifiers(n.getNode(0));
-    this.type = new Type(n.getNode(1));
-    this.declarators = new Declarators(n.getNode(2));
+  public FieldDeclaration(GNode n) {
+    isFinal = false;
+    visit(n);
   }
   
-  public String toString() {
-    return modifiers + " " + type + " " + declarators;
+  public void visitDeclarators(GNode n) {
+    declarators = new Declarators(n);
   }
   
-/*  public StringBuilder translate(int indent) {
-    StringBuilder translation = new StringBuilder(getIndent(indent));
-    translation.append(type.toString() + " " + declarators.toString());
-    return translation;
-  }*/
+  public void visitModifiers(GNode n) {
+    modifiers = new Modifiers(n);
+  }
+  
+  public void visitType(GNode n) {
+    type = new Type(n);
+  }
+  
+  public void visitWord(GNode n) {
+    isFinal = true;
+  }
 
 }
