@@ -32,7 +32,20 @@ import xtc.tree.Node;
 import xtc.tree.Visitor;
 
 public class Statement extends TranslationVisitor {
-
+  
+  private Block block;
+  private BreakStatement breakStatement;
+  private ConditionalStatement conditional;
+  private ContinueStatement continueStatement;
+  private DoWhileStatement doWhile;
+  private ExpressionStatement exp;
+  private ForStatement forStatement;
+  private ReturnStatement returnStatement;
+  private SwitchStatement switchStatement;
+  private ThrowStatement throwStatement;
+  private TryCatchFinallyStatement tryCatch;
+  private WhileStatement whileStatement;
+  
   public Statement(GNode n) {
     
   }
