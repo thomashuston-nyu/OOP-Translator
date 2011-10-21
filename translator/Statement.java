@@ -1,19 +1,27 @@
 /**
  * Parent of:
  * Block
+ 
+ // Mike
  * ConditionalStatement
  * ForStatement
  * WhileStatement
+ 
+ // Susana
  * DoWhileStatement
  * TryCatchFinallyStatement
  * SwitchStatement
- * SynchronizedStatement
+ 
+ // Marta
  * ReturnStatement
  * ThrowStatement
  * BreakStatement
+ 
+ // Thomas
  * ContinueStatement
- * LabeledStatement
  * ExpressionStatement
- * AssertStatement
- * EmptyStatement
+ 
+ * LabeledStatement             // LOW PRIORITY
+ * AssertStatement              // LOW PRIORITY
+ * EmptyStatement               // NOTHING TO DO
  */
