@@ -3,17 +3,74 @@
  */
 package translator;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class ConditionalStatement {
+public class ConditionalStatement extends TranslationVisitor {
+  private Expression expression;
+  private Statement ifStatement;
+  private Statement elseStatement;
 
-  public ConditionalStatement(Node n) {
-    if (!n.getName().equals("ConditionalStatement"))
-      throw new RuntimeException("Invalid node type");
+  public Block(GNode n) {
+    ifStatement = null;
+    elseStatement = null;
+    visit(n);
+  }
+
+  public void visitExpression(GNode n) {
+    expression = new Expression(n);
+  }
+
+  public void visitBreakStatement(GNode n) {
+    statement = new BreakStatement(n);
   }
   
-  public String toString() {
-    return "";
+  public void visitConditionalStatement(GNode n) {
+    setStatement(new ConditionalStatement(n));
   }
   
+  public void visitContinueStatement(GNode n) {
+    setStatement(new ContinueStatement(n));
+  }
+  
+  public void visitDoWhileStatement(GNode n) {
+    setStatement(new DoWhileStatement(n));
+  }
+  
+  public void visitExpressionStatement(GNode n) {
+    setStatement(new ExpressionStatement(n));
+  }
+  
+  public void visitForStatement(GNode n) {
+    setStatement(new ForStatement(n));
+  }
+  
+  public void visitReturnStatement(GNode n) {
+    setStatement(new ReturnStatement(n));
+  }
+  
+  public void visitSwitchStatement(GNode n) {
+    setStatement(new SwitchStatement(n));
+  }
+  
+  public void visitThrowStatement(GNode n) {
+    setStatement(new ThrowStatement(n));
+  }
+  
+  public void visitTryCatchFinallyStatement(GNode n) {
+    setStatement(new TryCatchFinallyStatement(n));
+  }
+  
+  public void visitWhileStatement(GNode n) {
+    setStatement(new WhileStatement(n));
+  }
+
+  private void setStatement(Statement s) {    
+    if (ifStatement == null) {
+      ifStatement = s;
+    } else {
+      elseStatement = s;
+    }
+  }
 }
