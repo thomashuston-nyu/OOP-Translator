@@ -11,7 +11,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class ExpressionList {
+public class ExpressionList extends TranslationVisitor {
 
   private List<Expression> expression;
 
