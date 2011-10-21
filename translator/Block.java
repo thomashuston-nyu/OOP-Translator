@@ -7,9 +7,11 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class Block extends Statement { 
+public class Block extends TranslationVisitor {
   
-  // TODO how to deal with different declaration types
+  
+  private FieldDeclaration field;
+  private InterfaceDeclaration inter;
   
   public Block(GNode n) {
     
