@@ -7,7 +7,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class ThrowStatement extends TranslationVisitor { 
+public class ThrowStatement extends Statement { 
   private Expression expression;
   
   public ThrowStatement(GNode n) {
@@ -15,7 +15,7 @@ public class ThrowStatement extends TranslationVisitor {
     visit(n);
   }
   
-  public void visitExpression(Gnode n) {
+  public void visitExpression(GNode n) {
     expression = new Expression(n);
   }  
 }

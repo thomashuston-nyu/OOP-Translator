@@ -40,7 +40,11 @@ public class QualifiedIdentifier extends TranslationVisitor implements Iterable<
    * @return the identifier at the specific index.
    */
   public String get(int index) {
-    return identifiers.get(index);
+    int size = identifiers.size();
+    if (index >= 0 && index < size)
+      return identifiers.get(index);
+    else
+      return null;
   }
   
   /**

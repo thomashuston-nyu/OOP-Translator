@@ -7,12 +7,13 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class ConditionalStatement extends TranslationVisitor {
+public class ConditionalStatement extends Statement {
+  
   private Expression expression;
   private Statement ifStatement;
   private Statement elseStatement;
 
-  public Block(GNode n) {
+  public ConditionalStatement(GNode n) {
     ifStatement = null;
     elseStatement = null;
     visit(n);
@@ -23,7 +24,7 @@ public class ConditionalStatement extends TranslationVisitor {
   }
 
   public void visitBreakStatement(GNode n) {
-    statement = new BreakStatement(n);
+    setStatement(new BreakStatement(n));
   }
   
   public void visitConditionalStatement(GNode n) {

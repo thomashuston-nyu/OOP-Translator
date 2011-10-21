@@ -16,7 +16,7 @@ public class SwitchStatement extends Statement {
   private Expression expression;
   private List<SwitchClause> switchClause;
  
-  public SwitchStatement() {
+  public SwitchStatement(GNode n) {
     switchClause = new ArrayList<SwitchClause>();
     visit(n);
   }

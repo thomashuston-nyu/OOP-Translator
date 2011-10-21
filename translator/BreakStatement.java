@@ -7,7 +7,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class BreakStatement extends TranslationVisitor { 
+public class BreakStatement extends Statement { 
   private String identifier;
   
   public BreakStatement(GNode n) {
@@ -15,7 +15,7 @@ public class BreakStatement extends TranslationVisitor {
     visit(n);
   }
   
-  public void visitIdentifier(Gnode n) {
+  public void visitIdentifier(GNode n) {
     identifier = n.getString(0);
   }
 }

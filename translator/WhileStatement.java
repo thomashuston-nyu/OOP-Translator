@@ -3,11 +3,13 @@
  */
 package translator;
 
-import java.tree.GNode;
-import java.tree.Node;
-import java.tree.Visitor;
+import xtc.tree.GNode;
+import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class WhileStatement extends TranslationVisitor {
+public class WhileStatement extends Statement {
+  
+  private Expression expression;
   private Statement statement;
 
   public WhileStatement(GNode n) {
