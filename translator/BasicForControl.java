@@ -2,7 +2,7 @@
  * (VariableModifiers Type Declarators Expression? ExpressionList?)/
  * (null null ExpressionList? Expression? ExpressionList?)
  */
-package translator
+package translator;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;

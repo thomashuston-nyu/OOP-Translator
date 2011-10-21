@@ -1,13 +1,15 @@
 /**
  * BasicForControl Statement
  */
-import translator;
+package translator;
 
-import java.tree.GNode;
-import java.tree.Node;
-import java.tree.Visitor;
+import xtc.tree.GNode;
+import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class ForStatement extends TranslationVisitor {
+public class ForStatement extends Statement {
+  
+  private BasicForControl basicForControl;
   private Statement statement;
 
   public ForStatement(GNode n) {

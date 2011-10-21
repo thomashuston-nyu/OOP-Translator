@@ -3,20 +3,24 @@
  */
 package translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class Implementation {
+public class Implementation extends TranslationVisitor {
 
-  private Type implementation;
+  private List<Type> implementation;
   
-  public Implementation(Node n) {
-    if (!n.getName().equals("Implementation"))
-      throw new RuntimeException("Invalid node type");
-    this.implementation = new Type(n.getNode(0));
+  public Implementation(GNode n) {
+    implementation = new ArrayList<Type>();
+    visit(n);
   }
   
-  public String toString() {
-    return "";
+  public void visitType(GNode n) {
+    implementation.add(new Type(n));
   }
 
 }

@@ -34,7 +34,6 @@ public class Sample extends Object {
     return new String[3];
   }
   public static void main(String[] args) {
-
   }
   public int compareTo(Object o) {
     return 0;

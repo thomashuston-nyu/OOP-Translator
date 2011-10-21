@@ -32,17 +32,15 @@ public class ConstructorDeclaration extends TranslationVisitor {
     name = n.getString(0);
   }
   
-  public void visitMethodDeclaration(GNode n) {
-    public void visitModifiers(GNode n) {
-      Modifiers modifiers = new Modifiers(n);
-      for (String m : modifiers) {
-        if (m.equals("public"))
-          visibility = Visibility.PUBLIC;
-        else if (m.equals("private"))
-          visibility = Visibility.PRIVATE;
-        else if (m.equals("protected"))
-          visibility = Visibility.PROTECTED;
-      }
+  public void visitModifiers(GNode n) {
+    Modifiers modifiers = new Modifiers(n);
+    for (String m : modifiers) {
+      if (m.equals("public"))
+        visibility = Visibility.PUBLIC;
+      else if (m.equals("private"))
+        visibility = Visibility.PRIVATE;
+      else if (m.equals("protected"))
+        visibility = Visibility.PROTECTED;
     }
   }
   

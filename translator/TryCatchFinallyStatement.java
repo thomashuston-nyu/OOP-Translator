@@ -10,7 +10,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class TryCatchFinallyStatement extends TranslationVisitor {
+public class TryCatchFinallyStatement extends Statement {
   private Block tryBlock;
   private Block finallyBlock;
   private List<CatchClause> catchClause;

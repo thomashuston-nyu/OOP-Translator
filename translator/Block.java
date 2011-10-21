@@ -44,7 +44,7 @@ public class Block extends Statement {
   }
   
   public void visitFieldDeclaration(GNode n) {
-    field = 
+    field = new FieldDeclaration(n);
   }
   
   public void visitForStatement(GNode n) {

@@ -58,6 +58,10 @@ public class ClassDeclaration extends TranslationVisitor {
     return implementation;
   }
   
+  public String getName() {
+    return name;
+  }
+  
   /**
    * Gets the visibility of the class.
    *

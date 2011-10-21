@@ -3,6 +3,8 @@
  */
 package translator;
 
+import java.lang.StringBuilder;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,8 +35,9 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n the CompilationUnit node.
    */
   public CompilationUnit(GNode n) {
-    this.classes = new HashMap<Visibility, List<ClassDeclaration>>();
-    this.imports = new ArrayList<ImportDeclaration>();
+    classes = new HashMap<Visibility, List<ClassDeclaration>>();
+    imports = new ArrayList<ImportDeclaration>();
+    pkg = null;
     visit(n);
   }
   
@@ -47,7 +50,7 @@ public class CompilationUnit extends TranslationVisitor {
    */
   public List<ClassDeclaration> getClasses(Visibility v) {
     if (classes.containsKey(v))
-      return this.classes.get(v);
+      return classes.get(v);
     else
       return null;
   }
@@ -58,7 +61,7 @@ public class CompilationUnit extends TranslationVisitor {
    * @return a list of all imports.
    */
   public List<ImportDeclaration> getImports() {
-    return this.imports;
+    return imports;
   }
   
   /**
@@ -67,7 +70,7 @@ public class CompilationUnit extends TranslationVisitor {
    * @return the package.
    */
   public PackageDeclaration getPackage() {
-    return this.pkg;
+    return pkg;
   }
   
   /**
@@ -91,7 +94,7 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n the ImportDeclaration node to visit.
    */
   public void visitImportDeclaration(GNode n) {
-    this.imports.add(new ImportDeclaration(n));
+    imports.add(new ImportDeclaration(n));
   }
   
   /**
@@ -101,7 +104,28 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n the PackageDeclaration node to visit.
    */
   public void visitPackageDeclaration(GNode n) {
-    this.pkg = new PackageDeclaration(n);
+    pkg = new PackageDeclaration(n);
+  }
+  
+  
+  // TRANSLATION METHODS
+  
+  public StringBuilder getCC() {
+    String indent = "";
+    StringBuilder s = new StringBuilder();
+    s.append("#include <iostream>\n#include<sstream>\n\n");
+    s.append("#include \"java/java_lang.h\"\n\n");
+    // other imports
+    s.append("using namespace java::lang;\n\n");
+    if (pkg != null) {
+//      s.append("namespace " + pkg.getCC() + "{\n");
+      indent += "  ";
+    }
+    
+    if (pkg != null) {
+      s.append("}");
+    }
+    return s;
   }
 
 }

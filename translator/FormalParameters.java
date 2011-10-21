@@ -21,7 +21,7 @@ public class FormalParameters extends TranslationVisitor implements Iterable<For
   }
   
   public FormalParameter get(int index) {
-    return paremeters.get(index);
+    return parameters.get(index);
   }
   
   public Iterator<FormalParameter> iterator() {
