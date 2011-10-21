@@ -2,7 +2,6 @@
  * (LogicalOrExpression LogicalAndExpression)/
  * yyValue:LogicalAndExpression
  */
-
 package translator;
 
 import xtc.tree.GNode;
@@ -14,16 +13,16 @@ public class LogicalOrExpression extends TranslationVisitor {
   private LogicalOrExpression logicalOrExpression;
   private LogicalAndExpression logicalAndExpression;
 
-  public LogicalOrExpression() {
+  public LogicalOrExpression(GNode n) {
     visit(n);
   }
 
   public void visitLogicalOrExpression(GNode n) {
-    logicalOrExpression = new LogicalOrExpression();
+    logicalOrExpression = new LogicalOrExpression(n);
   }
 
   public void visitLogicalAndExpression(GNode n) {
-    logicalAndExpression = new LogicalAndExpression();
+    logicalAndExpression = new LogicalAndExpression(n);
   }
 
 }
