@@ -23,6 +23,14 @@ public class FieldDeclaration extends Declaration {
     visit(n);
   }
   
+  public String getDeclaration() {
+    String declaration = type.getType() + " " + declarators.get(0).getName();
+    if (type.isArray()) {
+      declaration += "[]";
+    }
+    return declaration;
+  }
+
   public String getName() {
     Declarator d = declarators.get(0);
     return d.getName();
