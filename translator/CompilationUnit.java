@@ -111,15 +111,16 @@ public class CompilationUnit extends TranslationVisitor {
   
   public String getCC(int indent) {
     StringBuilder s = new StringBuilder();
-    int indentSize = indent;
-    String in = getIndent(indentSize);
+    String in = getIndent(indent);
+    s.append("#pragma once\n\n");
     s.append("#include <iostream>\n#include <sstream>\n\n");
     s.append("#include \"../java/java_lang.h\"\n\n");
     // other imports
     s.append("using namespace java::lang;\n\n");
     if (pkg != null) {
-      in = getIndent(++indentSize);
-      s.append("namespace " + pkg.getCC() + " {\n\n");
+      s.append(pkg.getNamespace(indent));
+      indent += pkg.size();
+      in = getIndent(indent);
     }
     List<ClassDeclaration> l = classes.get(Visibility.PUBLIC);
     if (l != null) {
@@ -128,8 +129,9 @@ public class CompilationUnit extends TranslationVisitor {
         s.append(in + "struct __" + className + ";\n");
         s.append(in + "struct __" + className + "_VT;\n\n");
         s.append(in + "typedef __" + className + "* " + className + ";\n\n");
-        s.append(c.getHeaderStruct(indentSize));
-        s.append(c.getHeaderVTStruct(indentSize));
+        s.append(c.getHeaderStruct(indent));
+        s.append("\n");
+        s.append(c.getHeaderVTStruct(indent));
       }
     }
     if (pkg != null) {

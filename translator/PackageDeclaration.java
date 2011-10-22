@@ -40,6 +40,21 @@ public class PackageDeclaration extends TranslationVisitor {
     return pkg;
   }
   
+  public String getNamespace(int indent) {
+    StringBuilder s = new StringBuilder();
+    String in = getIndent(indent);
+    int size = pkg.size();
+    for (int i = 0; i < size; i++) {
+      s.append(in + "namespace " + pkg.get(i) + " {\n");
+      in = getIndent(++indent);
+    }
+    return s.toString();
+  }
+  
+  public int size() {
+    return pkg.size();
+  }
+  
   public String getCC() {
     StringBuilder s = new StringBuilder();
     int size = pkg.size();
