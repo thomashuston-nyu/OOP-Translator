@@ -18,7 +18,11 @@ public class WhileStatement extends Statement {
   public void visitExpression(GNode n) {
     expression = new Expression(n);
   }
-  
+
+  public void visitAssertStatement(GNode n) {
+    statement = new AssertStatement(n);
+  }
+
   public void visitBreakStatement(GNode n) {
     statement = new BreakStatement(n);
   }
@@ -51,6 +55,10 @@ public class WhileStatement extends Statement {
     statement = new SwitchStatement(n);
   }
   
+  public void visitSynchronizedStatement(GNode n) {
+    statement = new SynchronizedStatement(n);    
+  }
+
   public void visitThrowStatement(GNode n) {
     statement = new ThrowStatement(n);
   }
