@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 import xtc.tree.GNode;
-import xtc.tree.Node;
 import xtc.tree.Visitor;
 
 // TODO: Add visitAssertStatement method to other classes
