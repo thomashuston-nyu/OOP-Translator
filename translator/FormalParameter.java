@@ -34,6 +34,10 @@ public class FormalParameter extends TranslationVisitor {
     return s;
   }
 
+  public String getType() {
+    return type.getType();
+  }
+
   public void visitDimensions(GNode n) {
     isArray = true;
   }
