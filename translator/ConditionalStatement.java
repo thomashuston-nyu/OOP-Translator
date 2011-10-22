@@ -17,9 +17,9 @@ public class ConditionalStatement extends Statement {
     elseStatement = null;
     visit(n);
   }
-
-  public void visitExpression(GNode n) {
-    expression = new Expression(n);
+  
+  public void visitAssertStatement(GNode n) {
+    setStatement(new AssertStatement(n));
   }
 
   public void visitBreakStatement(GNode n) {
@@ -38,6 +38,10 @@ public class ConditionalStatement extends Statement {
     setStatement(new DoWhileStatement(n));
   }
   
+  public void visitExpression(GNode n) {
+    expression = new Expression(n);
+  }
+  
   public void visitExpressionStatement(GNode n) {
     setStatement(new ExpressionStatement(n));
   }
@@ -52,6 +56,10 @@ public class ConditionalStatement extends Statement {
   
   public void visitSwitchStatement(GNode n) {
     setStatement(new SwitchStatement(n));
+  }
+  
+  public void visitSynchronizedStatement(GNode n) {
+    setStatement(new SynchronizedStatement(n));
   }
   
   public void visitThrowStatement(GNode n) {

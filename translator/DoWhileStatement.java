@@ -22,6 +22,10 @@ public class DoWhileStatement extends Statement {
     expression = new Expression(n);
   }
 
+  public void visitAssertStatement(GNode n) {
+    statement = new AssertStatement(n);
+  }
+
   public void visitBlock(GNode n) {
     statement = new Block(n);
   }
@@ -57,6 +61,10 @@ public class DoWhileStatement extends Statement {
   public void visitSwitchStatement(GNode n) {
     statement = new SwitchStatement(n);
   }
+
+  public void visitSynchronizedStatement(GNode n) {
+    statement = new SynchronizedStatement(n);
+  }
   
   public void visitThrowStatement(GNode n) {
     statement = new ThrowStatement(n);
@@ -69,5 +77,5 @@ public class DoWhileStatement extends Statement {
   public void visitWhileStatement(GNode n) {
     statement = new WhileStatement(n);
   }
-  
+
 }

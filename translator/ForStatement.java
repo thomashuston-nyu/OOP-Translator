@@ -15,6 +15,10 @@ public class ForStatement extends Statement {
     visit(n);
   }
 
+  public void visitAssesrtStatement(GNode n) {
+    statement = new AssertStatement(n);
+  }
+
   public void visitBasicForControl(GNode n) {
     basicForControl = new BasicForControl(n);
   }
@@ -49,6 +53,10 @@ public class ForStatement extends Statement {
   
   public void visitSwitchStatement(GNode n) {
     statement = new SwitchStatement(n);
+  }
+
+  public void visitSynchronizedStatement(GNode n) {
+    statement = new SynchronizedStatement(n);
   }
   
   public void visitThrowStatement(GNode n) {
