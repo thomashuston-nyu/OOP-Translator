@@ -120,7 +120,7 @@ public class ClassDeclaration extends Declaration {
       List<FieldDeclaration> fields = body.getFields(v);
       if (fields != null) {
         for (FieldDeclaration f : fields) {
-          s.append(in + " there's a field here;\n");
+          s.append(in + f.getDeclaration() + ";\n");
         }
       }
     }
