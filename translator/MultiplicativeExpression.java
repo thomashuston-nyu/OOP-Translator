@@ -8,6 +8,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class MultiplicativeExpression extends TranslationVisitor {
+  
   private MultiplicativeExpression multiplicativeExpression;
   private String multiplicativeOperator;
   private UnaryExpression unaryExpression;

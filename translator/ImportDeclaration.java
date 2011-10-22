@@ -8,7 +8,7 @@ import xtc.tree.Visitor;
  *
  * @author Nabil Hassein
  * @author Thomas Huston
- * @author Marta Magdalena
+ * @author Marta Wilgan
  * @author Mike Morreale
  *
  * @version 0.1

@@ -1,5 +1,5 @@
 /**
- * Expression (VariableDeclaration/ClassDeclaration/InterfaceDeclaration/Statement)*
+ * Expression (FieldDeclaration/ClassDeclaration/InterfaceDeclaration/Statement)*
  */
 package translator;
 
@@ -12,12 +12,13 @@ import xtc.tree.Visitor;
 public class CaseClause extends TranslationVisitor {
 
   private Expression expression;
-  private List<VariableDeclaration> variable;
+  private List<Type> fields;
   private List<InterfaceDeclaration> interfaceDec;
   private List<Statement> statement;
   
   public CaseClause(GNode n) {
-    variable = new ArrayList<VariableDeclaration>();
+    isFinal = new ArrayList<boolean>();
+    fields = new ArrayList<FieldDeclaration>();
     interfaceDec = new ArrayList<InterfaceDeclaration>();
     statement = new ArrayList<Statement>();
     visit(n);
@@ -47,6 +48,10 @@ public class CaseClause extends TranslationVisitor {
     statement.add(new ExpressionStatement(n));
   }
   
+  public void visitFieldDeclaration(GNode n) {
+    fields.add(new FieldDeclaration(n));
+  }
+  
   public void visitForStatement(GNode n) {
     statement.add(new ForStatement(n));
   }
@@ -69,10 +74,6 @@ public class CaseClause extends TranslationVisitor {
   
   public void visitTryCatchFinallyStatement(GNode n) {
     statement.add(new TryCatchFinallyStatement(n));
-  }
-  
-  public void visitVariableDeclaration(GNode n) {
-    variable.add(new VariableDeclaration(n));
   }
   
   public void visitWhileStatement(GNode n) {

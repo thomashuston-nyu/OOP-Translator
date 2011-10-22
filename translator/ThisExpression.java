@@ -6,7 +6,8 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ThisExpression extends TranslationVisitor {
+public class ThisExpression extends PrimaryExpression {
+  
   private QualifiedIdentifier qualifiedIdentifier;
 
   public ThisExpression(GNode n) {

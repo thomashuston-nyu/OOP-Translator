@@ -6,7 +6,7 @@ package translator;
 
 import xtc.tree.GNode;
 
-public class BooleanLiteral {
+public class BooleanLiteral extends PrimaryExpression {
   private boolean value;
 
   public BooleanLiteral(GNode n) {

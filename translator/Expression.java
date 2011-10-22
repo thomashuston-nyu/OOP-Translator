@@ -7,7 +7,8 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class Expression extends TranslationVisitor {
+public class Expression extends PrimaryExpression {
+  
   private ConditionalExpression conditionalExpression;
   private String assignmentOperator;
   private Expression expression;
