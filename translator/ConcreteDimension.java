@@ -13,7 +13,7 @@ public class ConcreteDimension extends TranslationVisitor {
     visit(n);
   }
 
-  public visitExpression(GNode n) {
+  public void visitExpression(GNode n) {
     expression = new Expression(n);
   }
 }
