@@ -16,6 +16,7 @@ public class ConstructorDeclaration extends Declaration {
   
   public ConstructorDeclaration(GNode n) {
     throwsClause = null;
+    name = n.getString(2);
     visit(n);
   }
   
@@ -25,10 +26,6 @@ public class ConstructorDeclaration extends Declaration {
   
   public void visitFormalParameters(GNode n) {
     parameters = new FormalParameters(n);
-  }
-  
-  public void visitIdentifier(GNode n) {
-    name = n.getString(0);
   }
   
   public void visitModifiers(GNode n) {
