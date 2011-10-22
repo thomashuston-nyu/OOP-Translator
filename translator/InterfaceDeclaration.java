@@ -7,7 +7,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class InterfaceDeclaration extends TranslationVisitor {
+public class InterfaceDeclaration extends Declaration {
   
   private String name;
   private Extension extension;

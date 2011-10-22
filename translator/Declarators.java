@@ -34,7 +34,8 @@ public class Declarators extends TranslationVisitor implements Iterable<Declarat
   }
   
   public void visitDeclarator(GNode n) {
-    declarators.add(new Declarator(n));
+    if (n != null)
+      declarators.add(new Declarator(n));
   }
 
 }

@@ -7,7 +7,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class ConstructorDeclaration extends TranslationVisitor {
+public class ConstructorDeclaration extends Declaration {
   
   private Block body;
   private String name;

@@ -18,7 +18,7 @@ import xtc.tree.Visitor;
  *
  * @version 0.1
  */
-public class QualifiedIdentifier extends TranslationVisitor implements Iterable<String> {
+public class QualifiedIdentifier implements Iterable<String> {
   
   private List<String> identifiers;
   
@@ -29,7 +29,10 @@ public class QualifiedIdentifier extends TranslationVisitor implements Iterable<
    */
   public QualifiedIdentifier(GNode n) {
     identifiers = new ArrayList<String>();
-    visit(n);
+    int size = n.size();
+    for (int i = 0; i < size; i++) {
+      identifiers.add(n.getString(i));
+    }
   }
   
   /**
@@ -64,16 +67,6 @@ public class QualifiedIdentifier extends TranslationVisitor implements Iterable<
    */
   public int size() {
     return identifiers.size();
-  }
-  
-  /**
-   * Visits an Identifier node and adds it
-   * to the identifiers list.
-   *
-   * @param n the Identifier node to visit.
-   */
-  public void visitIdentifier(GNode n) {
-    identifiers.add(n.getString(0));
   }
   
 }

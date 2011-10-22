@@ -1,5 +1,7 @@
 package translator;
 
+import java.lang.StringBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +14,7 @@ import xtc.tree.Visitor;
  *
  * @author Nabil Hassein
  * @author Thomas Huston
- * @author Marta Magdalena
+ * @author Marta Wilgan
  * @author Mike Morreale
  *
  * @version 0.1
@@ -36,7 +38,18 @@ public class PackageDeclaration extends TranslationVisitor {
    * @return the package.
    */
   public QualifiedIdentifier getPackage() {
-    return this.pkg;
+    return pkg;
+  }
+  
+  public String getCC() {
+    StringBuilder s = new StringBuilder();
+    int size = pkg.size();
+    for (int i = 0; i < size; i++) {
+      s.append(pkg.get(i));
+      if (i < size - 1)
+        s.append("::");
+    }
+    return s.toString();
   }
   
   /**
@@ -46,7 +59,7 @@ public class PackageDeclaration extends TranslationVisitor {
    * @param n the QualifiedIdentifier node to visit.
    */
   public void visitQualifiedIdentifier(GNode n) {
-    this.pkg = new QualifiedIdentifier(n);
+    pkg = new QualifiedIdentifier(n);
   }
 
 }

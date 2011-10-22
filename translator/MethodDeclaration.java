@@ -9,7 +9,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class MethodDeclaration extends TranslationVisitor {
+public class MethodDeclaration extends Declaration {
 
   private String name;
   private Type returnType;
@@ -23,6 +23,7 @@ public class MethodDeclaration extends TranslationVisitor {
     isAbstract = false;
     isFinal = false;
     isStatic = false;
+    visibility = Visibility.PRIVATE;
     name = n.getString(3);
     visit(n);
   }

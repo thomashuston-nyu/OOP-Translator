@@ -110,22 +110,27 @@ public class CompilationUnit extends TranslationVisitor {
   
   // TRANSLATION METHODS
   
-  public StringBuilder getCC() {
-    String indent = "";
+  public String getCC(String indent) {
     StringBuilder s = new StringBuilder();
-    s.append("#include <iostream>\n#include<sstream>\n\n");
+    s.append("#include <iostream>\n#include <sstream>\n\n");
     s.append("#include \"java/java_lang.h\"\n\n");
     // other imports
     s.append("using namespace java::lang;\n\n");
     if (pkg != null) {
-//      s.append("namespace " + pkg.getCC() + "{\n");
+      s.append("namespace " + pkg.getCC() + " {\n\n");
       indent += "  ";
     }
-    
-    if (pkg != null) {
-      s.append("}");
+    for (ClassDeclaration c : classes.get(Visibility.PUBLIC)) {
+      String className = c.getName();
+      s.append(indent + "struct __" + className + ";\n");
+      s.append(indent + "struct __" + className + "_VT;\n\n");
+      s.append(indent + "typedef __" + className + "* " + className + ";\n\n");
+      s.append(c.getCC(indent));
     }
-    return s;
+    if (pkg != null) {
+      s.append("\n}");
+    }
+    return s.toString();
   }
 
 }
