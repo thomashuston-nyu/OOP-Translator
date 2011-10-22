@@ -11,11 +11,11 @@ import xtc.tree.Visitor;
 
 public class ClassBody extends TranslationVisitor {
   
-  private List<FieldDeclaration> fields;
+  private Map<Visibility, List<FieldDeclaration>> fields;
   private Map<Visibility, List<MethodDeclaration>> methods;
   
   public ClassBody(GNode n) {
-    fields = new ArrayList<FieldDeclaration>();
+    fields = new HashMap<Visibility, List<FieldDeclaration>>();
     methods = new HashMap<Visibility, List<MethodDeclaration>>();
   }
   
@@ -32,7 +32,11 @@ public class ClassBody extends TranslationVisitor {
   }
   
   public void visitFieldDeclaration(GNode n) {
-    fields.add(new FieldDeclaration(n));
+    FieldDeclaration f = new FieldDeclaration(n);
+    Visibility v = f.getVisibility();
+    if (!fields.containsKey(v))
+      fields.put(v, new ArrayList<FieldDeclaration>());
+    fields.get(v).add(f);
   }
   
   public void visitInterfaceDeclaration(GNode n) {
@@ -45,6 +49,20 @@ public class ClassBody extends TranslationVisitor {
     if (!methods.containsKey(v))
       methods.put(v, new ArrayList<MethodDeclaration>());
     methods.get(v).add(m);
+  }
+  
+  public List<FieldDeclaration> getFields(Visibility v) {
+    if (fields.containsKey(v))
+      return fields.get(v);
+    else
+      return null;
+  }
+  
+  public List<MethodDeclaration> getMethods(Visibility v) {
+    if (methods.containsKey(v))
+      return methods.get(v);
+    else
+      return null;
   }
   
   

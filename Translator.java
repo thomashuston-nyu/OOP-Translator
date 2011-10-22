@@ -24,6 +24,8 @@ import java.io.Reader;
 
 import translator.*;
 
+import java.lang.StringBuilder;
+
 import xtc.parser.ParseException;
 import xtc.parser.Result;
 
@@ -75,6 +77,7 @@ public class Translator extends xtc.util.Tool {
     
     if (runtime.test("translateJava")) {
       CompilationUnit unit = new CompilationUnit((GNode)node);
+      runtime.console().p(unit.getCC("")).pln().flush();
 //      new Visitor() {
 //        private File file;
 //        

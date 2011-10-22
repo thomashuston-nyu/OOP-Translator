@@ -1,28 +1,21 @@
 /**
- * Identifier Dimensions? VariableInitializer?
+ * Identifier Dimensions? (ArrayInitializer/Expression)?
  */
 package translator;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Visitor;
 
-public class Declarator {
+public class Declarator extends TranslationVisitor {
   
-  private String[] declarators;
+  private String name;
   
-  public Declarator(Node n) {
-    if (!n.getName().equals("Declarator"))
-      throw new RuntimeException("Invalid node type");
-    this.declarators = new String[3];
-    for (int i = 0; i < 3; i++) {
-      if (n.get(i) != null)
-        this.declarators[i] = n.getString(i);
-      else
-        this.declarators[i] = null;
-    }
+  public Declarator(GNode n) {
+    name = n.getString(0);
+    visit(n);
   }
   
-  public String toString() {
-    return declarators[0];
-  }
+  
   
 }

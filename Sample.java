@@ -9,8 +9,10 @@ public class Sample extends Object {
   private String string1;
   public Object o1;
   
-  protected Sample() {
-    
+  public Sample() {
+    int[] test = new int[5];
+    test[3] = 2;
+    System.out.println(test[3]);
   }
   
   int test() {

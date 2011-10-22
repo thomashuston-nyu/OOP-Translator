@@ -1,5 +1,7 @@
 package translator;
 
+import java.lang.StringBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,7 @@ import xtc.tree.Visitor;
  *
  * @version 0.1
  */
-public class ClassDeclaration extends TranslationVisitor {
+public class ClassDeclaration extends Declaration {
   
   private ClassBody body;
   private Extension extension;
@@ -33,6 +35,7 @@ public class ClassDeclaration extends TranslationVisitor {
    * @param n the ClassDeclaration node.
    */
   public ClassDeclaration(GNode n) {
+    name = n.getString(1);
     extension = null;
     implementation = new ArrayList<Implementation>();
     isAbstract = false;
@@ -87,10 +90,6 @@ public class ClassDeclaration extends TranslationVisitor {
     extension = new Extension(n);
   }
   
-  public void visitIdentifier(GNode n) {
-    name = n.getString(0);
-  }
-  
   public void visitImplementation(GNode n) {
     implementation.add(new Implementation(n));
   }
@@ -108,6 +107,17 @@ public class ClassDeclaration extends TranslationVisitor {
         isFinal = true;
       else if (m.equals("abstract"))
         isAbstract = true;
+    }
+  }
+  
+  public String getCC(String indent) {
+    StringBuilder s = new StringBuilder();
+    s.append(indent + "struct __" + className + " {\n");
+    indent += tab;
+    s.append(indent + "__" + className + "_VT* __vptr;\n");
+    List<FieldDeclaration> fields = body.getFields(Visibility.PUBLIC);
+    for (FieldDeclaration f : fields) {
+      s.append();
     }
   }
   
