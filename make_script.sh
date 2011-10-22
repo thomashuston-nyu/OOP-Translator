@@ -7,10 +7,10 @@ if [ "$1" != "clean" ]; then
     exit
 fi
 
-echo "rm -f *.class"
-echo "rm -f test/*.class"
-echo "rm -f translator/*.class"
+echo "rm -f classes/*.class"
+echo "rm -f classes/test/*.class"
+echo "rm -f classes/translator/*.class"
 
-rm -f *.class
-rm -f test/*.class
-rm -f translator/*.class
+rm -f classes/*.class
+rm -f classes/test/*.class
+rm -f classes/translator/*.class
