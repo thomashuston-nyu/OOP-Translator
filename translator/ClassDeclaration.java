@@ -109,7 +109,30 @@ public class ClassDeclaration extends Declaration {
     }
   }
   
-  public String getCC(String indent) {
+  public String getHeaderStruct(int indent) {
+    StringBuilder s = new StringBuilder();
+    int indentSize = indent;
+    String in = getIndent(indentSize);
+    s.append(in + "struct __" + name  + " {\n");
+    in = getIndent(++indentSize);
+    s.append(in + "__" + name + "_VT* __vptr;\n");
+    for (Visibility v : Visibility.values()) {
+      List<FieldDeclaration> fields = body.getFields(v);
+      if (fields != null) {
+        for (FieldDeclaration f : fields) {
+          s.append(in + " there's a field here;\n");
+        }
+      }
+    }
+    in = getIndent(--indentSize);
+    s.append(in + "};\n\n");
+    s.append(in + "struct __" + name + "_VT {\n");
+    
+    s.append(in + "};\n\n");
+    return s.toString();
+  }
+  
+  public String getCC(int indent) {
     StringBuilder s = new StringBuilder();
 //    s.append(indent + "struct __" + name + " {\n");
 //    indent += "  ";

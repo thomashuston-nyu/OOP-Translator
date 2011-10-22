@@ -5,7 +5,7 @@ public enum Visibility {
   PUBLIC ("public"),
   PRIVATE ("private"),
   PROTECTED ("protected"),
-  PACKAGE_PROTECTED ("package protected");
+  PACKAGE_PRIVATE ("package-private");
   
   String vis;
 
