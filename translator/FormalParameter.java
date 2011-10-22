@@ -19,7 +19,17 @@ public class FormalParameter extends TranslationVisitor {
     isFinal = false;
     visit(n);
   }
-  
+ 
+  public String getParameter() {
+    String s = "";
+    if (isFinal)
+      s += "const ";
+    s += type.getType() + " " + name;
+    if (isArray)
+      s += "[]";
+    return s;
+  }
+
   public void visitDimensions(GNode n) {
     isArray = true;
   }

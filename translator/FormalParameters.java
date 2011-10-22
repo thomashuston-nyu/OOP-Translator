@@ -22,6 +22,18 @@ public class FormalParameters extends TranslationVisitor implements Iterable<For
   public FormalParameter get(int index) {
     return parameters.get(index);
   }
+
+  public String getParameters() {
+    StringBuilder s = new StringBuilder();
+    int size = parameters.size();
+    for (int i = 0; i < size; i++) {
+      s.append(parameters.get(i).getParameter());
+      if (i < size - 1) {
+        s.append(", ");
+      }
+    }
+    return s.toString();
+  }
   
   public Iterator<FormalParameter> iterator() {
     Iterator<FormalParameter> it = parameters.iterator();
