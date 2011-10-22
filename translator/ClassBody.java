@@ -16,6 +16,7 @@ public class ClassBody extends TranslationVisitor {
   public ClassBody(GNode n) {
     fields = new HashMap<Visibility, List<FieldDeclaration>>();
     methods = new HashMap<Visibility, List<MethodDeclaration>>();
+    visit(n);
   }
   
   public void visitBlockDeclaration(GNode n) {

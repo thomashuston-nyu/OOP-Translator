@@ -77,7 +77,7 @@ public class Translator extends xtc.util.Tool {
     
     if (runtime.test("translateJava")) {
       CompilationUnit unit = new CompilationUnit((GNode)node);
-      runtime.console().p(unit.getCC("")).pln().flush();
+      runtime.console().p(unit.getCC(0)).pln().flush();
 //      new Visitor() {
 //        private File file;
 //        
