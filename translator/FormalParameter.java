@@ -18,6 +18,10 @@ public class FormalParameter extends TranslationVisitor {
     isArray = false;
     isFinal = false;
     visit(n);
+    if (isFinal)
+      name = n.getString(4);
+    else
+      name = n.getString(3);
   }
  
   public String getParameter() {
@@ -32,10 +36,6 @@ public class FormalParameter extends TranslationVisitor {
 
   public void visitDimensions(GNode n) {
     isArray = true;
-  }
-  
-  public void visitIdentifier(GNode n) {
-    name = n.getString(0);
   }
   
   public void visitModifiers(GNode n) {

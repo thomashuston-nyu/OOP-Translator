@@ -22,7 +22,7 @@ public class ConstructorDeclaration extends Declaration {
   }
 
   public String getHeaderDeclaration() {
-    return "__" + name + "(";
+    return "__" + name + "(" + parameters.getParameters() + ")";
   }
   
   public void visitBlock(GNode n) {
