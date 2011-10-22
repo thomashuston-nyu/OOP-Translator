@@ -15,6 +15,14 @@ public class Type extends TranslationVisitor {
     visit(n);
   }
   
+  public String getType() {
+    return type;
+  }
+
+  public boolean isArray() {
+    return isArray;
+  }
+
   public void visitDimensions(GNode n) {
     isArray = true;
   }
