@@ -129,6 +129,7 @@ public class CompilationUnit extends TranslationVisitor {
         s.append(in + "struct __" + className + "_VT;\n\n");
         s.append(in + "typedef __" + className + "* " + className + ";\n\n");
         s.append(c.getHeaderStruct(indentSize));
+        s.append(c.getHeaderVTStruct(indentSize));
       }
     }
     if (pkg != null) {
