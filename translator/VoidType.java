@@ -9,4 +9,7 @@ public class VoidType extends Type {
     super(n);
   }
   
+  public String getType() {
+    return "void";
+  }
 }

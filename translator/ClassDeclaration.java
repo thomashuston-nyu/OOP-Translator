@@ -1,7 +1,5 @@
 package translator;
 
-import java.lang.StringBuilder;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -124,7 +122,7 @@ public class ClassDeclaration extends Declaration {
         }
       }
     }
-    s.append("\n" + in + body.getConstructorDeclaration() + ";\n\n");
+    s.append("\n" + in + body.getConstructorDeclaration() + "\n\n");
     List<MethodDeclaration> l = body.getMethods(Visibility.PUBLIC);
     if (l != null)
       for (MethodDeclaration m : l)
@@ -133,7 +131,80 @@ public class ClassDeclaration extends Declaration {
     s.append(in + "static __" + name + "_VT __vtable;\n");
     in = getIndent(--indentSize);
     s.append(in + "};\n\n");
+    return s.toString();
+  }
+
+  public String getHeaderVTStruct(int indent) {
+    StringBuilder s = new StringBuilder();
+    int indentSize = indent;
+    String in = getIndent(indentSize);
     s.append(in + "struct __" + name + "_VT {\n");
+    in = getIndent(++indentSize);    
+    List<MethodDeclaration> l = body.getMethods(Visibility.PUBLIC);
+    MethodDeclaration hashCode = null;
+    MethodDeclaration equals = null;
+    MethodDeclaration getClass = null;
+    MethodDeclaration toString = null;
+    if (l != null) {
+      for (MethodDeclaration m : l) {
+        if (m.isFinal() || m.isStatic() || m.isAbstract())
+          continue;
+        if (m.getName().equals("hashCode")) {
+          if (m.getReturnType().getType().equals("int") && m.getParameters().size() == 0)
+            hashCode = m;
+        } else if (m.getName().equals("equals")) {
+          if (m.getReturnType().getType().equals("boolean") && m.getParameters().size() == 1 &&
+              m.getParameters().get(0).getType().equals("Object"))
+            equals = m;
+        } else if (m.getName().equals("getClass")) {
+          if (m.getReturnType().getType().equals("Class") && m.getParameters().size() == 0)
+            getClass = m;
+        } else if (m.getName().equals("toString")) {
+          if (m.getReturnType().getType().equals("String") && m.getParameters().size() == 0)
+            toString = m;
+        }
+      }
+    }
+    
+    // isa
+    s.append(in + "Class __isa;\n");
+    
+    // hashCode
+    s.append(in + "int32_t (*hashCode)(");
+    if (hashCode != null)
+      s.append(name + ");\n");
+    else
+      s.append("Object);\n");
+    
+    // equals
+    s.append(in + "bool (*equals)(");
+    if (equals != null)
+      s.append(name + ", " + name + ");\n");
+    else
+      s.append("Object, Object);\n");
+
+    // getClass
+    s.append(in + "Class (*getClass)(");
+    if (getClass != null)
+      s.append(name + ");\n");
+    else
+      s.append("Object);\n");
+    
+    // toString
+    s.append(in + "String (*toString)(");
+    if (toString != null)
+      s.append(name + ");\n");
+    else
+      s.append("Object);\n");
+
+    if (l != null) {
+      for (MethodDeclaration m : l) {
+        if (m != hashCode && m != equals && m != getClass && m != toString) {
+          s.append(in + m.getHeaderVTDeclaration(name) + "\n");
+        }
+      }
+    }
+
     s.append(in + "};\n\n");
     return s.toString();
   }
