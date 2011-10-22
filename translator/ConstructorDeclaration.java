@@ -17,6 +17,7 @@ public class ConstructorDeclaration extends Declaration {
   public ConstructorDeclaration(GNode n) {
     name = n.getString(2);
     throwsClause = null;
+    name = n.getString(2);
     visit(n);
   }
 
