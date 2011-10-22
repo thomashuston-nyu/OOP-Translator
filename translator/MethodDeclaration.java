@@ -35,6 +35,15 @@ public class MethodDeclaration extends Declaration {
     return s.toString();
   }
 
+  public String getHeaderVTDeclaration(String className) {
+    StringBuilder s = new StringBuilder();
+    s.append(returnType.getType() + " (*" + name + ")(" + className);
+    for (FormalParameter parameter : parameters)
+      s.append(", " + parameter.getType());
+    s.append(");");
+    return s.toString();
+  }
+
   public String getName() {
     return name;
   }
