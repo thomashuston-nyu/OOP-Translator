@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class SynchronizedStatement extends TranslationVisitor {
+public class SynchronizedStatement extends Statement {
   private Expression expression;
   private Block block;
 

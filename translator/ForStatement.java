@@ -16,7 +16,7 @@ public class ForStatement extends Statement {
   }
 
   public void visitAssesrtStatement(GNode n) {
-    statement = new Statement(n);
+    statement = new AssertStatement(n);
   }
 
   public void visitBasicForControl(GNode n) {
