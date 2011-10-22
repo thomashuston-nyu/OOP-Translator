@@ -18,6 +18,10 @@ public class Block extends Statement {
     statement = null;
   }
   
+  public void visitAssertStatement(GNode n) {
+    statement = new AssertStatement(n);
+  }
+  
   public void visitBlock(GNode n) {
     statement = new Block(n);
   }
@@ -50,12 +54,20 @@ public class Block extends Statement {
     statement = new ForStatement(n);
   }
   
+  public void visitInterfaceDeclaration(GNode n) {
+    inter = new InterfaceDeclaration(n);
+  }
+  
   public void visitReturnStatement(GNode n) {
     statement = new ReturnStatement(n);
   }
   
   public void visitSwitchStatement(GNode n) {
     statement = new SwitchStatement(n);
+  }
+  
+  public void visitSynchronizedStatement(GNode n) {
+    statement = new SynchronizedStatement(n);
   }
   
   public void visitThrowStatement(GNode n) {
