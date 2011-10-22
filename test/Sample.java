@@ -1,7 +1,6 @@
 package test;
 
 import java.lang.StringBuilder;
-
 import java.util.*;
 
 public class Sample extends Object {
