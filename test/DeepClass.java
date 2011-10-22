@@ -1,3 +1,4 @@
+package test;
 public class DeepClass extends Test {
 
     public DeepClass() {
