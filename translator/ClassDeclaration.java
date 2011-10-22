@@ -124,6 +124,7 @@ public class ClassDeclaration extends Declaration {
         }
       }
     }
+    s.append("\n" + in + body.getConstructorDeclaration() + ";\n");
     in = getIndent(--indentSize);
     s.append(in + "};\n\n");
     s.append(in + "struct __" + name + "_VT {\n");
