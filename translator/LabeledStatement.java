@@ -14,6 +14,10 @@ public class LabeledStatement extends TranslationVisitor {
     identifier = n.getString(0);
     visit(n);
   }
+  
+  public void visitAssertStatement(GNode n) {
+    statement = new AssertStatement(n);
+  }
 
   public void visitBreakStatement(GNode n) {
     statement = new BreakStatement(n);
@@ -45,6 +49,10 @@ public class LabeledStatement extends TranslationVisitor {
   
   public void visitSwitchStatement(GNode n) {
     statement = new SwitchStatement(n);
+  }
+  
+  public void visitSynchronizedStatement(GNode n) {
+    statement = new SynchronizedStatement(n);
   }
   
   public void visitThrowStatement(GNode n) {
