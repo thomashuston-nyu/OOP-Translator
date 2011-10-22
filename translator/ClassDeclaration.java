@@ -111,13 +111,14 @@ public class ClassDeclaration extends Declaration {
   
   public String getCC(String indent) {
     StringBuilder s = new StringBuilder();
-    s.append(indent + "struct __" + className + " {\n");
-    indent += tab;
-    s.append(indent + "__" + className + "_VT* __vptr;\n");
-    List<FieldDeclaration> fields = body.getFields(Visibility.PUBLIC);
-    for (FieldDeclaration f : fields) {
-      s.append();
-    }
+//    s.append(indent + "struct __" + name + " {\n");
+//    indent += "  ";
+//    s.append(indent + "__" + name + "_VT* __vptr;\n");
+//    List<FieldDeclaration> fields = body.getFields(Visibility.PUBLIC);
+//    for (FieldDeclaration f : fields) {
+//
+//    }
+    return s.toString();
   }
   
 }

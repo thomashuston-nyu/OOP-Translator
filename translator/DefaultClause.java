@@ -11,12 +11,12 @@ import xtc.tree.Visitor;
 
 public class DefaultClause extends TranslationVisitor {
   
-  private List<VariableDeclaration> variable;
+  private List<FieldDeclaration> fields;
   private List<InterfaceDeclaration> interfaceDec;
   private List<Statement> statement;
   
   public DefaultClause(GNode n) {
-    variable = new ArrayList<VariableDeclaration>();
+    fields = new ArrayList<FieldDeclaration>();
     interfaceDec = new ArrayList<InterfaceDeclaration>();
     statement = new ArrayList<Statement>();
     visit(n);
@@ -42,6 +42,10 @@ public class DefaultClause extends TranslationVisitor {
     statement.add(new ExpressionStatement(n));
   }
   
+  public void visitVariableDeclaration(GNode n) {
+    fields.add(new FieldDeclaration(n));
+  }
+  
   public void visitForStatement(GNode n) {
     statement.add(new ForStatement(n));
   }
@@ -64,10 +68,6 @@ public class DefaultClause extends TranslationVisitor {
   
   public void visitTryCatchFinallyStatement(GNode n) {
     statement.add(new TryCatchFinallyStatement(n));
-  }
-  
-  public void visitVariableDeclaration(GNode n) {
-    variable.add(new VariableDeclaration(n));
   }
   
   public void visitWhileStatement(GNode n) {

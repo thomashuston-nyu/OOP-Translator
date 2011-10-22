@@ -18,6 +18,6 @@ public class Arguments extends TranslationVisitor {
   }
 
   public void visitExpression(GNode n) {
-    expressions.add(n);
+    expressions.add(new Expression(n));
   }
 }

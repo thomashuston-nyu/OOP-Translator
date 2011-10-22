@@ -8,7 +8,7 @@ import xtc.tree.Visitor;
 
 public class LabeledStatement extends TranslationVisitor {
   private String identifier;
-  private Statement;
+  private Statement statement;
 
   public LabeledStatement(GNode n) {
     identifier = n.getString(0);

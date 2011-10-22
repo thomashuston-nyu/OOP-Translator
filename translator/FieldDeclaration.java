@@ -24,7 +24,8 @@ public class FieldDeclaration extends Declaration {
   }
   
   public String getName() {
-    declarators.get(0);
+    Declarator d = declarators.get(0);
+    return d.getName();
   }
   
   public Visibility getVisibility() {

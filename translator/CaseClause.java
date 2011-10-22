@@ -12,12 +12,11 @@ import xtc.tree.Visitor;
 public class CaseClause extends TranslationVisitor {
 
   private Expression expression;
-  private List<Type> fields;
+  private List<FieldDeclaration> fields;
   private List<InterfaceDeclaration> interfaceDec;
   private List<Statement> statement;
   
   public CaseClause(GNode n) {
-    isFinal = new ArrayList<boolean>();
     fields = new ArrayList<FieldDeclaration>();
     interfaceDec = new ArrayList<InterfaceDeclaration>();
     statement = new ArrayList<Statement>();
@@ -41,7 +40,7 @@ public class CaseClause extends TranslationVisitor {
   }
   
   public void visitExpression(GNode n) {
-    expression.add(new Expression(n));
+    expression = new Expression(n);
   }
   
   public void visitExpressionStatement(GNode n) {

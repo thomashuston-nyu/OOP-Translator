@@ -15,8 +15,4 @@ import xtc.tree.Visitor;
 
 public class Declaration extends TranslationVisitor {
 
-  public Declaration(GNode n) {
-    
-  }
-
 }

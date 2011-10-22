@@ -9,7 +9,7 @@ public class FloatingPointLiteral extends PrimaryExpression {
   private double value;
 
   public FloatingPointLiteral(GNode n) {
-    value = Double.parseString(n.getString(0));
+    value = Double.parseDouble(n.getString(0));
   }
 
   public float getFloat() {

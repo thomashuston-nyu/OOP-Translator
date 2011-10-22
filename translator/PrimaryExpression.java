@@ -18,9 +18,5 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class PrimaryExpression extends TranslationVisitor {
-  
-  public PrimaryExpression(GNode n) {
-    
-  }
 
 }

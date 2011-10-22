@@ -15,6 +15,8 @@ public class Declarator extends TranslationVisitor {
     visit(n);
   }
   
-  
+  public String getName() {
+    return name;
+  }
   
 }
