@@ -12,7 +12,9 @@ if [ "$1" == "clean" ]; then
 fi
 
 if [ "$1" == "test" ]; then
-    java -cp classes Translator -translateJava $2
+    cd classes
+    java Translator -translateJava "../"$2
+    cd ..
     exit
 fi
 
