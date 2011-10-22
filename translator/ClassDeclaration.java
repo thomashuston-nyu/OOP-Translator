@@ -23,6 +23,7 @@ public class ClassDeclaration extends Declaration {
   private List<Implementation> implementation;
   private boolean isAbstract;
   private boolean isFinal;
+  private boolean isStatic;
   private String name;
   private Visibility visibility;
   
@@ -37,6 +38,7 @@ public class ClassDeclaration extends Declaration {
     implementation = new ArrayList<Implementation>();
     isAbstract = false;
     isFinal = false;
+    isStatic = false;
     visit(n);
   }
   
@@ -104,6 +106,8 @@ public class ClassDeclaration extends Declaration {
         isFinal = true;
       else if (m.equals("abstract"))
         isAbstract = true;
+      else if (m.equals("static"))
+        isStatic = true;
     }
   }
   
@@ -125,7 +129,8 @@ public class ClassDeclaration extends Declaration {
     List<MethodDeclaration> l = body.getMethods(Visibility.PUBLIC);
     if (l != null)
       for (MethodDeclaration m : l)
-        s.append(in + m.getHeaderDeclaration(name) + "\n");
+        if (!m.isStatic() && !m.isAbstract() && !m.isFinal())
+          s.append(in + m.getHeaderDeclaration(name) + "\n");
     s.append("\n" + in + "static Class __class();\n\n");
     s.append(in + "static __" + name + "_VT __vtable;\n");
     in = getIndent(--indent);
@@ -197,11 +202,44 @@ public class ClassDeclaration extends Declaration {
 
     if (l != null) {
       for (MethodDeclaration m : l) {
-        if (m != hashCode && m != equals && m != getClass && m != toString) {
+        if (!m.isStatic() && m != hashCode && m != equals && m != getClass && m != toString) {
           s.append(in + m.getHeaderVTDeclaration(name) + "\n");
         }
       }
     }
+
+    s.append("\n" + in + "__" + name + "_VT()\n" + in + ": ");
+    s.append("__isa(__" + name + "::__class()),\n");
+    
+    // hashCode
+    if (hashCode != null)
+      s.append(in + "hashCode(&__" + name + "::hashCode),\n");
+    else
+      s.append(in + "hashCode(&__Object::hashCode),\n");
+    
+    // equals
+    if (equals != null)
+      s.append(in + "equals(&__" + name + "::equals),\n");
+    else
+      s.append(in + "equals(&__Object::equals),\n");
+
+    // getClass
+    s.append(in + "((Class(*)(" + name + "))&__Object::getClass),\n");
+    
+    // toString
+    if (toString != null)
+      s.append(in + "toString(&__" + name + "::toString)");
+    else
+      s.append(in + "toString(&__Object::toString)");
+    
+    if (l != null) {
+      for (MethodDeclaration m : l) {
+        if (!m.isStatic() && m != hashCode && m != equals && m != getClass && m != toString) {
+          s.append(",\n" + in + m.getHeaderVTConstructor(name));
+        }
+      }
+    }
+    s.append(" {}\n");
 
     in = getIndent(--indent);
     s.append(in + "};\n");

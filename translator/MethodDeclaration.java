@@ -35,6 +35,10 @@ public class MethodDeclaration extends Declaration {
     return s.toString();
   }
 
+  public String getHeaderVTConstructor(String className) {
+    return name + "(&__" + className + "::" + name + ")"; 
+  }
+
   public String getHeaderVTDeclaration(String className) {
     StringBuilder s = new StringBuilder();
     s.append(returnType.getType() + " (*" + name + ")(" + className);
