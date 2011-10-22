@@ -20,6 +20,10 @@ public class ClassBody extends TranslationVisitor {
     visit(n);
   }
   
+  public String getConstructorDeclaration() {
+    return constructor.getHeaderDeclaration();
+  }
+  
   public void visitBlockDeclaration(GNode n) {
     
   }
