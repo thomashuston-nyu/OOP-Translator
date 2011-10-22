@@ -24,6 +24,7 @@ public class DefaultClause extends TranslationVisitor {
  
   public void visitAssertStatement(GNode n) {
     statement.add(new AssertStatement(n));
+  }
 
   public void visitBreakStatement(GNode n) {
     statement.add(new BreakStatement(n));
