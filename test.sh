@@ -25,6 +25,9 @@ cpp_file=${1%.java}.cc
 java Translator -translateJava $1 > $cpp_file
 check_exit "the input file compiles and runs, but Translator.java can't accept it"
 
+# remove xtc output that isn't valid c++ code
+sed -i '1,2d' $cpp_file
+
 g++ "$cpp_file"
 check_exit "the translated c++ file doesn't compile"
 
