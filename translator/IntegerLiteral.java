@@ -7,7 +7,7 @@ package translator;
 
 import xtc.tree.GNode;
 
-public class IntegerLiteral {
+public class IntegerLiteral extends PrimaryExpression {
   private int value;
 
   public IntegerLiteral(GNode n) {

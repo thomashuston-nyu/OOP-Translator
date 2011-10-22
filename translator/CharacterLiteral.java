@@ -5,7 +5,7 @@ package translator;
 
 import xtc.tree.GNode;
 
-public class CharacterLiteral {
+public class CharacterLiteral extends PrimaryExpression {
   private char character;
 
   public CharacterLiteral(GNode n) {

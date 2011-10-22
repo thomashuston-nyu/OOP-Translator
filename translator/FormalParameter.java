@@ -14,7 +14,7 @@ public class FormalParameter extends TranslationVisitor {
   private String name;
   private Type type;
   
-  public FormalParameter(Node n) {
+  public FormalParameter(GNode n) {
     isArray = false;
     isFinal = false;
     visit(n);

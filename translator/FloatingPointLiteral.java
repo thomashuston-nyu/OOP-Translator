@@ -5,7 +5,7 @@ package translator;
 
 import xtc.tree.GNode;
 
-public class FloatingPointLiteral {
+public class FloatingPointLiteral extends PrimaryExpression {
   private double value;
 
   public FloatingPointLiteral(GNode n) {
