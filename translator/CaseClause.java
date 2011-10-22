@@ -23,6 +23,9 @@ public class CaseClause extends TranslationVisitor {
     visit(n);
   }
   
+  public void visitAssertStatement(GNode n) {
+    statement.add(new AssertStatement(n));
+
   public void visitBreakStatement(GNode n) {
     statement.add(new BreakStatement(n));
   }
@@ -65,6 +68,10 @@ public class CaseClause extends TranslationVisitor {
   
   public void visitSwitchStatement(GNode n) {
     statement.add(new SwitchStatement(n));
+  }
+
+  public void visitSynchronizedStatement(GNode n) {
+    statement.add(new SynchronizedStatement(GNode n));
   }
   
   public void visitThrowStatement(GNode n) {
