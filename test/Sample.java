@@ -18,6 +18,7 @@ public class Sample extends Object {
   int test() {
     return 0;
   }
+
   void test2() {
     if (1 == 1)
       System.out.println("1");
@@ -26,20 +27,27 @@ public class Sample extends Object {
     else
       System.out.println("3");
   }
+
   String test3() throws Exception {
     return "";
   }
+
   Object test4() {
     return new Object();
   }
+
   public final static String[] test2(int x, int y, Object[] z) {
     return new String[3];
   }
-  public static void main(String[] args) {
-  }
+
   public int compareTo(Object o) {
     return 0;
   }
   
   private String hey;
+
+  public static void main(String[] args) {
+    
+  }
+
 }
