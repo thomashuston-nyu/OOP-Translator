@@ -1,4 +1,4 @@
-package java.x;
+package test;
 
 public class Point2d {
   /* The X and Y coordinates of the point--instance variables */
@@ -8,7 +8,6 @@ public class Point2d {
   public Point2d (double px, double py) { // Constructor
     x = px;
     y = py;
-    
   }
 
   public void setX(double px) {
@@ -19,7 +18,7 @@ public class Point2d {
     return x;
   }
   
-  public void setY(double py)  {
+  public void setY(final double py)  {
     y = py;
   }
   

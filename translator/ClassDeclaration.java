@@ -120,27 +120,26 @@ public class ClassDeclaration extends Declaration {
       List<FieldDeclaration> fields = body.getFields(v);
       if (fields != null) {
         for (FieldDeclaration f : fields) {
-          s.append(in + " there's a field here;\n");
+          s.append(in + f.getDeclaration() + ";\n");
         }
       }
     }
+    s.append("\n" + in + body.getConstructorDeclaration() + ";\n\n");
+    List<MethodDeclaration> l = body.getMethods(Visibility.PUBLIC);
+    if (l != null)
+      for (MethodDeclaration m : l)
+        s.append(in + m.getHeaderDeclaration(name) + "\n");
+    s.append("\n" + in + "static Class __class();\n\n");
+    s.append(in + "static __" + name + "_VT __vtable;\n");
     in = getIndent(--indentSize);
     s.append(in + "};\n\n");
     s.append(in + "struct __" + name + "_VT {\n");
-    
     s.append(in + "};\n\n");
     return s.toString();
   }
   
   public String getCC(int indent) {
     StringBuilder s = new StringBuilder();
-//    s.append(indent + "struct __" + name + " {\n");
-//    indent += "  ";
-//    s.append(indent + "__" + name + "_VT* __vptr;\n");
-//    List<FieldDeclaration> fields = body.getFields(Visibility.PUBLIC);
-//    for (FieldDeclaration f : fields) {
-//
-//    }
     return s.toString();
   }
   

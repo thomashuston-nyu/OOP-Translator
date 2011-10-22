@@ -114,7 +114,7 @@ public class CompilationUnit extends TranslationVisitor {
     int indentSize = indent;
     String in = getIndent(indentSize);
     s.append("#include <iostream>\n#include <sstream>\n\n");
-    s.append("#include \"java/java_lang.h\"\n\n");
+    s.append("#include \"../java/java_lang.h\"\n\n");
     // other imports
     s.append("using namespace java::lang;\n\n");
     if (pkg != null) {

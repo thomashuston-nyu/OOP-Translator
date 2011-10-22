@@ -15,8 +15,14 @@ public class ConstructorDeclaration extends Declaration {
   private Visibility visibility;
   
   public ConstructorDeclaration(GNode n) {
+    name = n.getString(2);
     throwsClause = null;
+    name = n.getString(2);
     visit(n);
+  }
+
+  public String getHeaderDeclaration() {
+    return "__" + name + "(" + parameters.getParameters() + ")";
   }
   
   public void visitBlock(GNode n) {
@@ -25,10 +31,6 @@ public class ConstructorDeclaration extends Declaration {
   
   public void visitFormalParameters(GNode n) {
     parameters = new FormalParameters(n);
-  }
-  
-  public void visitIdentifier(GNode n) {
-    name = n.getString(0);
   }
   
   public void visitModifiers(GNode n) {
