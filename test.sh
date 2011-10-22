@@ -4,9 +4,11 @@
 function check_exit() {
     if [ "$?" -ne "0" ]; then
         echo "ERROR:" $1
+        rm -f ${java_file}.class a.out java_output.txt cpp_output.txt
         exit
     fi
 }
+java_file=${1%.java}
 
 javac Translator.java
 check_exit "Translator.java doesn't compile"
@@ -19,7 +21,6 @@ cpp_file=${1%.java}.cc
 java Translator -translateJava $1 > $cpp_file
 check_exit "the input file compiles, but Translator.java can't accept it"
 
-java_file=${1%.java}
 # TODO: add as many command line args (starting from $2) here as might be passed to the java file
 java "$java_file" > java_output.txt
 check_exit "the input file compiles, but doesn't run correctly"
