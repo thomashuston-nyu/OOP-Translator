@@ -13,7 +13,7 @@ public class VariableInitializer extends TranslationVisitor {
   private Expression expression;
   
   public VariableInitializer(GNode n) {
-    array = null
+    array = null;
     expression = null;
     visit(n);
   }
