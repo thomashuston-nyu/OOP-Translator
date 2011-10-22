@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import xtc.tree.GNode;
-import xtc.tree.Node;
 import xtc.tree.Visitor;
 
 public class ClassBody extends TranslationVisitor {

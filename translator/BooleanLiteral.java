@@ -5,7 +5,6 @@
 package translator;
 
 import xtc.tree.GNode;
-import xtc.tree.Node;
 
 public class BooleanLiteral {
   private boolean value;

@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import xtc.tree.GNode;
-import xtc.tree.Node;
 import xtc.tree.Visitor;
 
 public class FormalParameters extends TranslationVisitor implements Iterable<FormalParameter> {

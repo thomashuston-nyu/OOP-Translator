@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import xtc.tree.GNode;
-import xtc.tree.Node;
 import xtc.tree.Visitor;
 
 /**
