@@ -18,6 +18,6 @@ public class ConcreteDimensions extends TranslationVisitor {
   }
 
   public void visitConcreteDimension(GNode n) {
-    concreteDimensions.add(n);
+    concreteDimensions.add(new ConcreteDimension(n));
   }
 }

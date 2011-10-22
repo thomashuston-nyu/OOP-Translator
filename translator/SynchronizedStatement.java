@@ -1,7 +1,7 @@
 /**
  * Expression Block
  */
-package translate;
+package translator;
 
 import xtc.tree.GNode;
 import xtc.tree.Visitor;

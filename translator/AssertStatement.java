@@ -19,6 +19,6 @@ public class AssertStatement extends Statement {
   }
 
   public void visitExpression(GNode n) {
-    expressions.add(n);
+    expressions.add(new Expression(n));
   }
 }
