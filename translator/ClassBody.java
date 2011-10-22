@@ -10,6 +10,7 @@ import xtc.tree.Visitor;
 
 public class ClassBody extends TranslationVisitor {
   
+  private ConstructorDeclaration constructor;
   private Map<Visibility, List<FieldDeclaration>> fields;
   private Map<Visibility, List<MethodDeclaration>> methods;
   
@@ -24,7 +25,7 @@ public class ClassBody extends TranslationVisitor {
   }
   
   public void visitConstructorDeclaration(GNode n) {
-    
+    constructor = new ConstructorDeclaration(n);
   }
   
   public void visitEmptyDeclaration(GNode n) {
