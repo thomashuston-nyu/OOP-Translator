@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-// TODO: Add visitAssertStatement method to other classes
 public class AssertStatement extends Statement {
   private List<Expression> expressions;
 
