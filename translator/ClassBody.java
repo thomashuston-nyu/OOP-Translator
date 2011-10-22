@@ -10,6 +10,7 @@ import xtc.tree.Visitor;
 
 public class ClassBody extends TranslationVisitor {
   
+  private ConstructorDeclaration constructor;
   private Map<Visibility, List<FieldDeclaration>> fields;
   private Map<Visibility, List<MethodDeclaration>> methods;
   
@@ -19,12 +20,16 @@ public class ClassBody extends TranslationVisitor {
     visit(n);
   }
   
+  public String getConstructorDeclaration() {
+    return constructor.getHeaderDeclaration();
+  }
+  
   public void visitBlockDeclaration(GNode n) {
     
   }
   
   public void visitConstructorDeclaration(GNode n) {
-    
+    constructor = new ConstructorDeclaration(n);
   }
   
   public void visitEmptyDeclaration(GNode n) {
@@ -64,54 +69,4 @@ public class ClassBody extends TranslationVisitor {
     else
       return null;
   }
-  
-  
-/*  public StringBuilder translate(int indent) {
-    StringBuilder translation = new StringBuilder();
-    if (publicMethods.size() > 0) {
-      translation.append(getIndent(indent) + "public:\n");
-      for (MethodDeclaration method : publicMethods) {
-        translation.append(method.translate(indent+1).toString() + "\n");
-      }
-    }
-    if (privateMethods.size() > 0) {
-      translation.append(getIndent(indent) + "private:\n");
-      for (MethodDeclaration method : privateMethods) {
-        translation.append(method.translate(indent+1).toString() + "\n");
-      }
-    }
-    if (protectedMethods.size() > 0) {
-      translation.append(getIndent(indent) + "protected:\n");
-      for (MethodDeclaration method : protectedMethods) {
-        translation.append(method.translate(indent+1).toString() + "\n");
-      }
-    }
-    return translation;
-  }
-  
-  public StringBuilder translateHeader(int indent, String name) {
-    StringBuilder translation = new StringBuilder();
-    String ind = getIndent(indent);
-    translation.append(ind + "__" + name + "_VT* __vptr;\n");
-    for (FieldDeclaration field : fields) {
-      translation.append(field.translate(indent).toString() + ";\n");
-    }
-    translation.append("\n");
-    for (MethodDeclaration m : publicMethods) {
-      if (!m.isStatic())
-        translation.append(m.translateHeader(indent,name).toString() + "\n");
-    }
-    return translation;
-  }
-  
-  public StringBuilder translateVT(int indent) {
-    StringBuilder translation = new StringBuilder();
-    return translation;
-  }
-  
-  public StringBuilder translateBody(int indent) {
-    StringBuilder translation = new StringBuilder();
-    return translation;
-  }*/
-
 }

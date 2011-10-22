@@ -27,6 +27,14 @@ public class MethodDeclaration extends Declaration {
     visit(n);
   }
   
+  public String getHeaderDeclaration(String className) {
+    StringBuilder s = new StringBuilder("static " + returnType.getType() + " " + name + "(" + className);
+    for (FormalParameter parameter : parameters)
+      s.append(", " + parameter.getType());
+    s.append(");");
+    return s.toString();
+  }
+
   public String getName() {
     return name;
   }
@@ -55,15 +63,19 @@ public class MethodDeclaration extends Declaration {
     return isStatic;
   }
   
-  private void visitModifiers(GNode n) {
+  public void visitFormalParameters(GNode n) {
+    parameters = new FormalParameters(n);
+  }
+
+  public void visitModifiers(GNode n) {
     Modifiers modifiers = new Modifiers(n);
     for (String s : modifiers) {
       if (s.equals("public"))
-        visibility = visibility.PUBLIC;
+        visibility = Visibility.PUBLIC;
       else if (s.equals("private"))
-        visibility = visibility.PRIVATE;
+        visibility = Visibility.PRIVATE;
       else if (s.equals("protected"))
-        visibility = visibility.PROTECTED;
+        visibility = Visibility.PROTECTED;
       else if (s.equals("final"))
         isFinal = true;
       else if (s.equals("static"))
@@ -80,28 +92,4 @@ public class MethodDeclaration extends Declaration {
   public void visitVoidType(GNode n) {
     returnType = new VoidType(n);
   }
-  
-/*  public StringBuilder translate(int indent) {
-    StringBuilder translation = new StringBuilder(getIndent(indent));
-    if (isFinal)
-      translation.append("const ");
-    if (isAbstract)
-      translation.append("abstract ");
-    if (isStatic)
-      translation.append("static ");
-    translation.append(returnType + " " + name + "(" + parameters + ") {\n");
-    translation.append(getIndent(indent + 1));
-    translation.append("\n");
-    translation.append(getIndent(indent));
-    translation.append("}");
-    return translation;
-  }
-  
-  public StringBuilder translateHeader(int indent, String className) {
-    StringBuilder translation = new StringBuilder(getIndent(indent));
-    translation.append("static " + returnType.toString());
-    translation.append(" " + name + "(" + className + ");");
-    return translation;
-  }
-*/
 }
