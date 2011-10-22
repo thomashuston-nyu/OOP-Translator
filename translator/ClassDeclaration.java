@@ -109,10 +109,9 @@ public class ClassDeclaration extends Declaration {
   
   public String getHeaderStruct(int indent) {
     StringBuilder s = new StringBuilder();
-    int indentSize = indent;
-    String in = getIndent(indentSize);
+    String in = getIndent(indent);
     s.append(in + "struct __" + name  + " {\n");
-    in = getIndent(++indentSize);
+    in = getIndent(++indent);
     s.append(in + "__" + name + "_VT* __vptr;\n");
     for (Visibility v : Visibility.values()) {
       List<FieldDeclaration> fields = body.getFields(v);
@@ -129,17 +128,16 @@ public class ClassDeclaration extends Declaration {
         s.append(in + m.getHeaderDeclaration(name) + "\n");
     s.append("\n" + in + "static Class __class();\n\n");
     s.append(in + "static __" + name + "_VT __vtable;\n");
-    in = getIndent(--indentSize);
-    s.append(in + "};\n\n");
+    in = getIndent(--indent);
+    s.append(in + "};\n");
     return s.toString();
   }
 
   public String getHeaderVTStruct(int indent) {
     StringBuilder s = new StringBuilder();
-    int indentSize = indent;
-    String in = getIndent(indentSize);
+    String in = getIndent(indent);
     s.append(in + "struct __" + name + "_VT {\n");
-    in = getIndent(++indentSize);    
+    in = getIndent(++indent);    
     List<MethodDeclaration> l = body.getMethods(Visibility.PUBLIC);
     MethodDeclaration hashCode = null;
     MethodDeclaration equals = null;
@@ -205,12 +203,8 @@ public class ClassDeclaration extends Declaration {
       }
     }
 
-    s.append(in + "};\n\n");
-    return s.toString();
-  }
-  
-  public String getCC(int indent) {
-    StringBuilder s = new StringBuilder();
+    in = getIndent(--indent);
+    s.append(in + "};\n");
     return s.toString();
   }
   
