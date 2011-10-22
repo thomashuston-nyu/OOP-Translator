@@ -20,7 +20,7 @@ public class RelationalExpression extends TranslationVisitor {
     visit(n);
   }
 
-  public void visitRelationalExpression(Gnode n) {
+  public void visitRelationalExpression(GNode n) {
     relationalExpression = new RelationalExpression(n);
   }
 
