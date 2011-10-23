@@ -35,7 +35,7 @@ public class TryCatchFinallyStatement extends Statement implements Translatable 
     catchClause.add(new CatchClause(n));
   }
   
-  public String getCC(String className, int indent) {
+  public String getCC(int indent, String className, List<Variable> variables) {
     return "";
   }
   

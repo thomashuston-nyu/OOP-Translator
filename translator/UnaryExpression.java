@@ -11,6 +11,9 @@
  */
 package translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
@@ -21,20 +24,19 @@ public class UnaryExpression extends Expression implements Translatable {
 
   public UnaryExpression(GNode n) {
     unaryExpression = null;
-    symbol = null;
+    symbol = n.getString(0);
     visit(n);
   }
 
   public void visitUnaryExpression(GNode n) {
     unaryExpression = new UnaryExpression(n);
   }
-
-  public void visitSymbol(GNode n) {
-    symbol = n.getString(0);
-  }
   
-  public String getCC(String className, int indent) {
-    return "";
+  public String getCC(int indent, String className, List<Variable> variables) {
+    if (unaryExpression != null)
+      return symbol + unaryExpression.getCC(indent, className, variables);
+    else
+      return symbol;
   }
   
 }

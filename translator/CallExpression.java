@@ -3,6 +3,9 @@
  */
 package translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
@@ -20,8 +23,14 @@ public class CallExpression extends Expression {
     arguments = new Arguments(n);
   }
   
-  public String getCC(String className, int indent) {
-    return getIndent(indent) + identifier + "(" + arguments.getCC(className,indent) + ");\n";
+  public String getCC(int indent, String className, List<Variable> variables) {
+    // TODO allow calling of methods from other classes
+    StringBuilder s = new StringBuilder();
+    s.append("__vptr->" + identifier + "(__this");
+    if (arguments.size() > 0)
+      s.append(", " + arguments.getCC(indent, className, variables));
+    s.append(")");
+    return s.toString();
   }
   
 }

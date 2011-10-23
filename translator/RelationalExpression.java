@@ -2,8 +2,10 @@
  * (RelationalExpression RelationalOperator ShiftExpression)/
  * yyValue:ShiftExpression
  */
-
 package translator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
@@ -31,7 +33,7 @@ public class RelationalExpression extends Expression implements Translatable {
     shiftExpression = new ShiftExpression(n);
   }
   
-  public String getCC(String className, int indent) {
+  public String getCC(int indent, String className, List<Variable> variables) {
     return "";
   }
 

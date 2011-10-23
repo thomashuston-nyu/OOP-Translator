@@ -1,6 +1,7 @@
 package translator;
 
-import java.lang.StringBuilder;
+import java.util.ArrayList;
+import java.util.List;
 
 import xtc.tree.Node;
 import xtc.tree.Visitor;

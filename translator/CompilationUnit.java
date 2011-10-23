@@ -3,8 +3,6 @@
  */
 package translator;
 
-import java.lang.StringBuilder;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -140,7 +138,7 @@ public class CompilationUnit extends TranslationVisitor implements Translatable 
     return s.toString();
   }
   
-  public String getCC(String className, int indent) {
+  public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     String in = getIndent(indent);
     s.append("#include \"output.h\"\n\n");
@@ -152,7 +150,7 @@ public class CompilationUnit extends TranslationVisitor implements Translatable 
     List<ClassDeclaration> l = classes.get(Visibility.PUBLIC);
     if (l != null) {
       for (ClassDeclaration c : l) {
-        s.append(c.getCC(c.getName(),indent));
+        s.append(c.getCC(indent, c.getName(), variables));
       }
     }
     if (pkg != null) {

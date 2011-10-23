@@ -82,10 +82,10 @@ public class Block extends Statement implements Translatable {
     parts.add(new WhileStatement(n));
   }
 
-  public String getCC(String className, int indent) {
+  public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     for (Translatable t : parts) {
-      s.append(t.getCC(className,indent));
+      s.append(t.getCC(indent, className, variables));
     }
     return s.toString();
   }

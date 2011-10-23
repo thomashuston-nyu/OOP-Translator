@@ -1,7 +1,5 @@
 package translator;
 
-import java.lang.StringBuilder;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,7 +53,7 @@ public class PackageDeclaration extends TranslationVisitor implements Translatab
     return pkg.size();
   }
   
-  public String getCC(String className, int indent) {
+  public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     int size = pkg.size();
     for (int i = 0; i < size; i++) {

@@ -1,5 +1,8 @@
 package translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum Visibility {
 
   PUBLIC ("public"),
