@@ -9,6 +9,11 @@ public class Sample extends Object {
   public Object o1;
   
   public Sample() {
+    int x = 5;
+    int y = 10;
+    int z;
+    z = x + y;
+    int[] test4 = {1, 2, 3, 4, 5};
     int[] test = new int[5];
     test[3] = 2;
     System.out.println(test[3]);

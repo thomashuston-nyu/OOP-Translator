@@ -69,4 +69,10 @@ public class ClassBody extends TranslationVisitor {
     else
       return null;
   }
+
+  public String getCC(int indent) {
+    StringBuilder s = new StringBuilder();
+    s.append(constructor.getCC(indent));
+    return s.toString();
+  }
 }

@@ -28,4 +28,8 @@ public class Expression extends PrimaryExpression {
   public void visitExpression(GNode n) {
     expression = new Expression(n);
   }
+
+  public String getCC() {
+    
+  }
 }
