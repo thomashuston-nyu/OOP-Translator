@@ -29,12 +29,12 @@ namespace test {
   }
 
   String __Point2d::toStringForXY(Point2d __this) {
-    String str = ;
+    String str = __rt::literal("(" + __this->x + ", " + __this->y);
     return str;
   }
 
   String __Point2d::toString(Point2d __this) {
-    String str = __vptr->toStringForXY(__this) + ")";
+    String str = __rt::literal(__vptr->toStringForXY(__this) + ")");
     return str;
   }
 
