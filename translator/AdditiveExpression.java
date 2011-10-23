@@ -35,6 +35,10 @@ public class AdditiveExpression extends Expression implements Translatable {
     setExpression(new MultiplicativeExpression(n));
   }
   
+  public void visitPrimaryIdentifier(GNode n) {
+    setExpression(new PrimaryIdentifier(n));
+  }
+  
   public void visitStringLiteral(GNode n) {
     setExpression(new StringLiteral(n));
   }

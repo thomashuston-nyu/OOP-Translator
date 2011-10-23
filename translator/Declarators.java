@@ -38,7 +38,16 @@ public class Declarators extends TranslationVisitor implements Iterable<Declarat
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
-    StringBuilder s = new StringBuilder(declarators.get(0).getCC(indent, className, variables));
+    return getCC(indent, className, variables, false);
+  }
+  
+  public String getCC(int indent, String className, List<Variable> variables, boolean isString) {
+    StringBuilder s = new StringBuilder();
+    if (isString)
+      s.append(declarators.get(0).getStringCC(indent, className, variables));
+    else
+      s.append(declarators.get(0).getCC(indent, className, variables));
     return s.toString();
   }
+  
 }

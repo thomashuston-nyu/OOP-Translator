@@ -87,7 +87,7 @@ public class FieldDeclaration extends Declaration implements Translatable {
       s.append("abstract ");
     s.append(type.getType() + " ");
     if (type.getType().equals("String"))
-      s.append(declarators.getCC(indent, className, variables) + ";\n", true);
+      s.append(declarators.getCC(indent, className, variables, true) + ";\n");
     else
       s.append(declarators.getCC(indent, className, variables) + ";\n");
     return s.toString();
