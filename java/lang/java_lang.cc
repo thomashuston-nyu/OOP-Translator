@@ -20,10 +20,30 @@
 #include "java_lang.h"
 
 #include <sstream>
+#include <iostream>
 
 namespace java {
   namespace lang {
     
+    // really System.out.print, but let's call it java.lang. who's going to stop us
+
+    // a helper method for the one c++ primitive whose default behavior in cout isn't java-like
+    std::string print_bool(bool b){
+        if(b==0) return "false";
+        else return "true";
+    }
+
+    // a trivial print method
+    void print(std::string s) {
+        std::cout << s;
+    }
+
+    // a trivial println method
+    void println(std::string s) {
+        std::cout << s << std::endl;
+    }
+
+
     // java.lang.Object()
     __Object::__Object() : __vptr(&__vtable) {
     }
