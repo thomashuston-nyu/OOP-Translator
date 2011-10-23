@@ -55,11 +55,10 @@ public class ConstructorDeclaration extends Declaration implements Translatable 
   public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     String in = getIndent(indent);
-    List<FormalParameter> p = parameters.getParameters();
     s.append(in + "__" + name + "::__" + name + "(");
-    s.append(p + ")\n" + in + ": __vptr(&__vtable)");
+    s.append(parameters.getParameters() + ")\n" + in + ": __vptr(&__vtable)");
     List<Variable> v = new ArrayList<Variable>();
-    for (FormalParameter f : p) {
+    for (FormalParameter f : parameters) {
       v.add(new Variable(f.getType(), f.getName()));
     }
     s.append(" {\n" + body.getCC(++indent, className, v) + in + "}");
