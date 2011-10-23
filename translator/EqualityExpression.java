@@ -30,5 +30,9 @@ public class EqualityExpression extends Expression {
   public void visitInstanceOfExpression(GNode n) {
     instanceOfExpression = new InstanceOfExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
 
 }

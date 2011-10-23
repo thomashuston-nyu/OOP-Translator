@@ -38,7 +38,7 @@ import xtc.lang.JavaFiveParser;
 /**
  * A translator from (a subset of) Java to (a subset of) C++.
  *
- * @author Mike Morreale, Thomas Huston, Nabil Hassein, Susana Delgadillo, Marta Wilgan
+ * @author Mike Morreale, Thomas Huston, Nabil Hassein, Marta Wilgan
  * @version $Revision$
  */
 public class Translator extends xtc.util.Tool {
@@ -65,9 +65,20 @@ public class Translator extends xtc.util.Tool {
   
   public Node parse(Reader in, File file) throws IOException, ParseException {
     JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
-//    runtime.console().format((Node)parser.value(parser.pCompilationUnit(0))).pln().flush();
     Result result = parser.pCompilationUnit(0);
     return (Node)parser.value(result);
+  }
+  
+  public void createFile(String s, String extension) throws IOException {
+    File file = new File("../output/output." + extension);
+    if (file.exists()) {
+      file.delete();
+    }
+    file.createNewFile();
+    BufferedWriter buff = new BufferedWriter(new FileWriter(file));
+    buff.write(s);
+    buff.flush();
+    buff.close();
   }
   
   public void process(Node node) {
@@ -77,47 +88,10 @@ public class Translator extends xtc.util.Tool {
     
     if (runtime.test("translateJava")) {
       CompilationUnit unit = new CompilationUnit((GNode)node);
-      runtime.console().p(unit.getCC(0)).pln().flush();
-//      new Visitor() {
-//        private File file;
-//        
-//        public void visitCompilationUnit(GNode n) {
-//          CompilationUnit unit = new CompilationUnit(n);
-//        }
-//        
-//        public void visit(Node n) {
-//          for (Object o : n) {
-//            if (o instanceof Node) {
-//              dispatch((Node)o);
-//            }
-//          }
-//        }
-        
-    /*    public void createFile() throws IOException {
-          file = new File("./Test.cc");
-          if (file.exists()) {
-            file.delete();
-          }
-          file.createNewFile();
-        }
-        
-        public void writeToFile(GNode n) throws IOException {
-          if (file == null) {
-            createFile();
-          }
-          BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("./Test.cc", true));
-          String name = n.getName().toString();
-          if (name.equals("ClassDeclaration")) {
-            visit(n);
-          } else if (name.equals("MethodDeclaration")) {
-            visit(n);
-          }
-          if (bufferedWriter != null) {
-            bufferedWriter.flush();
-            bufferedWriter.close();
-          }
-        }*/
-//      }.dispatch(node);
+      try {
+        createFile(unit.getHeader(0), "h");
+        createFile(unit.getCC(0), "cc");
+      } catch (IOException e) {}
     }
   }
   

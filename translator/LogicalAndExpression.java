@@ -8,6 +8,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class LogicalAndExpression extends Expression {
+  
   private LogicalAndExpression logicalAndExpression;
   private BitwiseOrExpression bitwiseOrExpression;
 
@@ -22,4 +23,9 @@ public class LogicalAndExpression extends Expression {
   public void visitBitwiseOrExpression(GNode n) {
     bitwiseOrExpression = new BitwiseOrExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

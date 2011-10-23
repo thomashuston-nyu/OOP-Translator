@@ -24,5 +24,9 @@ public class BitwiseOrExpression extends Expression {
   public void visitBitwiseXorExpression(GNode n) {
     bitwiseXorExpression = new BitwiseXorExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
 
 }

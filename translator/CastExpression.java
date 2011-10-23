@@ -7,6 +7,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class CastExpression extends Expression {
+  
   private Type type;
 
   public CastExpression(GNode n) {
@@ -16,4 +17,9 @@ public class CastExpression extends Expression {
   public void visitType(GNode n) {
     type = new Type(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

@@ -8,6 +8,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class ShiftExpression extends Expression {
+
   private ShiftExpression shiftExpression;
   private String shiftOperator;
   private AdditiveExpression additiveExpression;
@@ -28,4 +29,9 @@ public class ShiftExpression extends Expression {
   public void visitAdditiveExpression(GNode n) {
     additiveExpression = new AdditiveExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

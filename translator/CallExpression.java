@@ -7,6 +7,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class CallExpression extends Expression {
+  
   private String identifier;
   private Arguments arguments;
 
@@ -18,4 +19,9 @@ public class CallExpression extends Expression {
   public void visitArguments(GNode n) {
     arguments = new Arguments(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

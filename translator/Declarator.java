@@ -38,7 +38,7 @@ public class Declarator extends TranslationVisitor {
   }
 
   public String getCC() {
-    StringBuilder s = new StringBuilder(name);
+    StringBuilder s = new StringBuilder(name + " ");
     // if (arrayInitializer != null)
     //   s.append(" = new __rt::Array<" + arrayInitializer.getType() +
     //       ">(" + arrayInitializer.size() + ")");

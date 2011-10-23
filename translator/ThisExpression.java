@@ -18,4 +18,9 @@ public class ThisExpression extends Expression {
   public void visitQualifiedIdentifier(GNode n) {
     qualifiedIdentifier = new QualifiedIdentifier(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

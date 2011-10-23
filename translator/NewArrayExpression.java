@@ -42,5 +42,9 @@ public class NewArrayExpression extends Expression {
   public void visitQualifiedIdentifier(GNode n) {
     qualified = new QualifiedIdentifier(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
 
 }

@@ -22,5 +22,9 @@ public class ClassLiteralExpression extends Expression {
   public void visitVoidType(GNode n) {
     returnType = new VoidType(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
 
 }

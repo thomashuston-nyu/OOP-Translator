@@ -70,9 +70,18 @@ public class ClassBody extends TranslationVisitor {
       return null;
   }
 
-  public String getCC(int indent) {
+  public String getCC(String className, int indent) {
     StringBuilder s = new StringBuilder();
-    s.append(constructor.getCC(indent));
+    s.append(constructor.getCC(indent) + "\n\n");
+    List<MethodDeclaration> l = methods.get(Visibility.PUBLIC);
+    if (l != null) {
+      for (MethodDeclaration m : l) {
+        if (!m.isStatic() && !m.isFinal() && !m.isAbstract())
+          s.append(m.getCC(className, indent) + "\n");
+      }
+    }
+    s.append(getIndent(indent) + "__" + className + "_VT __" + className +
+             "::__vtable;\n");
     return s.toString();
   }
 }
