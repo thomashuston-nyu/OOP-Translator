@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class BasicCastExpression extends TranslationVisitor {
+public class BasicCastExpression extends Expression {
   private PrimitiveType primitiveType;
   private boolean isArray;
   private UnaryExpression unaryExpression;

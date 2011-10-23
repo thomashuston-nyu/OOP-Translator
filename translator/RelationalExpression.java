@@ -8,7 +8,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class RelationalExpression extends TranslationVisitor {
+public class RelationalExpression extends Expression {
 
   private RelationalExpression relationalExpression;
   private String relationalOperator;

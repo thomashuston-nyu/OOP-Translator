@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class BitwiseAndExpression extends TranslationVisitor {
+public class BitwiseAndExpression extends Expression {
   private BitwiseAndExpression bitwiseAndExpression;
   private EqualityExpression equalityExpression;
 

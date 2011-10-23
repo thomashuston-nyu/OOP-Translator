@@ -54,7 +54,7 @@ public class ConstructorDeclaration extends Declaration {
     String in = getIndent(indent);
     s.append(in + "__" + name + "::__" + name + "(");
     s.append(parameters.getParameters() + ")\n" + in + ": __vptr(&__vtable)");
-    s.append(" {" block.getCC(++indent) + "\n" + in + "}");
+    s.append(" {" + body.getCC(++indent) + "\n" + in + "}");
     return s.toString();
   }
 }

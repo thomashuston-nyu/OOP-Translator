@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ShiftExpression extends TranslationVisitor {
+public class ShiftExpression extends Expression {
   private ShiftExpression shiftExpression;
   private String shiftOperator;
   private AdditiveExpression additiveExpression;

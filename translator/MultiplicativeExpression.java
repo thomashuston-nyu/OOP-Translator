@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class MultiplicativeExpression extends TranslationVisitor {
+public class MultiplicativeExpression extends Expression {
   
   private MultiplicativeExpression multiplicativeExpression;
   private String multiplicativeOperator;

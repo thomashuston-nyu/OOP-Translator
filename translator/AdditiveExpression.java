@@ -8,7 +8,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class AdditiveExpression extends TranslationVisitor {
+public class AdditiveExpression extends Expression {
 
   private AdditiveExpression additiveExpression;
   private String additiveOperator;

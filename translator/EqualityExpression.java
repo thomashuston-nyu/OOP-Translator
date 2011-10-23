@@ -8,7 +8,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class EqualityExpression extends TranslationVisitor {
+public class EqualityExpression extends Expression {
     
   private EqualityExpression equalityExpression;
   private String equalityOperator;
