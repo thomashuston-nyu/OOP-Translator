@@ -49,4 +49,12 @@ public class ConstructorDeclaration extends Declaration {
     throwsClause = new ThrowsClause(n);
   }
 
+  public String getCC(int indent) {
+    StringBuilder s = new StringBuilder();
+    String in = getIndent(indent);
+    s.append(in + "__" + name + "::__" + name + "(");
+    s.append(parameters.getParameters() + ")\n" + in + ": __vptr(&__vtable)");
+    s.append(" {" block.getCC(++indent) + "\n" + in + "}");
+    return s.toString();
+  }
 }

@@ -132,6 +132,7 @@ public class CompilationUnit extends TranslationVisitor {
         s.append(c.getHeaderStruct(indent));
         s.append("\n");
         s.append(c.getHeaderVTStruct(indent));
+        s.append(c.getCC(indent));
       }
     }
     if (pkg != null) {

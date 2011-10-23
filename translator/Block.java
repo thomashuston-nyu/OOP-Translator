@@ -81,5 +81,14 @@ public class Block extends Statement {
   public void visitWhileStatement(GNode n) {
     statement = new WhileStatement(n);
   }
+
+  public String getCC(int indent) {
+    if (statement != null)
+      return statement.getCC(indent);
+    else if (field != null)
+      return field.getCC(indent);
+    else if (inter != null)
+      return inter.getCC(indent);
+  }
   
 }

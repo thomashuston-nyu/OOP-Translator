@@ -36,5 +36,9 @@ public class Declarators extends TranslationVisitor implements Iterable<Declarat
     if (n != null)
       declarators.add(new Declarator(n));
   }
-
+  
+  public String getCC() {
+    StringBuilder s = new StringBuilder(declarators.get(0).getCC());
+    return s.toString();
+  }
 }

@@ -70,4 +70,17 @@ public class FieldDeclaration extends Declaration {
     isFinal = true;
   }
 
+  public String getCC(int indent) {
+    StringBuilder s = new StringBuilder(getIndent(indent));
+    if (isFinal)
+      s.append("const ");
+    if (isStatic)
+      s.append("static ");
+    if (isAbstract)
+      s.append("abstract ");
+    s.append(type.getType() + " ");
+    s.append(declarators.getCC());
+    return s.toString();
+  }
+
 }
