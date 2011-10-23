@@ -37,8 +37,8 @@ public class Declarators extends TranslationVisitor implements Iterable<Declarat
       declarators.add(new Declarator(n));
   }
   
-  public String getCC(String className, int indent) {
-    StringBuilder s = new StringBuilder(declarators.get(0).getCC(className,indent));
+  public String getCC(int indent, String className, List<Variable> variables) {
+    StringBuilder s = new StringBuilder(declarators.get(0).getCC(indent, className, variables));
     return s.toString();
   }
 }

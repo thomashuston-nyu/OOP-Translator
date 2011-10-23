@@ -3,7 +3,8 @@
  */
 package translator;
 
-import java.lang.StringBuilder;
+import java.util.ArrayList;
+import java.util.List;
 
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
@@ -50,17 +51,21 @@ public class MethodDeclaration extends Declaration implements Translatable {
     return s.toString();
   }
   
-  public String getCC(String className, int indent) {
+  public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     String in = getIndent(indent);
     s.append(in + returnType.getType() + " __" + className + "::" + name + "(");
     s.append(className + " __this");
-    if (parameters.size() >  0)
-      s.append(", " + parameters.getParameters());
+    List<FormalParameter> p = parameters.getParameters();
+    if (p.size() > 0)
+      s.append(", " + p);
     s.append(") {\n");
     if (body != null) {
-      in = getIndent(++indent);
-      s.append(body.getCC(className,indent));
+      List<Variable> v = new ArrayList<Variable>();
+      for (FormalParameter f : p) {
+        v.add(new Variable(f.getType(), f.getName()));
+      }
+      s.append(body.getCC(++indent, className, v));
       in = getIndent(--indent);
     }
     s.append(in + "}\n");

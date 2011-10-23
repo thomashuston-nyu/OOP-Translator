@@ -1,8 +1,6 @@
 package translator;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import xtc.tree.GNode;
@@ -70,14 +68,14 @@ public class ClassBody extends TranslationVisitor implements Translatable {
       return null;
   }
 
-  public String getCC(String className, int indent) {
+  public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
-    s.append(constructor.getCC(className,indent) + "\n\n");
+    s.append(constructor.getCC(indent, className, variables) + "\n\n");
     List<MethodDeclaration> l = methods.get(Visibility.PUBLIC);
     if (l != null) {
       for (MethodDeclaration m : l) {
         if (!m.isStatic() && !m.isFinal() && !m.isAbstract())
-          s.append(m.getCC(className, indent) + "\n");
+          s.append(m.getCC(indent, className, variables) + "\n");
       }
     }
     s.append(getIndent(indent) + "__" + className + "_VT __" + className +

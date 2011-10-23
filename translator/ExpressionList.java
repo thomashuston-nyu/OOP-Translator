@@ -1,7 +1,6 @@
 /**
  * Expression Expression*
  */
-
 package translator;
 
 import java.util.List;

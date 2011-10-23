@@ -246,8 +246,8 @@ public class ClassDeclaration extends Declaration implements Translatable {
     return s.toString();
   }
 
-  public String getCC(String className, int indent) {
-    return body.getCC(name, indent);
+  public String getCC(int indent, String className, List<Variable> variables) {
+    return body.getCC(indent, name, variables);
   }
   
 }

@@ -98,7 +98,7 @@ public class Translator extends xtc.util.Tool {
       CompilationUnit unit = new CompilationUnit((GNode)node);
       try {
         createFile(unit.getHeader(0), "h");
-        createFile(unit.getCC("",0), "cc");
+        createFile(unit.getCC(0, null, null), "cc");
       } catch (IOException e) {}
     }
   }

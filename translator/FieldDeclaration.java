@@ -3,6 +3,9 @@
  */
 package translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
@@ -70,7 +73,7 @@ public class FieldDeclaration extends Declaration implements Translatable {
     isFinal = true;
   }
 
-  public String getCC(String className, int indent) {
+  public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder(getIndent(indent));
     if (isFinal)
       s.append("const ");
@@ -79,7 +82,7 @@ public class FieldDeclaration extends Declaration implements Translatable {
     if (isAbstract)
       s.append("abstract ");
     s.append(type.getType() + " ");
-    s.append(declarators.getCC(className,indent));
+    s.append(declarators.getCC(indent, className, variables) + ";\n");
     return s.toString();
   }
 

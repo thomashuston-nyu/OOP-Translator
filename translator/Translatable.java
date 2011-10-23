@@ -1,9 +1,10 @@
 package translator;
 
-import java.lang.StringBuilder;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface Translatable {
   
-  public String getCC(String className, int indent);
+  public String getCC(int indent, String className, List<Variable> variables);
 
 }

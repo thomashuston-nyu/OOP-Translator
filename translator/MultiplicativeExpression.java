@@ -4,34 +4,59 @@
  */
 package translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class MultiplicativeExpression extends Expression implements Translatable {
   
-  private MultiplicativeExpression multiplicativeExpression;
-  private String multiplicativeOperator;
-  private UnaryExpression unaryExpression;
-
+  private Expression left;
+  private String operator;
+  private Expression right;
+  
   public MultiplicativeExpression(GNode n) {
-    multiplicativeOperator = null;
+    left = null;
+    right = null;
+    operator = n.getString(1);
     visit(n);
   }
-
-  public void visitMultiplicativeExpression(GNode n) {
-    multiplicativeExpression = new MultiplicativeExpression(n);
-  }
-
-  public void visitSymbol(GNode n) {
-    multiplicativeOperator = n.getString(0);
-  }
-
-  public void visitUnaryExpression(GNode n) {
-    unaryExpression = new UnaryExpression(n);
+  
+  public void visitAdditiveExpression(GNode n) {
+    setExpression(new AdditiveExpression(n));
   }
   
-  public String getCC(String className, int indent) {
-    return "";
+  public void visitCallExpression(GNode n) {
+    setExpression(new CallExpression(n));
+  }
+  
+  public void visitMultiplicativeExpression(GNode n) {
+    setExpression(new MultiplicativeExpression(n));
+  }
+  
+  public void visitStringLiteral(GNode n) {
+    setExpression(new StringLiteral(n));
+  }
+  
+  public void visitUnaryExpression(GNode n) {
+    setExpression(new UnaryExpression(n));
+  }
+  
+  private void setExpression(Expression e) {
+    if (left == null)
+      left = e;
+    else
+      right = e;
+  }
+  
+  public String getCC(int indent, String className, List<Variable> variables) {
+    StringBuilder s = new StringBuilder();
+    if (left != null && right != null) {
+      s.append(left.getCC(indent, className, variables) + " " 
+               + operator + " " + right.getCC(indent, className, variables));  
+    }
+    return s.toString();
   }
   
 }
