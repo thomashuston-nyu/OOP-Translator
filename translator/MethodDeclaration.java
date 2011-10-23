@@ -56,13 +56,12 @@ public class MethodDeclaration extends Declaration implements Translatable {
     String in = getIndent(indent);
     s.append(in + returnType.getType() + " __" + className + "::" + name + "(");
     s.append(className + " __this");
-    List<FormalParameter> p = parameters.getParameters();
-    if (p.size() > 0)
-      s.append(", " + p);
+    if (parameters.size() > 0)
+      s.append(", " + parameters.getParameters());
     s.append(") {\n");
     if (body != null) {
       List<Variable> v = new ArrayList<Variable>();
-      for (FormalParameter f : p) {
+      for (FormalParameter f : parameters) {
         v.add(new Variable(f.getType(), f.getName()));
       }
       s.append(body.getCC(++indent, className, v));
