@@ -8,6 +8,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class BitwiseAndExpression extends Expression {
+
   private BitwiseAndExpression bitwiseAndExpression;
   private EqualityExpression equalityExpression;
 
@@ -22,4 +23,9 @@ public class BitwiseAndExpression extends Expression {
   public void visitEqualityExpression(GNode n) {
     equalityExpression = new EqualityExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

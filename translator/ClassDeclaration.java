@@ -247,7 +247,7 @@ public class ClassDeclaration extends Declaration {
   }
 
   public String getCC(int indent) {
-    return body.getCC(indent);
+    return body.getCC(name, indent);
   }
   
 }

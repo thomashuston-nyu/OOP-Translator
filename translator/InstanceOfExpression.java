@@ -23,4 +23,9 @@ public class InstanceOfExpression extends Expression {
   public void visitType(GNode n) {
     type = new Type(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

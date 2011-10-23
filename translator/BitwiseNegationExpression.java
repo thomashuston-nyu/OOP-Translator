@@ -7,6 +7,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class BitwiseNegationExpression extends Expression {
+  
   private UnaryExpression unaryExpression;
 
   public BitwiseNegationExpression(GNode n) {
@@ -16,4 +17,9 @@ public class BitwiseNegationExpression extends Expression {
   public void visitUnaryExpression(GNode n) {
     unaryExpression = new UnaryExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

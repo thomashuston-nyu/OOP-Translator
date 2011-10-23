@@ -47,6 +47,17 @@ public class MethodDeclaration extends Declaration {
     s.append(");");
     return s.toString();
   }
+  
+  public String getCC(String className, int indent) {
+    StringBuilder s = new StringBuilder();
+    String in = getIndent(indent);
+    s.append(in + returnType.getType() + " __" + className + "::" + name + "(");
+    s.append(className + " __this");
+    if (parameters.size() >  0)
+      s.append(", " + parameters.getParameters());
+    s.append(") {\n" + in + "}\n");
+    return s.toString();
+  }
 
   public String getName() {
     return name;

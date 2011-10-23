@@ -30,5 +30,9 @@ public class RelationalExpression extends Expression {
   public void visitShiftExpression(GNode n) {
     shiftExpression = new ShiftExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
 
 }

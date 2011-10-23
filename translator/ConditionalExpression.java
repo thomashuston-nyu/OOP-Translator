@@ -8,6 +8,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 public class ConditionalExpression extends Expression {
+  
   private LogicalOrExpression logicalOrExpression;
   private Expression expression;
   private ConditionalExpression conditionalExpression;
@@ -27,4 +28,9 @@ public class ConditionalExpression extends Expression {
   public void visitConditionalExpression(GNode n) {
     conditionalExpression = new ConditionalExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

@@ -109,7 +109,7 @@ public class CompilationUnit extends TranslationVisitor {
   
   // TRANSLATION METHODS
   
-  public String getCC(int indent) {
+  public String getHeader(int indent) {
     StringBuilder s = new StringBuilder();
     String in = getIndent(indent);
     s.append("#pragma once\n\n");
@@ -132,6 +132,26 @@ public class CompilationUnit extends TranslationVisitor {
         s.append(c.getHeaderStruct(indent));
         s.append("\n");
         s.append(c.getHeaderVTStruct(indent));
+      }
+    }
+    if (pkg != null) {
+      s.append("\n}");
+    }
+    return s.toString();
+  }
+  
+  public String getCC(int indent) {
+    StringBuilder s = new StringBuilder();
+    String in = getIndent(indent);
+    s.append("#include \"output.h\"\n\n");
+    if (pkg != null) {
+      s.append(pkg.getNamespace(indent));
+      indent += pkg.size();
+      in = getIndent(indent);
+    }
+    List<ClassDeclaration> l = classes.get(Visibility.PUBLIC);
+    if (l != null) {
+      for (ClassDeclaration c : l) {
         s.append(c.getCC(indent));
       }
     }

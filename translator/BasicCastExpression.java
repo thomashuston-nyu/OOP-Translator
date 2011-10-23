@@ -27,4 +27,9 @@ public class BasicCastExpression extends Expression {
   public void visitUnaryExpression(GNode n) {
     unaryExpression = new UnaryExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
+  
 }

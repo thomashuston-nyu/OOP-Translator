@@ -15,7 +15,7 @@ public class AdditiveExpression extends Expression {
   private MultiplicativeExpression multiplicativeExpression;
 
   public AdditiveExpression(GNode n) {
-    additiveOperator = null;
+    additiveOperator = n.getString(1);
     visit(n);
   }
 
@@ -23,12 +23,13 @@ public class AdditiveExpression extends Expression {
     additiveExpression = new AdditiveExpression(n);
   }
 
-  public void visitSymbol(GNode n) {
-    additiveOperator = n.getString(0);
-  }
-
   public void visitMultiplicativeExpression(GNode n) {
     multiplicativeExpression = new MultiplicativeExpression(n);
+  }
+  
+  public String getCC() {
+    StringBuilder s = new StringBuilder();
+    return s.toString();
   }
 
 }

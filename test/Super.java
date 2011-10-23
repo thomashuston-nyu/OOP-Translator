@@ -8,6 +8,7 @@ public class Super {
 	
 	public Super(int x, double y) {
 		setX(x);
+    int w = x + 5 + x;
 		this.y = y;
 	}
 	

@@ -23,5 +23,9 @@ public class LogicalOrExpression extends Expression {
   public void visitLogicalAndExpression(GNode n) {
     logicalAndExpression = new LogicalAndExpression(n);
   }
+  
+  public String getCC() {
+    return "";
+  }
 
 }
