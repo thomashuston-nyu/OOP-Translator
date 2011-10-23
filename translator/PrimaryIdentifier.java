@@ -18,7 +18,11 @@ public class PrimaryIdentifier extends Expression implements Translatable {
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
-    return identifier;
+    for (Variable v : variables) {
+      if (v.name.equals(identifier))
+        return identifier;
+    }
+    return "__this->" + identifier;
   }
   
 }

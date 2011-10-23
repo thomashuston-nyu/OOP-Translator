@@ -85,6 +85,10 @@ public class Block extends Statement implements Translatable {
   public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     for (Translatable t : parts) {
+      if (t instanceof FieldDeclaration) {
+        FieldDeclaration f = (FieldDeclaration)t;
+        variables.add(new Variable(f.getType(), f.getName()));
+      }
       s.append(t.getCC(indent, className, variables));
     }
     return s.toString();
