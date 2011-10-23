@@ -8,7 +8,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class RelationalExpression extends Expression {
+public class RelationalExpression extends Expression implements Translatable {
 
   private RelationalExpression relationalExpression;
   private String relationalOperator;
@@ -31,7 +31,7 @@ public class RelationalExpression extends Expression {
     shiftExpression = new ShiftExpression(n);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     return "";
   }
 

@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class FieldDeclaration extends Declaration {
+public class FieldDeclaration extends Declaration implements Translatable {
   
   private boolean isAbstract;
   private boolean isFinal;
@@ -70,7 +70,7 @@ public class FieldDeclaration extends Declaration {
     isFinal = true;
   }
 
-  public String getCC(int indent) {
+  public String getCC(String className, int indent) {
     StringBuilder s = new StringBuilder(getIndent(indent));
     if (isFinal)
       s.append("const ");
@@ -79,7 +79,7 @@ public class FieldDeclaration extends Declaration {
     if (isAbstract)
       s.append("abstract ");
     s.append(type.getType() + " ");
-    s.append(declarators.getCC());
+    s.append(declarators.getCC(className,indent));
     return s.toString();
   }
 

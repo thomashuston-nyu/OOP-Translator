@@ -16,7 +16,7 @@ import xtc.tree.Visitor;
  *
  * @version 0.1
  */
-public class ClassDeclaration extends Declaration {
+public class ClassDeclaration extends Declaration implements Translatable {
   
   private ClassBody body;
   private Extension extension;
@@ -246,7 +246,7 @@ public class ClassDeclaration extends Declaration {
     return s.toString();
   }
 
-  public String getCC(int indent) {
+  public String getCC(String className, int indent) {
     return body.getCC(name, indent);
   }
   

@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ConstructorDeclaration extends Declaration {
+public class ConstructorDeclaration extends Declaration implements Translatable {
   
   private Block body;
   private String name;
@@ -49,12 +49,12 @@ public class ConstructorDeclaration extends Declaration {
     throwsClause = new ThrowsClause(n);
   }
 
-  public String getCC(int indent) {
+  public String getCC(String className, int indent) {
     StringBuilder s = new StringBuilder();
     String in = getIndent(indent);
     s.append(in + "__" + name + "::__" + name + "(");
     s.append(parameters.getParameters() + ")\n" + in + ": __vptr(&__vtable)");
-    s.append(" {" + /*body.getCC(++indent) + */"\n" + in + "}");
+    s.append(" {" + body.getCC(className,++indent) + "\n" + in + "}");
     return s.toString();
   }
 }

@@ -3,93 +3,91 @@
  */
 package translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class Block extends Statement {
-
-  private FieldDeclaration field;
-  private InterfaceDeclaration inter;
-  private Statement statement;
+public class Block extends Statement implements Translatable {
+  
+  private List<Translatable> parts;
   
   public Block(GNode n) {
-    field = null;
-    inter = null;
-    statement = null;
+    parts = new ArrayList<Translatable>();
+    visit(n);
   }
   
   public void visitAssertStatement(GNode n) {
-    statement = new AssertStatement(n);
+    parts.add(new AssertStatement(n));
   }
   
   public void visitBlock(GNode n) {
-    statement = new Block(n);
+    parts.add(new Block(n));
   }
   
   public void visitBreakStatement(GNode n) {
-    statement = new BreakStatement(n);
+    parts.add(new BreakStatement(n));
   }
   
   public void visitConditionalStatement(GNode n) {
-    statement = new ConditionalStatement(n);
+    parts.add(new ConditionalStatement(n));
   }
   
   public void visitContinueStatement(GNode n) {
-    statement = new ContinueStatement(n);
+    parts.add(new ContinueStatement(n));
   }
   
   public void visitDoWhileStatement(GNode n) {
-    statement = new DoWhileStatement(n);
+    parts.add(new DoWhileStatement(n));
   }
   
   public void visitExpressionStatement(GNode n) {
-    statement = new ExpressionStatement(n);
+    parts.add(new ExpressionStatement(n));
   }
   
   public void visitFieldDeclaration(GNode n) {
-    field = new FieldDeclaration(n);
+    parts.add(new FieldDeclaration(n));
   }
   
   public void visitForStatement(GNode n) {
-    statement = new ForStatement(n);
+    parts.add(new ForStatement(n));
   }
   
   public void visitInterfaceDeclaration(GNode n) {
-    inter = new InterfaceDeclaration(n);
+    parts.add(new InterfaceDeclaration(n));
   }
   
   public void visitReturnStatement(GNode n) {
-    statement = new ReturnStatement(n);
+    parts.add(new ReturnStatement(n));
   }
   
   public void visitSwitchStatement(GNode n) {
-    statement = new SwitchStatement(n);
+    parts.add(new SwitchStatement(n));
   }
   
   public void visitSynchronizedStatement(GNode n) {
-    statement = new SynchronizedStatement(n);
+    parts.add(new SynchronizedStatement(n));
   }
   
   public void visitThrowStatement(GNode n) {
-    statement = new ThrowStatement(n);
+    parts.add(new ThrowStatement(n));
   }
   
   public void visitTryCatchFinallyStatement(GNode n) {
-    statement = new TryCatchFinallyStatement(n);
+    parts.add(new TryCatchFinallyStatement(n));
   }
   
   public void visitWhileStatement(GNode n) {
-    statement = new WhileStatement(n);
+    parts.add(new WhileStatement(n));
   }
 
-  public String getCC(int indent) {
-    if (statement != null)
-      return "";//statement.getCC(indent);
-    else if (field != null)
-      return field.getCC(indent);
-    else if (inter != null)
-      return "";//inter.getCC(indent);
-    return "";
+  public String getCC(String className, int indent) {
+    StringBuilder s = new StringBuilder();
+    for (Translatable t : parts) {
+      s.append(t.getCC(className,indent));
+    }
+    return s.toString();
   }
   
 }

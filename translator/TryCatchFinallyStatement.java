@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class TryCatchFinallyStatement extends Statement {
+public class TryCatchFinallyStatement extends Statement implements Translatable {
+  
   private Block tryBlock;
   private Block finallyBlock;
   private List<CatchClause> catchClause;
@@ -33,4 +34,9 @@ public class TryCatchFinallyStatement extends Statement {
   public void visitCatchClause(GNode n) {
     catchClause.add(new CatchClause(n));
   }
+  
+  public String getCC(String className, int indent) {
+    return "";
+  }
+  
 }

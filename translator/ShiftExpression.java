@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ShiftExpression extends Expression {
+public class ShiftExpression extends Expression implements Translatable {
 
   private ShiftExpression shiftExpression;
   private String shiftOperator;
@@ -30,7 +30,7 @@ public class ShiftExpression extends Expression {
     additiveExpression = new AdditiveExpression(n);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     return "";
   }
   

@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class InstanceOfExpression extends Expression {
+public class InstanceOfExpression extends Expression implements Translatable {
   
   private RelationalExpression relationalExpression;
   private Type type;
@@ -24,7 +24,7 @@ public class InstanceOfExpression extends Expression {
     type = new Type(n);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     return "";
   }
   

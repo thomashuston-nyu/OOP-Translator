@@ -12,7 +12,7 @@ public class CallExpression extends Expression {
   private Arguments arguments;
 
   public CallExpression(GNode n) {
-    n.getString(2);
+    identifier = n.getString(2);
     visit(n);
   }
 
@@ -20,8 +20,8 @@ public class CallExpression extends Expression {
     arguments = new Arguments(n);
   }
   
-  public String getCC() {
-    return "";
+  public String getCC(String className, int indent) {
+    return getIndent(indent) + identifier + "(" + arguments.getCC(className,indent) + ");\n";
   }
   
 }

@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ThisExpression extends Expression {
+public class ThisExpression extends Expression implements Translatable {
   
   private QualifiedIdentifier qualifiedIdentifier;
 
@@ -19,7 +19,7 @@ public class ThisExpression extends Expression {
     qualifiedIdentifier = new QualifiedIdentifier(n);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     return "";
   }
   

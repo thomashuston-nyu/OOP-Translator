@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class NewArrayExpression extends Expression {
+public class NewArrayExpression extends Expression implements Translatable {
 
   private ArrayInitializer arrayInitializer;
   private ConcreteDimensions concrete;
@@ -43,8 +43,15 @@ public class NewArrayExpression extends Expression {
     qualified = new QualifiedIdentifier(n);
   }
   
-  public String getCC() {
-    return "";
+  public String getCC(String className, int indent) {
+    StringBuilder s = new StringBuilder();
+    s.append("new __rt::Array<");
+    if (primitive != null)
+      s.append(primitive.getType());
+    else if (qualified != null)
+      s.append(qualified.getType());
+    s.append(">(" + concrete.getDimensions() + ");");
+    return s.toString();
   }
 
 }

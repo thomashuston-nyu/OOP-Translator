@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class WhileStatement extends Statement {
+public class WhileStatement extends Statement implements Translatable {
   
   private Expression expression;
   private Statement statement;
@@ -70,4 +70,9 @@ public class WhileStatement extends Statement {
   public void visitWhileStatement(GNode n) {
     statement = new WhileStatement(n);
   }
+  
+  public String getCC(String className, int indent) {
+    return "";
+  }
+  
 }

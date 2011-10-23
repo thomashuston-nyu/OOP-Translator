@@ -8,7 +8,7 @@ import java.util.Map;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ClassBody extends TranslationVisitor {
+public class ClassBody extends TranslationVisitor implements Translatable {
   
   private ConstructorDeclaration constructor;
   private Map<Visibility, List<FieldDeclaration>> fields;
@@ -72,7 +72,7 @@ public class ClassBody extends TranslationVisitor {
 
   public String getCC(String className, int indent) {
     StringBuilder s = new StringBuilder();
-    s.append(constructor.getCC(indent) + "\n\n");
+    s.append(constructor.getCC(className,indent) + "\n\n");
     List<MethodDeclaration> l = methods.get(Visibility.PUBLIC);
     if (l != null) {
       for (MethodDeclaration m : l) {

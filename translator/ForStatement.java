@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ForStatement extends Statement {
+public class ForStatement extends Statement implements Translatable {
   
   private BasicForControl basicForControl;
   private Statement statement;
@@ -70,4 +70,9 @@ public class ForStatement extends Statement {
   public void visitWhileStatement(GNode n) {
     statement = new WhileStatement(n);
   }
+  
+  public String getCC(String className, int indent) {
+    return "";
+  }
+  
 }

@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class CastExpression extends Expression {
+public class CastExpression extends Expression implements Translatable {
   
   private Type type;
 
@@ -18,7 +18,7 @@ public class CastExpression extends Expression {
     type = new Type(n);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     return "";
   }
   

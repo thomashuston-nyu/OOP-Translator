@@ -8,7 +8,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class AdditiveExpression extends Expression {
+public class AdditiveExpression extends Expression implements Translatable {
 
   private AdditiveExpression additiveExpression;
   private String additiveOperator;
@@ -27,7 +27,7 @@ public class AdditiveExpression extends Expression {
     multiplicativeExpression = new MultiplicativeExpression(n);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     StringBuilder s = new StringBuilder();
     return s.toString();
   }

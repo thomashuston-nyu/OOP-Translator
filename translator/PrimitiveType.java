@@ -18,5 +18,14 @@ public class PrimitiveType extends TranslationVisitor {
 
   public PrimitiveType(GNode n) {
     type = n.getString(0);
+    if (type.equals("int"))
+      type = "int32_t";
+    else if (type.equals("boolean"))
+      type = "bool";
   }
+  
+  public String getType() {
+    return type;
+  }
+  
 }
