@@ -1,3 +1,4 @@
+/*
 package test;
 public class DeepClass extends Test {
 
@@ -13,3 +14,4 @@ public class DeepClass extends Test {
     public static void main (String [] args) {
     }
 }
+*/
