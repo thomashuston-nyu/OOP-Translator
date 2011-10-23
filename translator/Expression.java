@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class Expression extends PrimaryExpression {
+public class Expression extends PrimaryExpression implements Translatable {
   
   private ConditionalExpression conditionalExpression;
   private String assignmentOperator;
@@ -22,6 +22,7 @@ public class Expression extends PrimaryExpression {
   }
 
   public void visitConditionalExpression(GNode n) {
+    System.out.println("visit conditional");
     conditionalExpression = new ConditionalExpression(n);
   }
 
@@ -32,8 +33,9 @@ public class Expression extends PrimaryExpression {
   public void visitExpression(GNode n) {
     expression = new Expression(n);
   }
-
-  public String getCC() {
+  
+  public String getCC(String className, int indent) {
     return "";
   }
+  
 }

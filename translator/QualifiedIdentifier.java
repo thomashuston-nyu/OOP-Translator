@@ -68,4 +68,8 @@ public class QualifiedIdentifier implements Iterable<String> {
     return identifiers.size();
   }
   
+  public String getType() {
+    return "";
+  }
+  
 }

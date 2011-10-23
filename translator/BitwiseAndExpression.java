@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class BitwiseAndExpression extends Expression {
+public class BitwiseAndExpression extends Expression implements Translatable {
 
   private BitwiseAndExpression bitwiseAndExpression;
   private EqualityExpression equalityExpression;
@@ -24,7 +24,7 @@ public class BitwiseAndExpression extends Expression {
     equalityExpression = new EqualityExpression(n);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     return "";
   }
   

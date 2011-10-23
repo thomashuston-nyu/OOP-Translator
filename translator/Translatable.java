@@ -4,6 +4,6 @@ import java.lang.StringBuilder;
 
 public interface Translatable {
   
-  public StringBuilder getCC();
+  public String getCC(String className, int indent);
 
 }

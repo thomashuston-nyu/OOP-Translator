@@ -8,7 +8,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class EqualityExpression extends Expression {
+public class EqualityExpression extends Expression implements Translatable {
     
   private EqualityExpression equalityExpression;
   private String equalityOperator;
@@ -31,7 +31,7 @@ public class EqualityExpression extends Expression {
     instanceOfExpression = new InstanceOfExpression(n);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     return "";
   }
 

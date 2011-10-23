@@ -14,7 +14,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class UnaryExpression extends Expression {
+public class UnaryExpression extends Expression implements Translatable {
 
   private UnaryExpression unaryExpression;
   private String symbol;
@@ -33,7 +33,7 @@ public class UnaryExpression extends Expression {
     symbol = n.getString(0);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     return "";
   }
   

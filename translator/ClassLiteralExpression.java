@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ClassLiteralExpression extends Expression {
+public class ClassLiteralExpression extends Expression implements Translatable {
 
   private Type returnType;
   
@@ -23,7 +23,7 @@ public class ClassLiteralExpression extends Expression {
     returnType = new VoidType(n);
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     return "";
   }
 

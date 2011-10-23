@@ -6,7 +6,8 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class SynchronizedStatement extends Statement {
+public class SynchronizedStatement extends Statement implements Translatable {
+
   private Expression expression;
   private Block block;
 
@@ -21,4 +22,9 @@ public class SynchronizedStatement extends Statement {
   public void visitBlock(GNode n) {
     block = new Block(n);
   }
+  
+  public String getCC(String className, int indent) {
+    return "";
+  }
+  
 }

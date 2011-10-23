@@ -10,7 +10,7 @@ import java.util.List;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class Declarators extends TranslationVisitor implements Iterable<Declarator> {
+public class Declarators extends TranslationVisitor implements Iterable<Declarator>, Translatable {
 
   private List<Declarator> declarators;
   
@@ -37,8 +37,8 @@ public class Declarators extends TranslationVisitor implements Iterable<Declarat
       declarators.add(new Declarator(n));
   }
   
-  public String getCC() {
-    StringBuilder s = new StringBuilder(declarators.get(0).getCC());
+  public String getCC(String className, int indent) {
+    StringBuilder s = new StringBuilder(declarators.get(0).getCC(className,indent));
     return s.toString();
   }
 }

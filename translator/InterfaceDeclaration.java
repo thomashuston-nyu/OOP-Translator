@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class InterfaceDeclaration extends Declaration {
+public class InterfaceDeclaration extends Declaration implements Translatable {
   
   private String name;
   private Extension extension;
@@ -27,6 +27,10 @@ public class InterfaceDeclaration extends Declaration {
   
   public void visitIdentifier(GNode n) {
     name = n.getString(0);
+  }
+  
+  public String getCC(String className, int indent) {
+    return "";
   }
 
 }

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class SwitchStatement extends Statement {
+public class SwitchStatement extends Statement implements Translatable {
   
   private Expression expression;
   private List<SwitchClause> switchClause;
@@ -27,4 +27,9 @@ public class SwitchStatement extends Statement {
   public void visitSwitchClause(GNode n) {
     switchClause.add(new SwitchClause(n));
   }
+  
+  public String getCC(String className, int indent) {
+    return "";
+  }
+  
 }

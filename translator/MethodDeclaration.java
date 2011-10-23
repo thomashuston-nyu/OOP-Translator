@@ -8,9 +8,10 @@ import java.lang.StringBuilder;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class MethodDeclaration extends Declaration {
+public class MethodDeclaration extends Declaration implements Translatable {
 
   private String name;
+  private Block body;
   private Type returnType;
   private Visibility visibility;
   private FormalParameters parameters;
@@ -22,6 +23,7 @@ public class MethodDeclaration extends Declaration {
     isAbstract = false;
     isFinal = false;
     isStatic = false;
+    body = null;
     visibility = Visibility.PRIVATE;
     name = n.getString(3);
     visit(n);
@@ -55,7 +57,13 @@ public class MethodDeclaration extends Declaration {
     s.append(className + " __this");
     if (parameters.size() >  0)
       s.append(", " + parameters.getParameters());
-    s.append(") {\n" + in + "}\n");
+    s.append(") {\n");
+    if (body != null) {
+      in = getIndent(++indent);
+      s.append(body.getCC(className,indent));
+      in = getIndent(--indent);
+    }
+    s.append(in + "}\n");
     return s.toString();
   }
 
@@ -85,6 +93,10 @@ public class MethodDeclaration extends Declaration {
   
   public boolean isStatic() {
     return isStatic;
+  }
+  
+  public void visitBlock(GNode n) {
+    body = new Block(n);
   }
   
   public void visitFormalParameters(GNode n) {

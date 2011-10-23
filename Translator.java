@@ -24,7 +24,7 @@ import java.io.Reader;
 
 import translator.*;
 
-import java.lang.StringBuilder;
+import xtc.lang.JavaFiveParser;
 
 import xtc.parser.ParseException;
 import xtc.parser.Result;
@@ -32,8 +32,6 @@ import xtc.parser.Result;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
-
-import xtc.lang.JavaFiveParser;
 
 /**
  * A translator from (a subset of) Java to (a subset of) C++.
@@ -63,12 +61,23 @@ public class Translator extends xtc.util.Tool {
     bool("translateJava", "translateJava", false, "Translate Java to C++.");
   }
   
+  /**
+   * Parse a Java file and construct the AST.
+   *
+   * @return The CompilationUnit Node.
+   */
   public Node parse(Reader in, File file) throws IOException, ParseException {
-    JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
+    JavaFiveParser parser = new   JavaFiveParser(in, file.toString(), (int)file.length());
     Result result = parser.pCompilationUnit(0);
     return (Node)parser.value(result);
   }
   
+  /**
+   * Write a C++ String to an output file.
+   *
+   * @param s The C++ code string.
+   * @param extension The file extension (h or cc)
+   */
   public void createFile(String s, String extension) throws IOException {
     File file = new File("../output/output." + extension);
     if (file.exists()) {
@@ -85,12 +94,11 @@ public class Translator extends xtc.util.Tool {
     if (runtime.test("printJavaAST")) {
       runtime.console().format(node).pln().flush();
     }
-    
     if (runtime.test("translateJava")) {
       CompilationUnit unit = new CompilationUnit((GNode)node);
       try {
         createFile(unit.getHeader(0), "h");
-        createFile(unit.getCC(0), "cc");
+        createFile(unit.getCC("",0), "cc");
       } catch (IOException e) {}
     }
   }

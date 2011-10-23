@@ -18,7 +18,7 @@ import xtc.tree.Visitor;
  *
  * @version 0.1
  */
-public class PackageDeclaration extends TranslationVisitor {
+public class PackageDeclaration extends TranslationVisitor implements Translatable {
   
   private QualifiedIdentifier pkg;
   
@@ -55,7 +55,7 @@ public class PackageDeclaration extends TranslationVisitor {
     return pkg.size();
   }
   
-  public String getCC() {
+  public String getCC(String className, int indent) {
     StringBuilder s = new StringBuilder();
     int size = pkg.size();
     for (int i = 0; i < size; i++) {

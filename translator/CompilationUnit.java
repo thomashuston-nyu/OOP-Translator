@@ -22,7 +22,7 @@ import xtc.tree.Visitor;
  *
  * @version 0.1
  */
-public class CompilationUnit extends TranslationVisitor {
+public class CompilationUnit extends TranslationVisitor implements Translatable {
   
   private HashMap<Visibility, List<ClassDeclaration>> classes;
   private List<ImportDeclaration> imports;
@@ -140,7 +140,7 @@ public class CompilationUnit extends TranslationVisitor {
     return s.toString();
   }
   
-  public String getCC(int indent) {
+  public String getCC(String className, int indent) {
     StringBuilder s = new StringBuilder();
     String in = getIndent(indent);
     s.append("#include \"output.h\"\n\n");
@@ -152,7 +152,7 @@ public class CompilationUnit extends TranslationVisitor {
     List<ClassDeclaration> l = classes.get(Visibility.PUBLIC);
     if (l != null) {
       for (ClassDeclaration c : l) {
-        s.append(c.getCC(indent));
+        s.append(c.getCC(c.getName(),indent));
       }
     }
     if (pkg != null) {

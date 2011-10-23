@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ConditionalStatement extends Statement {
+public class ConditionalStatement extends Statement implements Translatable {
   
   private Expression expression;
   private Statement ifStatement;
@@ -81,4 +81,9 @@ public class ConditionalStatement extends Statement {
       elseStatement = s;
     }
   }
+  
+  public String getCC(String className, int indent) {
+    return "";
+  }
+  
 }

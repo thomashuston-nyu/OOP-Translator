@@ -18,13 +18,15 @@ namespace test {
   }
 
   void __Point2d::setXY(Point2d __this, double px, double py) {
+    setX(px);
+    setY(py);
   }
 
   String __Point2d::toStringForXY(Point2d __this) {
-  }
+    String str   }
 
   String __Point2d::toString(Point2d __this) {
-  }
+    String str   }
 
   __Point2d_VT __Point2d::__vtable;
 

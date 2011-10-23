@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class DoWhileStatement extends Statement {
+public class DoWhileStatement extends Statement implements Translatable {
  
   private Statement statement;
   private Expression expression;
@@ -76,6 +76,10 @@ public class DoWhileStatement extends Statement {
   
   public void visitWhileStatement(GNode n) {
     statement = new WhileStatement(n);
+  }
+  
+  public String getCC(String className, int indent) {
+    return "";
   }
 
 }
