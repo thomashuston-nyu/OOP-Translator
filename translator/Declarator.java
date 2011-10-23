@@ -10,13 +10,13 @@ public class Declarator extends TranslationVisitor {
   
   private String name;
   private boolean isArray;
-  private ArrayInitalizer arrayInitializer;
+  private ArrayInitializer arrayInitializer;
   private Expression expression;
 
   public Declarator(GNode n) {
     name = n.getString(0);
     isArray = false;
-    arrayInitalizer = null;
+    arrayInitializer = null;
     expression = null;
     visit(n);
   }

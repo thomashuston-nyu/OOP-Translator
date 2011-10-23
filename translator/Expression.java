@@ -12,7 +12,11 @@ public class Expression extends PrimaryExpression {
   private ConditionalExpression conditionalExpression;
   private String assignmentOperator;
   private Expression expression;
-
+  
+  public Expression() {
+    
+  }
+  
   public Expression(GNode n) {
     visit(n);
   }
@@ -30,6 +34,6 @@ public class Expression extends PrimaryExpression {
   }
 
   public String getCC() {
-    
+    return "";
   }
 }

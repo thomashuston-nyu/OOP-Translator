@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ClassLiteralExpression extends PrimaryExpression {
+public class ClassLiteralExpression extends Expression {
 
   private Type returnType;
   

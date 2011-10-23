@@ -7,7 +7,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class InstanceOfExpression extends TranslationVisitor {
+public class InstanceOfExpression extends Expression {
   
   private RelationalExpression relationalExpression;
   private Type type;

@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class NewArrayExpression extends PrimaryExpression {
+public class NewArrayExpression extends Expression {
 
   private ArrayInitializer arrayInitializer;
   private ConcreteDimensions concrete;

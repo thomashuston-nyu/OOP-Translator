@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class CallExpression extends PrimaryExpression {
+public class CallExpression extends Expression {
   private String identifier;
   private Arguments arguments;
 

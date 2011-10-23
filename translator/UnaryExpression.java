@@ -14,7 +14,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class UnaryExpression extends TranslationVisitor {
+public class UnaryExpression extends Expression {
   private UnaryExpression unaryExpression;
   private String symbol;
 

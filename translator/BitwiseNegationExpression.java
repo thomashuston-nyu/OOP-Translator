@@ -6,7 +6,7 @@ package translator;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class BitwiseNegationExpression extends TranslationVisitor {
+public class BitwiseNegationExpression extends Expression {
   private UnaryExpression unaryExpression;
 
   public BitwiseNegationExpression(GNode n) {
