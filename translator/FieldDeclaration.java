@@ -39,6 +39,10 @@ public class FieldDeclaration extends Declaration implements Translatable {
     return d.getName();
   }
   
+  public String getType() {
+    return type.getType();
+  }
+  
   public Visibility getVisibility() {
     return visibility;
   }

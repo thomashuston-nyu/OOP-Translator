@@ -3,24 +3,24 @@
 namespace test {
   __Point2d::__Point2d(double px, double py)
   : __vptr(&__vtable) {
-    x = px;
-    y = py;
+    __this->x = px;
+    __this->y = py;
   }
 
   void __Point2d::setX(Point2d __this, double px) {
-    x = px;
+    __this->x = px;
   }
 
   double __Point2d::getX(Point2d __this) {
-    return x;
+    return __this->x;
   }
 
   void __Point2d::setY(Point2d __this, double py) {
-    y = py;
+    __this->y = py;
   }
 
   double __Point2d::getY(Point2d __this) {
-    return y;
+    return __this->y;
   }
 
   void __Point2d::setXY(Point2d __this, double px, double py) {
