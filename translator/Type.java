@@ -9,7 +9,7 @@ import java.util.List;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class Type extends TranslationVisitor {
+public class Type extends TranslationVisitor implements Translatable {
   
   private boolean isArray;
   private String type;
@@ -39,5 +39,11 @@ public class Type extends TranslationVisitor {
     type = q.get(0);
     // TODO correct this to allow for explicit package references (e.g. java.lang.Object)
   }
-  
+
+  public String getCC(int indent, String className, List<Variable> variables) {
+    StringBuilder s = new StringBuilder();
+    s.append(type);
+    return s.toString();
+  }
+
 }

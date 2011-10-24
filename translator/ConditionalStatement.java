@@ -20,6 +20,18 @@ public class ConditionalStatement extends Statement implements Translatable {
   }
  
   // expressions
+  public void visitAdditiveExpression(GNode n) {
+    expression = new AdditiveExpression(n);
+  }
+
+  public void visitCallExpression(GNode n) {
+    expression = new CallExpression(n);
+  }
+
+  public void visitConditionalExpression(GNode n) {
+    expression = new ConditionalExpression(n);
+  }
+  
   public void visitEqualityExpression(GNode n) {
     expression = new EqualityExpression(n);
   }
@@ -28,6 +40,10 @@ public class ConditionalStatement extends Statement implements Translatable {
     expression = new Expression(n);
   }
 
+  public void visitMultiplicativeExpression(GNode n) {
+    expression = new MultiplicativeExpression(n);
+  }
+  
   public void visitPostfixExpression(GNode n) {
     expression = new PostfixExpression(n);
   }

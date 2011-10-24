@@ -21,20 +21,27 @@ public class Expression extends PrimaryExpression implements Translatable {
   }
   
   public Expression(GNode n) {
-    left = null;
-    right = null;
     operator = n.getString(1);
     visit(n);
   }
 
+  // expressions
   public void visitAdditiveExpression(GNode n) {
     setExpression(new AdditiveExpression(n));
+  }
+
+  public void visitCallExpression(GNode n) {
+    setExpression(new CallExpression(n));
   }
 
   public void visitConditionalExpression(GNode n) {
     setExpression(new ConditionalExpression(n));
   }
   
+  public void visitEqualityExpression(GNode n) {
+    setExpression(new EqualityExpression(n));
+  }
+
   public void visitExpression(GNode n) {
     setExpression(new Expression(n));
   }
@@ -43,10 +50,19 @@ public class Expression extends PrimaryExpression implements Translatable {
     setExpression(new MultiplicativeExpression(n));
   }
   
+  public void visitPostfixExpression(GNode n) {
+    setExpression(new PostfixExpression(n));
+  }
+
   public void visitPrimaryIdentifier(GNode n) {
     setExpression(new PrimaryIdentifier(n));
   }
 
+  public void visitRelationalExpression(GNode n) {
+    setExpression(new RelationalExpression(n));
+  }
+
+  // literals
   public void visitBooleanLiteral(GNode n) {
     setExpression(new BooleanLiteral(n));
   }
@@ -67,21 +83,15 @@ public class Expression extends PrimaryExpression implements Translatable {
     setExpression(new StringLiteral(n));
   }
   
-  private void setExpression(Expression e) {
+  private void setExpression(Expression expression) {
     if (left == null)
-      left = e;
+      left = expression;
     else
-      right = e;
+      right = expression;
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
-    if (left != null && right != null) {
-      StringBuilder s = new StringBuilder();
-      s.append(left.getCC(indent, className, variables) + " " + operator +
-               " " + right.getCC(indent, className, variables));
-      return s.toString();
-    }
-    return "";
+    return left.getCC(indent, className, variables) + " " + operator + " " + right.getCC(indent, className, variables);
   }
   
 }
