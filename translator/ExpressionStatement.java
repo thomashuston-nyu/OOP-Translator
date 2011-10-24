@@ -17,6 +17,7 @@ public class ExpressionStatement extends Statement implements Translatable {
     visit(n);
   }
 
+  // expressions
   public void visitAdditiveExpression(GNode n) {
     expression = new AdditiveExpression(n);
   }
@@ -24,7 +25,15 @@ public class ExpressionStatement extends Statement implements Translatable {
   public void visitCallExpression(GNode n) {
     expression = new CallExpression(n);
   }
+
+  public void visitConditionalExpression(GNode n) {
+    expression = new ConditionalExpression(n);
+  }
   
+  public void visitEqualityExpression(GNode n) {
+    expression = new EqualityExpression(n);
+  }
+
   public void visitExpression(GNode n) {
     expression = new Expression(n);
   }
@@ -33,8 +42,16 @@ public class ExpressionStatement extends Statement implements Translatable {
     expression = new MultiplicativeExpression(n);
   }
 
+  public void visitPrimaryIdentifier(GNode n) {
+    expression = new PrimaryIdentifier(n);
+  }
+
   public void visitPostfixExpression(GNode n) {
     expression = new PostfixExpression(n);
+  }
+
+  public void visitRelationalExpression(GNode n) {
+    expression = new RelationalExpression(n);
   }
 
   public String getCC(int indent, String className, List<Variable> variables) {

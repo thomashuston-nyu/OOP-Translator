@@ -18,12 +18,17 @@ public class ForStatement extends Statement implements Translatable {
     visit(n);
   }
 
-  public void visitAssesrtStatement(GNode n) {
+  public void visitBasicForControl(GNode n) {
+    basicForControl = new BasicForControl(n);
+  }
+
+  // statements
+  public void visitAssertStatement(GNode n) {
     statement = new AssertStatement(n);
   }
 
-  public void visitBasicForControl(GNode n) {
-    basicForControl = new BasicForControl(n);
+  public void visitBlock(GNode n) {
+    statement = new Block(n);
   }
 
   public void visitBreakStatement(GNode n) {
@@ -57,11 +62,11 @@ public class ForStatement extends Statement implements Translatable {
   public void visitSwitchStatement(GNode n) {
     statement = new SwitchStatement(n);
   }
-
-  public void visitSynchronizedStatement(GNode n) {
-    statement = new SynchronizedStatement(n);
-  }
   
+  public void visitSynchronizedStatement(GNode n) {
+    statement = new SynchronizedStatement(n);    
+  }
+
   public void visitThrowStatement(GNode n) {
     statement = new ThrowStatement(n);
   }
@@ -69,13 +74,16 @@ public class ForStatement extends Statement implements Translatable {
   public void visitTryCatchFinallyStatement(GNode n) {
     statement = new TryCatchFinallyStatement(n);
   }
-  
+
   public void visitWhileStatement(GNode n) {
     statement = new WhileStatement(n);
   }
-  
+
   public String getCC(int indent, String className, List<Variable> variables) {
-    return "";
+    StringBuilder s = new StringBuilder();
+    s.append(getIndent(indent) + "for (" + basicForControl.getCC(indent, className, variables) + ") {\n");
+    s.append(statement.getCC(++indent, className, variables) + getIndent(--indent) + "}\n");
+    return s.toString();
   }
   
 }
