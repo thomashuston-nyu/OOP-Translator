@@ -81,7 +81,7 @@ public class Declarator extends TranslationVisitor implements Translatable {
   public String getStringCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder(name);
     if (expression != null)
-      s.append(" = __rt::literal(" + expression.getCC(indent, className, variables) + ")");
+      s.append(" = " + expression.getCC(indent, className, variables));
     return s.toString();
   }
   
