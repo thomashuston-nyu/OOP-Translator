@@ -33,6 +33,9 @@ void __Sample::test(Sample __this) {
   while (b) {
     b = false;
   }
+  do {
+    x = 3;
+  } while (x != 3);
 }
 
 __Sample_VT __Sample::__vtable;

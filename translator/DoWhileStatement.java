@@ -15,15 +15,31 @@ public class DoWhileStatement extends Statement implements Translatable {
   private Expression expression;
 
   public DoWhileStatement(GNode n) {
-    statement = null;
-    expression = null;
     visit(n);
   }
  
+  // expressions
+  public void visitEqualityExpression(GNode n) {
+    expression = new EqualityExpression(n);
+  }
+
   public void visitExpression(GNode n) {
     expression = new Expression(n);
   }
 
+  public void visitPrimaryIdentifier(GNode n) {
+    expression = new PrimaryIdentifier(n);
+  }
+
+  public void visitPostfixExpression(GNode n) {
+    expression = new PostfixExpression(n);
+  }
+
+  public void visitRelationalExpression(GNode n) {
+    expression = new RelationalExpression(n);
+  }
+
+  // statements
   public void visitAssertStatement(GNode n) {
     statement = new AssertStatement(n);
   }
@@ -31,7 +47,7 @@ public class DoWhileStatement extends Statement implements Translatable {
   public void visitBlock(GNode n) {
     statement = new Block(n);
   }
-  
+
   public void visitBreakStatement(GNode n) {
     statement = new BreakStatement(n);
   }
@@ -41,7 +57,7 @@ public class DoWhileStatement extends Statement implements Translatable {
   }
   
   public void visitContinueStatement(GNode n) {
-    statement = new ContinueStatement(n);    
+    statement = new ContinueStatement(n);
   }
   
   public void visitDoWhileStatement(GNode n) {
@@ -81,7 +97,11 @@ public class DoWhileStatement extends Statement implements Translatable {
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
-    return "";
+    StringBuilder s = new StringBuilder();
+    s.append(getIndent(indent) + "do {\n");
+    s.append(statement.getCC(++indent, className, variables) + getIndent(--indent) + "}");
+    s.append(" while (" + expression.getCC(indent, className, variables) + ");\n");
+    return s.toString();
   }
 
 }
