@@ -31,6 +31,10 @@ public class Arguments extends TranslationVisitor implements Translatable {
     expressions.add(new FloatingPointLiteral(n));
   }
   
+  public void visitIntegerLiteral(GNode n) {
+    expressions.add(new IntegerLiteral(n));
+  }
+  
   public void visitPrimaryIdentifier(GNode n) {
     expressions.add(new PrimaryIdentifier(n));
   }
