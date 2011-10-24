@@ -20,6 +20,8 @@ public class ClassBody extends TranslationVisitor implements Translatable {
     visit(n);
   }
   
+  // declarations
+  
   public String getConstructorDeclaration() {
     if (constructor != null)
       return constructor.getHeaderDeclaration();
@@ -75,6 +77,17 @@ public class ClassBody extends TranslationVisitor implements Translatable {
 
   public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
+    if (variables == null)
+      variables = new ArrayList<Variable>();
+    for (Visibility v : Visibility.values()) {
+      if (fields.containsKey(v)) {
+        List<FieldDeclaration> f = fields.get(v);
+        for (FieldDeclaration fd : f) {
+          Variable a = new Variable(fd.getType(), fd.getName());
+          variables.add(a);
+        }
+      }
+    }
     if (constructor != null)
       s.append(constructor.getCC(indent, className, variables) + "\n\n");
     List<MethodDeclaration> l = methods.get(Visibility.PUBLIC);
@@ -84,6 +97,11 @@ public class ClassBody extends TranslationVisitor implements Translatable {
           s.append(m.getCC(indent, className, variables) + "\n");
       }
     }
+    s.append(getIndent(indent) + "Class __" + className + "::__class() {\n");
+    s.append(getIndent(++indent) + "static Class k = new __Class(__rt::literal(\"" +
+             className + "\"), __Object::__class());\n");
+    s.append(getIndent(indent) + "return k;\n");
+    s.append(getIndent(--indent) + "}\n\n");
     s.append(getIndent(indent) + "__" + className + "_VT __" + className +
              "::__vtable;\n");
     if (l != null) {

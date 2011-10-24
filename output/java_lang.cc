@@ -25,9 +25,9 @@
 namespace java {
   namespace lang {
     
-    // really System.out.print, but let's call it java.lang. who's going to stop us
-
-    // a helper method for the one c++ primitive whose default behavior in cout isn't java-like
+    // Print helper methods
+    
+    // Convert bool to a string
     std::string bool_to_string(bool b) {
       if (b)
         return "true";
@@ -35,18 +35,40 @@ namespace java {
         return "false";
     }
     
+    // Convert char to a string
+    std::string char_to_string(char c) {
+      std::stringstream ss;
+      ss << c;
+      return ss.str();
+    }
+    
+    // Convert double to a string
+    std::string double_to_string(double d) {
+      std::stringstream ss;
+      ss << d;
+      return ss.str();
+    }
+    
+    // Convert float to a string
+    std::string float_to_string(float f) {
+      std::stringstream ss;
+      ss << f;
+      return ss.str();
+    }
+    
+    // Convert int to a string
     std::string int_to_string(int32_t i) {
       std::stringstream ss;
       ss << i;
       return ss.str();
     }
 
-    // a trivial print method
+    // System.out.print(String)
     void print(std::string s) {
         std::cout << s;
     }
-
-    // a trivial println method
+    
+    // System.out.println(String)
     void println(std::string s) {
         std::cout << s << std::endl;
     }
