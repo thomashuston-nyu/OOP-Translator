@@ -7,41 +7,35 @@
 
 using namespace java::lang;
 
-struct __Sample;
-struct __Sample_VT;
+struct __Test;
+struct __Test_VT;
 
-typedef __Sample* Sample;
+typedef __Test* Test;
 
-struct __Sample {
-  __Sample_VT* __vptr;
-  int32_t x;
-  int32_t y;
+struct __Test {
+  __Test_VT* __vptr;
 
-  __Sample(int32_t x1, int32_t y1);
+  null
 
-  static int32_t getX(Sample);
-  static String toString(Sample);
 
   static Class __class();
 
-  static __Sample_VT __vtable;
+  static __Test_VT __vtable;
 };
 
-struct __Sample_VT {
+struct __Test_VT {
   Class __isa;
   int32_t (*hashCode)(Object);
   bool (*equals)(Object, Object);
-  Class (*getClass)(Sample);
-  String (*toString)(Sample);
-  int32_t (*getX)(Sample);
+  Class (*getClass)(Test);
+  String (*toString)(Object);
 
-  __Sample_VT()
-  : __isa(__Sample::__class()),
+  __Test_VT()
+  : __isa(__Test::__class()),
   hashCode(&__Object::hashCode),
   equals(&__Object::equals),
-  getClass((Class(*)(Sample))&__Object::getClass),
-  toString(&__Sample::toString),
-  getX(&__Sample::getX) {}
+  getClass((Class(*)(Test))&__Object::getClass),
+  toString(&__Object::toString) {}
 };
 
 int main(void);

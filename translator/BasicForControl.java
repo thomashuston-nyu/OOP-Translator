@@ -148,9 +148,10 @@ public class BasicForControl extends TranslationVisitor implements Translatable 
     StringBuilder s = new StringBuilder();
     Variable v = new Variable(type.getType(), declarators.get(0).getName());
     variables.add(v);
-    s.append(type.getCC(indent, className, variables) + " " +  declarators.getCC(indent, className, variables));
+    s.append(type.getCC(indent, className, variables) + " " +  declarators.getCC(indent, className, variables) + "; ");
+    s.append(expression.getCC(indent, className, variables) + "; ");
     for (Expression expression : expressions)
-      s.append("; " + expression.getCC(indent, className, variables));
+      s.append(expression.getCC(indent, className, variables));
     return s.toString();
   }
 
