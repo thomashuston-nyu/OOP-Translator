@@ -8,6 +8,11 @@ int32_t __ShallowClass::test(ShallowClass __this) {
   return 1;
 }
 
+Class __ShallowClass::__class() {
+  static Class k = new __Class(__rt::literal("ShallowClass"), __Object::__class());
+  return k;
+}
+
 __ShallowClass_VT __ShallowClass::__vtable;
 
 __AClass::__AClass()
@@ -18,10 +23,20 @@ int32_t __AClass::test(AClass __this) {
   return 1;
 }
 
+Class __AClass::__class() {
+  static Class k = new __Class(__rt::literal("AClass"), __Object::__class());
+  return k;
+}
+
 __AClass_VT __AClass::__vtable;
 
 __BClass::__BClass()
 : __vptr(&__vtable) {
+}
+
+Class __BClass::__class() {
+  static Class k = new __Class(__rt::literal("BClass"), __Object::__class());
+  return k;
 }
 
 __BClass_VT __BClass::__vtable;
@@ -34,12 +49,17 @@ int32_t __DeepClass::test(DeepClass __this) {
   return 2;
 }
 
+Class __DeepClass::__class() {
+  static Class k = new __Class(__rt::literal("DeepClass"), __Object::__class());
+  return k;
+}
+
 __DeepClass_VT __DeepClass::__vtable;
 
 __Point2d::__Point2d(double px, double py)
 : __vptr(&__vtable) {
-  __this->x = __this->px;
-  __this->y = __this->py;
+  x = px;
+  y = py;
 }
 
 void __Point2d::setX(Point2d __this, double px) {
@@ -71,6 +91,11 @@ String __Point2d::toStringForXY(Point2d __this) {
 String __Point2d::toString(Point2d __this) {
   String str = __rt::literal("()");
   return str;
+}
+
+Class __Point2d::__class() {
+  static Class k = new __Class(__rt::literal("Point2d"), __Object::__class());
+  return k;
 }
 
 __Point2d_VT __Point2d::__vtable;
