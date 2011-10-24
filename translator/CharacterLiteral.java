@@ -8,12 +8,16 @@ import java.util.List;
 
 import xtc.tree.GNode;
 
-public class CharacterLiteral extends PrimaryExpression {
+public class CharacterLiteral extends Expression implements Translatable {
   
-  private String character;
+  private String value;
 
   public CharacterLiteral(GNode n) {
-    character = n.getString(0);
+    value = n.getString(0);
+  }
+
+  public String getCC(int indent, String className, List<Variable> variables) {
+    return value;
   }
   
 }

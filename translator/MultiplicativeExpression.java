@@ -30,11 +30,19 @@ public class MultiplicativeExpression extends Expression implements Translatable
   public void visitCallExpression(GNode n) {
     setExpression(new CallExpression(n));
   }
+
+  public void visitIntegerLiteral(GNode n) {
+    setExpression(new IntegerLiteral(n));
+  }
   
   public void visitMultiplicativeExpression(GNode n) {
     setExpression(new MultiplicativeExpression(n));
   }
   
+  public void visitPrimaryIdentifier(GNode n) {
+    setExpression(new PrimaryIdentifier(n));
+  }
+
   public void visitStringLiteral(GNode n) {
     setExpression(new StringLiteral(n));
   }

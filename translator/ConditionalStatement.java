@@ -40,6 +40,10 @@ public class ConditionalStatement extends Statement implements Translatable {
   public void visitDoWhileStatement(GNode n) {
     setStatement(new DoWhileStatement(n));
   }
+
+  public void visitEqualityExpression(GNode n) {
+    expression = new EqualityExpression(n);
+  }
   
   public void visitExpression(GNode n) {
     expression = new Expression(n);
@@ -51,6 +55,14 @@ public class ConditionalStatement extends Statement implements Translatable {
   
   public void visitForStatement(GNode n) {
     setStatement(new ForStatement(n));
+  }
+
+  public void visitPrimaryIdentifier(GNode n) {
+    expression = new PrimaryIdentifier(n);
+  }
+
+  public void visitRelationalExpression(GNode n) {
+    expression = new RelationalExpression(n);
   }
   
   public void visitReturnStatement(GNode n) {
@@ -86,7 +98,13 @@ public class ConditionalStatement extends Statement implements Translatable {
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
-    return "";
+    StringBuilder s = new StringBuilder();
+    s.append(getIndent(indent) + "if (" + expression.getCC(indent, className, variables) + ") {\n");
+    s.append(ifStatement.getCC(++indent, className, variables) + getIndent(--indent) + "}");
+    if (elseStatement != null)
+      s.append(" else {\n" + elseStatement.getCC(++indent, className, variables) + getIndent(--indent) + "}");
+    s.append("\n");
+    return s.toString();
   }
   
 }

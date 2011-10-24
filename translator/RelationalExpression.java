@@ -12,29 +12,43 @@ import xtc.tree.Visitor;
 
 public class RelationalExpression extends Expression implements Translatable {
 
-  private RelationalExpression relationalExpression;
-  private String relationalOperator;
-  private ShiftExpression shiftExpression;
+  private Expression left;
+  private String operator;
+  private Expression right;
+  private Statement statement;
 
   public RelationalExpression(GNode n) {
-    relationalOperator = null;
+    operator = n.getString(1);
     visit(n);
   }
 
+  public void visitExpressionStatement(GNode n) {
+    statement = new ExpressionStatement(n);
+  }
+
+  public void visitIntegerLiteral(GNode n) {
+    setExpression(new IntegerLiteral(n));
+  }
+
+  public void visitPrimaryIdentifier(GNode n) {
+    setExpression(new PrimaryIdentifier(n));
+  }
+
   public void visitRelationalExpression(GNode n) {
-    relationalExpression = new RelationalExpression(n);
+    setExpression(new RelationalExpression(n));
   }
-
-  public void visitSymbol(GNode n) {
-    relationalOperator = n.getString(0);
-  }
-
-  public void visitShiftExpression(GNode n) {
-    shiftExpression = new ShiftExpression(n);
+  
+  public void setExpression(Expression expression) {
+    if (left == null)
+      left = expression;
+    else
+      right = expression;
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
-    return "";
+    StringBuilder s = new StringBuilder();
+    s.append(left.getCC(indent, className, variables) + " " + operator + " " + right.getCC(indent, className, variables));
+    return s.toString();
   }
 
 }

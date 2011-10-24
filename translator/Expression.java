@@ -27,6 +27,10 @@ public class Expression extends PrimaryExpression implements Translatable {
     visit(n);
   }
 
+  public void visitAdditiveExpression(GNode n) {
+    setExpression(new AdditiveExpression(n));
+  }
+
   public void visitConditionalExpression(GNode n) {
     setExpression(new ConditionalExpression(n));
   }
@@ -34,9 +38,33 @@ public class Expression extends PrimaryExpression implements Translatable {
   public void visitExpression(GNode n) {
     setExpression(new Expression(n));
   }
+
+  public void visitMultiplicativeExpression(GNode n) {
+    setExpression(new MultiplicativeExpression(n));
+  }
   
   public void visitPrimaryIdentifier(GNode n) {
     setExpression(new PrimaryIdentifier(n));
+  }
+
+  public void visitBooleanLiteral(GNode n) {
+    setExpression(new BooleanLiteral(n));
+  }
+
+  public void visitCharacterLiteral(GNode n) {
+    setExpression(new CharacterLiteral(n));
+  }
+
+  public void visitFloatingPointLiteral(GNode n) {
+    setExpression(new FloatingPointLiteral(n));
+  }
+
+  public void visitIntegerLiteral(GNode n) {
+    setExpression(new IntegerLiteral(n));
+  }
+
+  public void visitStringLiteral(GNode n) {
+    setExpression(new StringLiteral(n));
   }
   
   private void setExpression(Expression e) {

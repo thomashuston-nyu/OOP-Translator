@@ -17,8 +17,6 @@ public class AdditiveExpression extends Expression implements Translatable {
   private Expression right;
 
   public AdditiveExpression(GNode n) {
-    left = null;
-    right = null;
     operator = n.getString(1);
     visit(n);
   }
@@ -30,6 +28,10 @@ public class AdditiveExpression extends Expression implements Translatable {
   public void visitCallExpression(GNode n) {
     setExpression(new CallExpression(n));
   }
+
+  public void visitIntegerLiteral(GNode n) {
+    setExpression(new IntegerLiteral(n));
+  } 
   
   public void visitMultiplicativeExpression(GNode n) {
     setExpression(new MultiplicativeExpression(n));
@@ -56,10 +58,7 @@ public class AdditiveExpression extends Expression implements Translatable {
 
   public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
-    if (left != null && right != null) {
-      s.append(left.getCC(indent, className, variables) + " " 
-               + operator + " " + right.getCC(indent, className, variables));  
-    }
+    s.append(left.getCC(indent, className, variables) + " " + operator + " " + right.getCC(indent, className, variables));
     return s.toString();
   }
 

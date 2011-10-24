@@ -21,7 +21,10 @@ public class ClassBody extends TranslationVisitor implements Translatable {
   }
   
   public String getConstructorDeclaration() {
-    return constructor.getHeaderDeclaration();
+    if (constructor != null)
+      return constructor.getHeaderDeclaration();
+    else
+      return null;
   }
   
   public void visitBlockDeclaration(GNode n) {
@@ -72,7 +75,8 @@ public class ClassBody extends TranslationVisitor implements Translatable {
 
   public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
-    s.append(constructor.getCC(indent, className, variables) + "\n\n");
+    if (constructor != null)
+      s.append(constructor.getCC(indent, className, variables) + "\n\n");
     List<MethodDeclaration> l = methods.get(Visibility.PUBLIC);
     if (l != null) {
       for (MethodDeclaration m : l) {
