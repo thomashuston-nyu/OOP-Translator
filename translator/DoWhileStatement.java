@@ -99,10 +99,6 @@ public class DoWhileStatement extends Statement implements Translatable {
     expression = new PostfixExpression(n);
   }
 
-  public void visitPrimaryExpression(GNode n) {
-    expression = new PrimaryExpression(n);
-  }
-
   public void visitPrimaryIdentifier(GNode n) {
     expression = new PrimaryIdentifier(n);
   }
