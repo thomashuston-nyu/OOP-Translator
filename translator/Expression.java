@@ -106,10 +106,6 @@ public class Expression extends PrimaryExpression implements Translatable {
     setExpression(new PostfixExpression(n));
   }
 
-  public void visitPrimaryExpression(GNode n) {
-    setExpression(new PrimaryExpression(n));
-  }
-
   public void visitPrimaryIdentifier(GNode n) {
     setExpression(new PrimaryIdentifier(n));
   }
