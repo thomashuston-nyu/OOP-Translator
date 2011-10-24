@@ -8,16 +8,6 @@ import java.util.Set;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-/**
- * Parses an xtc ClassDeclaration node.
- *
- * @author Nabil Hassein
- * @author Thomas Huston
- * @author Marta Magdalena
- * @author Mike Morreale
- *
- * @version 0.1
- */
 public class ClassDeclaration extends Declaration implements Translatable {
   
   private HashMap<String, List<Object>> vtable;
@@ -319,6 +309,25 @@ public class ClassDeclaration extends Declaration implements Translatable {
 
     in = getIndent(--indent);
     s.append(in + "};\n");
+    return s.toString();
+  }
+  
+  public String getHeader(int indent) {
+    StringBuilder s = new StringBuilder();
+    List<MethodDeclaration> l1 = body.getMethods(Visibility.PRIVATE);
+    if (l1 != null) {
+      for (MethodDeclaration m : l1) {
+        s.append(m.getHeaderDeclaration(name) + "\n");
+      }
+    }
+    List<MethodDeclaration> l2 = body.getMethods(Visibility.PUBLIC);
+    if (l2 != null) {
+      for (MethodDeclaration m : l2) {
+        if (m.isStatic()) {
+          s.append(m.getHeaderDeclaration(name) + "\n");
+        }
+      }
+    }
     return s.toString();
   }
 

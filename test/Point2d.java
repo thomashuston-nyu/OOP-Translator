@@ -2,11 +2,11 @@ import pack.DeepClass;
 import pack2.BClass;
 
 public class Point2d {
-  /* The X and Y coordinates of the point--instance variables */
+
   private double x;
   private double y;
   
-  public Point2d (double px, double py) { // Constructor
+  public Point2d (double px, double py) {
     x = px;
     y = py;
   }
@@ -33,12 +33,12 @@ public class Point2d {
   }
   
   public String toStringForXY() {
-    String str = "(" + x + ", " + y;
+    String str = "()";
     return str;
   }
   
   public String toString() {
-    String str = toStringForXY() + ")";
+    String str = "()";
     return str;
   }
   

@@ -42,53 +42,53 @@ import xtc.tree.Visitor;
 /**
  * A translator from (a subset of) Java to (a subset of) C++.
  *
- * @author Mike Morreale, Thomas Huston, Nabil "Deep Class" Hassein, Marta Wilgan
- * @version $Revision$
+ * @author Nabil "DeepClass" Hassein
+ * @author Thomas Huston
+ * @author Mike Morreale
+ * @author Marta Wilgan
+ * @version 1.0
  */
 public class Translator extends xtc.util.Tool {
   
   private HashMap<String, CompilationUnit> dependencies;
   private List<CompilationUnit> order;
   private String path;
+  private String output;
   
   /** Create a new translator. */
-  public Translator(String path) {
+  public Translator(String path, String output) {
+    // The relative path to the source file
     this.path = path;
+    // The name of the C++ executable
+    this.output = output;
   }
   
+  /** Get the program name. */
   public String getName() {
     return "Java to C++ Translator";
   }
   
+  /** Get the group name. */
   public String getCopy() {
     return "The Allan Gottlieb Fan Club";
   }
   
+  /** Initialize the program. */
   public void init() {
     super.init();
-    
     runtime.
     bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
     bool("translateJava", "translateJava", false, "Translate Java to C++.");
   }
   
-  /**
-   * Parse a Java file and construct the AST.
-   *
-   * @return The CompilationUnit Node.
-   */
+  /** Parse a Java file and construct the AST. */
   public Node parse(Reader in, File file) throws IOException, ParseException {
     JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
     Result result = parser.pCompilationUnit(0);
     return (Node)parser.value(result);
   }
   
-  /**
-   * Write a C++ String to an output file.
-   *
-   * @param s The C++ code string.
-   * @param extension The file extension (h or cc)
-   */
+  /** Write a C++ String to an output file. */
   public void createFile(String s, String extension) throws IOException {
     File file = new File("../output/output." + extension);
     if (file.exists()) {
@@ -101,7 +101,7 @@ public class Translator extends xtc.util.Tool {
     buff.close();
   }
   
-  
+  /** Generate the C++ header file code. */
   public String createHeader(CompilationUnit main) {
     StringBuffer s = new StringBuffer();
     s.append("#pragma once\n\n");
@@ -115,6 +115,7 @@ public class Translator extends xtc.util.Tool {
     return s.toString();
   }
   
+  /** Generate the C++ main file code. */
   public String createCC(CompilationUnit main) {
     StringBuffer s = new StringBuffer();
     s.append("#include \"output.h\"\n\n");
@@ -125,8 +126,12 @@ public class Translator extends xtc.util.Tool {
     return s.toString();
   }
   
-  
-  public void resolveDependencies(List<Declaration> declarations) throws IOException, ParseException {
+  /**
+   * Find all Java files required by the source file, and
+   * parse them as compilation units.
+   */
+  public void resolveDependencies(List<Declaration> declarations) 
+    throws IOException, ParseException {
     List<String> dirs = new ArrayList<String>();
     for (Declaration d : declarations) {
       if (d instanceof PackageDeclaration) {
@@ -167,6 +172,7 @@ public class Translator extends xtc.util.Tool {
     }
   }
   
+  /** Parse a file. */
   public CompilationUnit parseFile(String f) throws IOException, ParseException {
     File file = new File(path + f);
     Reader in = runtime.getReader(file);
@@ -175,10 +181,14 @@ public class Translator extends xtc.util.Tool {
     return new CompilationUnit((GNode)parser.value(result));
   }
   
+  /** Process the arguments passed by the user. */
   public void process(Node node) {
+    // Print out the Java AST
     if (runtime.test("printJavaAST")) {
       runtime.console().format(node).pln().flush();
     }
+    
+    // Translate the Java to C++
     if (runtime.test("translateJava")) {
       CompilationUnit unit = new CompilationUnit((GNode)node);
       dependencies = new HashMap<String, CompilationUnit>();
@@ -216,18 +226,18 @@ public class Translator extends xtc.util.Tool {
     }
   }
   
-  /**
-   * Run the translator with the specified command line arguments.
-   *
-   * @param args The command line arguments.
-   */
+  /** Run the translator with the specified command line arguments. */
   public static void main(String[] args) {
-    String path;
-    int index = args[1].lastIndexOf("/");
-    if (index > -1)
-      path = args[1].substring(0,index+1);
-    else
+    String path, output;
+    int index1 = args[1].lastIndexOf("/");
+    int index2 = args[1].lastIndexOf(".");
+    if (index1 > -1) {
+      path = args[1].substring(0,index1+1);
+      output = args[1].substring(index1+1,index2);
+    } else {
       path = ".";
-    new Translator(path).run(args);
+      output = args[1].substring(0,index2);
+    }
+    new Translator(path, output).run(args);
   }
 }

@@ -36,6 +36,7 @@
 namespace java {
   namespace lang {
     
+    std::string bool_to_string(bool b);
     std::string int_to_string(int32_t i);
     
     void println(std::string s);

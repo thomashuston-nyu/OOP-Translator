@@ -4,8 +4,8 @@ __ShallowClass::__ShallowClass()
 : __vptr(&__vtable) {
 }
 
-int __ShallowClass::test(ShallowClass __this) {
-  return;
+int32_t __ShallowClass::test(ShallowClass __this) {
+  return 1;
 }
 
 __ShallowClass_VT __ShallowClass::__vtable;
@@ -14,8 +14,8 @@ __AClass::__AClass()
 : __vptr(&__vtable) {
 }
 
-int __AClass::test(AClass __this) {
-  return;
+int32_t __AClass::test(AClass __this) {
+  return 1;
 }
 
 __AClass_VT __AClass::__vtable;
@@ -30,16 +30,16 @@ __DeepClass::__DeepClass()
 : __vptr(&__vtable) {
 }
 
-int __DeepClass::test(DeepClass __this) {
-  return;
+int32_t __DeepClass::test(DeepClass __this) {
+  return 2;
 }
 
 __DeepClass_VT __DeepClass::__vtable;
 
 __Point2d::__Point2d(double px, double py)
 : __vptr(&__vtable) {
-  x = px;
-  y = py;
+  __this->x = __this->px;
+  __this->y = __this->py;
 }
 
 void __Point2d::setX(Point2d __this, double px) {
@@ -64,13 +64,21 @@ void __Point2d::setXY(Point2d __this, double px, double py) {
 }
 
 String __Point2d::toStringForXY(Point2d __this) {
-  String str = __rt::literal(__rt::literal("(") + __this->x + __rt::literal(", ") + __this->y);
+  String str = __rt::literal("()");
   return str;
 }
 
 String __Point2d::toString(Point2d __this) {
-  String str = __rt::literal(__this->__vptr->toStringForXY(__this) + __rt::literal(")"));
+  String str = __rt::literal("()");
   return str;
 }
 
 __Point2d_VT __Point2d::__vtable;
+
+int main(void) {
+  Point2d p = new __Point2d(5.0, 7.0);
+  println(p->__vptr->toString(p)->data);
+  bool x = false;
+  println(bool_to_string(x));
+}
+

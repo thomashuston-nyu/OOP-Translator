@@ -7,16 +7,6 @@ import java.util.List;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-/**
- * Parses an xtc QualifiedIdentifier node.
- *
- * @author Nabil Hassein
- * @author Thomas Huston
- * @author Marta Magdalena
- * @author Mike Morreale
- *
- * @version 0.1
- */
 public class QualifiedIdentifier implements Iterable<String>, Translatable {
   
   private List<String> identifiers;

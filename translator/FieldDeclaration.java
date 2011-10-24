@@ -90,6 +90,8 @@ public class FieldDeclaration extends Declaration implements Translatable {
       s.append(declarators.getCC(indent, className, variables, true) + ";\n");
     else
       s.append(declarators.getCC(indent, className, variables) + ";\n");
+    Variable v = new Variable(type.getType(), declarators.get(0).getName());
+    variables.add(v);
     return s.toString();
   }
 

@@ -31,16 +31,32 @@ public class MethodDeclaration extends Declaration implements Translatable {
   }
   
   public String getHeaderDeclaration(String className) {
-    StringBuilder s = new StringBuilder("static " + returnType.getType() + " " + name + "(" + className);
-    for (FormalParameter parameter : parameters)
-      s.append(", " + parameter.getType());
-    s.append(");");
+    StringBuilder s = new StringBuilder();
+    if (isStatic) {
+      if (name.equals("main") && returnType.getType().equals("void")) {
+        s.append("int main(void);");
+      } else {
+        s.append("static " + returnType.getType() + " " + name + "(");
+        int size = parameters.size();
+        for (int i = 0; i < size; i++) {
+          s.append(parameters.get(i).getType() + " " + parameters.get(i).getName());
+          if (i < size - 1)
+            s.append(", ");
+        }
+        s.append(");");
+      }
+    } else {
+      s.append("static " + returnType.getType() + " " + name + "(" + className);
+      for (FormalParameter parameter : parameters)
+        s.append(", " + parameter.getType());
+      s.append(");");      
+    }
     return s.toString();
   }
 
   public String getHeaderVTConstructor(String className, String source) {
     if (source != null)
-      return name + "(" + returnType.getType() + "(*)(" + className + "))&__" + source + "::" + name + ")";
+      return name + "((" + returnType.getType() + "(*)(" + className + "))&__" + source + "::" + name + ")";
     else
       return name + "(&__" + className + "::" + name + ")"; 
   }
@@ -58,9 +74,13 @@ public class MethodDeclaration extends Declaration implements Translatable {
     StringBuilder s = new StringBuilder();
     String in = getIndent(indent);
     s.append(in + returnType.getType() + " __" + className + "::" + name + "(");
-    s.append(className + " __this");
-    if (parameters.size() > 0)
-      s.append(", " + parameters.getParameters());
+    if (visibility == Visibility.PUBLIC)
+      s.append(className + " __this");
+    if (parameters.size() > 0) {
+      if (visibility == Visibility.PUBLIC)
+        s.append(", ");
+      s.append(parameters.getParameters());
+    }
     s.append(") {\n");
     if (body != null) {
       List<Variable> v = new ArrayList<Variable>();
