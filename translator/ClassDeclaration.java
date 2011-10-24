@@ -204,7 +204,9 @@ public class ClassDeclaration extends Declaration implements Translatable {
         }
       }
     }
-    s.append("\n" + in + body.getConstructorDeclaration() + "\n\n");
+    String construct = body.getConstructorDeclaration();
+    if (construct != null)
+      s.append("\n" + in + construct + "\n\n");
     List<MethodDeclaration> l = body.getMethods(Visibility.PUBLIC);
     if (l != null)
       for (MethodDeclaration m : l)

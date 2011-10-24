@@ -15,9 +15,6 @@ typedef __Test* Test;
 struct __Test {
   __Test_VT* __vptr;
 
-  null
-
-
   static Class __class();
 
   static __Test_VT __vtable;
