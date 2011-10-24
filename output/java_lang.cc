@@ -58,9 +58,7 @@ namespace java {
     
     // Convert int to a string
     std::string int_to_string(int32_t i) {
-      std::stringstream ss;
-      ss << i;
-      return ss.str();
+      return i;
     }
 
     // System.out.print(String)
