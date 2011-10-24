@@ -32,6 +32,10 @@ public class Type extends TranslationVisitor implements Translatable {
   
   public void visitPrimitiveType(GNode n) {
     type = n.getString(0);
+    if (type == "int")
+      type = "int32_t";
+    else if (type == "boolean")
+      type = "bool";
   }
   
   public void visitQualifiedIdentifier(GNode n) {
