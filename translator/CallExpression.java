@@ -1,5 +1,5 @@
 /**
- * null null Identifier Arguments
+ * Expression null Identifier Arguments
  */
 package translator;
 
@@ -11,6 +11,7 @@ import xtc.tree.Visitor;
 
 public class CallExpression extends Expression {
   
+  private Expression expression;
   private String identifier;
   private Arguments arguments;
 
@@ -23,13 +24,22 @@ public class CallExpression extends Expression {
     arguments = new Arguments(n);
   }
   
+  public void visitSelectionExpression(GNode n) {
+    expression = new SelectionExpression(n);
+  }
+  
   public String getCC(int indent, String className, List<Variable> variables) {
     // TODO allow calling of methods from other classes
     StringBuilder s = new StringBuilder();
-    s.append("__vptr->" + identifier + "(__this");
-    if (arguments.size() > 0)
-      s.append(", " + arguments.getCC(indent, className, variables));
-    s.append(")");
+    if ((identifier.equals("println") || identifier.equals("print")) && expression != null &&
+        ((SelectionExpression)expression).getName().equals("System.out")) {
+      s.append(identifier + "(" + arguments.getCC(indent, className, variables) + ")");
+    } else {
+      s.append("__this->__vptr->" + identifier + "(__this");
+      if (arguments.size() > 0)
+        s.append(", " + arguments.getCC(indent, className, variables));
+      s.append(")");
+    }
     return s.toString();
   }
   

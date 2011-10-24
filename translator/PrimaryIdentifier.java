@@ -17,12 +17,19 @@ public class PrimaryIdentifier extends Expression implements Translatable {
     identifier = n.getString(0);
   }
   
+  public String getName() {
+    return identifier;
+  }
+  
   public String getCC(int indent, String className, List<Variable> variables) {
-    for (Variable v : variables) {
-      if (v.name.equals(identifier))
-        return identifier;
+    if (variables != null) {
+      for (Variable v : variables) {
+        if (v.name.equals(identifier))
+          return identifier;
+      }
+      return "__this->" + identifier;
     }
-    return "__this->" + identifier;
+    return identifier;
   }
   
 }

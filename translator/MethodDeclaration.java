@@ -38,8 +38,11 @@ public class MethodDeclaration extends Declaration implements Translatable {
     return s.toString();
   }
 
-  public String getHeaderVTConstructor(String className) {
-    return name + "(&__" + className + "::" + name + ")"; 
+  public String getHeaderVTConstructor(String className, String source) {
+    if (source != null)
+      return name + "(" + returnType.getType() + "(*)(" + className + "))&__" + source + "::" + name + ")";
+    else
+      return name + "(&__" + className + "::" + name + ")"; 
   }
 
   public String getHeaderVTDeclaration(String className) {
@@ -67,6 +70,15 @@ public class MethodDeclaration extends Declaration implements Translatable {
       s.append(body.getCC(++indent, className, v));
       in = getIndent(--indent);
     }
+    s.append(in + "}\n");
+    return s.toString();
+  }
+  
+  public String getMainCC(int indent, String className, List<Variable> variables) {
+    StringBuilder s = new StringBuilder();
+    String in = getIndent(indent);
+    s.append(in + "int main(void) {\n");
+    s.append(body.getCC(++indent, className, null));
     s.append(in + "}\n");
     return s.toString();
   }

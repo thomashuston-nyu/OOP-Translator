@@ -1,4 +1,5 @@
-package test;
+import pack.DeepClass;
+import pack2.BClass;
 
 public class Point2d {
   /* The X and Y coordinates of the point--instance variables */
@@ -44,5 +45,7 @@ public class Point2d {
   public static void main(String[] args) {
     Point2d p = new Point2d(5.0,7.0);
     System.out.println(p);
+    boolean x = false;
+    System.out.println(x);
   }
 }

@@ -16,7 +16,7 @@ import xtc.tree.Visitor;
  *
  * @version 0.1
  */
-public class ImportDeclaration extends TranslationVisitor {
+public class ImportDeclaration extends Declaration {
 
   private boolean hasAsterisk;
   private QualifiedIdentifier packageName;
@@ -41,6 +41,14 @@ public class ImportDeclaration extends TranslationVisitor {
    */
   public void visitQualifiedIdentifier(GNode n) {
     this.packageName = new QualifiedIdentifier(n);
+  }
+  
+  public QualifiedIdentifier getImport() {
+    return packageName;
+  }
+  
+  public String getNamespace() {
+    return packageName.getCC(0, null, null);
   }
 
 }

@@ -22,6 +22,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 import translator.*;
 
 import xtc.lang.JavaFiveParser;
@@ -36,13 +42,18 @@ import xtc.tree.Visitor;
 /**
  * A translator from (a subset of) Java to (a subset of) C++.
  *
- * @author Mike Morreale, Thomas Huston, Nabil Hassein, Marta Wilgan
+ * @author Mike Morreale, Thomas Huston, Nabil "Deep Class" Hassein, Marta Wilgan
  * @version $Revision$
  */
 public class Translator extends xtc.util.Tool {
+  
+  private HashMap<String, CompilationUnit> dependencies;
+  private List<CompilationUnit> order;
+  private String path;
+  
   /** Create a new translator. */
-  public Translator() {
-    // Nothing to do.
+  public Translator(String path) {
+    this.path = path;
   }
   
   public String getName() {
@@ -67,7 +78,7 @@ public class Translator extends xtc.util.Tool {
    * @return The CompilationUnit Node.
    */
   public Node parse(Reader in, File file) throws IOException, ParseException {
-    JavaFiveParser parser = new   JavaFiveParser(in, file.toString(), (int)file.length());
+    JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
     Result result = parser.pCompilationUnit(0);
     return (Node)parser.value(result);
   }
@@ -90,15 +101,117 @@ public class Translator extends xtc.util.Tool {
     buff.close();
   }
   
+  
+  public String createHeader(CompilationUnit main) {
+    StringBuffer s = new StringBuffer();
+    s.append("#pragma once\n\n");
+    s.append("#include <iostream>\n#include <sstream>\n\n");
+    s.append("#include \"java_lang.h\"\n\n");
+    s.append("using namespace java::lang;\n\n");
+    for (CompilationUnit c : order) {
+      s.append(c.getHeader(0) + "\n");
+    }
+    s.append(main.getHeader(0));
+    return s.toString();
+  }
+  
+  public String createCC(CompilationUnit main) {
+    StringBuffer s = new StringBuffer();
+    s.append("#include \"output.h\"\n\n");
+    for (CompilationUnit c : order) {
+      s.append(c.getCC(0, null, null) + "\n");
+    }
+    s.append(main.getCC(0, null, null));
+    return s.toString();
+  }
+  
+  
+  public void resolveDependencies(List<Declaration> declarations) throws IOException, ParseException {
+    List<String> dirs = new ArrayList<String>();
+    for (Declaration d : declarations) {
+      if (d instanceof PackageDeclaration) {
+        QualifiedIdentifier pack = ((PackageDeclaration)d).getPackage();
+        for (String s : pack) {
+          dirs.add(path + s + "/");
+        }
+      } else if (d instanceof ImportDeclaration) {
+        QualifiedIdentifier im = ((ImportDeclaration)d).getImport();
+        String dirpath = path;
+        int size = im.size();
+        for (int i = 0; i < size; i++) {
+          String s = im.get(i);
+          if (i < size - 1)
+            dirpath += s + "/";
+        }
+        dirs.add(dirpath);
+      }
+    }
+    for (String dir : dirs) {
+      File p = new File(dir);
+      if (p.isDirectory()) {
+        File[] pFiles = p.listFiles();
+        for (File f : pFiles) {
+          if (!f.isDirectory() && !dependencies.containsKey(f.getPath())) {
+            CompilationUnit c = parseFile(f.getPath());
+            dependencies.put(f.getPath(), c);
+            try {
+              resolveDependencies(c.getDependencies());
+            } catch (IOException e) {
+              runtime.console().p("Error resolving dependencies. Files missing.").pln().flush();
+            } catch (ParseException e) {
+              runtime.console().p("Error parsing dependencies. Invalid files.").pln().flush();
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  public CompilationUnit parseFile(String f) throws IOException, ParseException {
+    File file = new File(path + f);
+    Reader in = runtime.getReader(file);
+    JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
+    Result result = parser.pCompilationUnit(0);
+    return new CompilationUnit((GNode)parser.value(result));
+  }
+  
   public void process(Node node) {
     if (runtime.test("printJavaAST")) {
       runtime.console().format(node).pln().flush();
     }
     if (runtime.test("translateJava")) {
       CompilationUnit unit = new CompilationUnit((GNode)node);
+      dependencies = new HashMap<String, CompilationUnit>();
+      order = new LinkedList<CompilationUnit>();
       try {
-        createFile(unit.getHeader(0), "h");
-        createFile(unit.getCC(0, null, null), "cc");
+        resolveDependencies(unit.getDependencies());
+      } catch (IOException e) {
+        runtime.console().p("Error resolving dependencies. Files missing.").pln().flush();
+      } catch (ParseException e) {
+        runtime.console().p("Error parsing dependencies. Invalid files.").pln().flush();
+      }
+      Set<String> files = dependencies.keySet();
+      for (String file : files) {
+        CompilationUnit c = dependencies.get(file);
+        Extension e = c.getExtension();
+        int index = 0;
+        if (e != null) {
+          String parentPath = path + 
+            c.getPackage().getPackage().getCC(0, null, null) +
+            "/" + e.getType() + ".java";
+          c.setParent(dependencies.get(parentPath).getPublic());
+          CompilationUnit requires = dependencies.get(parentPath);
+          index = order.indexOf(requires);
+          if (index < 0)
+            index = 0;
+        }
+        order.add(index, c);
+      }
+      try {
+        String header = createHeader(unit);
+        createFile(header, "h");
+        String cc = createCC(unit);
+        createFile(cc, "cc");
       } catch (IOException e) {}
     }
   }
@@ -109,6 +222,12 @@ public class Translator extends xtc.util.Tool {
    * @param args The command line arguments.
    */
   public static void main(String[] args) {
-    new Translator().run(args);
+    String path;
+    int index = args[1].lastIndexOf("/");
+    if (index > -1)
+      path = args[1].substring(0,index+1);
+    else
+      path = ".";
+    new Translator(path).run(args);
   }
 }

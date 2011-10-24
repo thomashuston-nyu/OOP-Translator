@@ -17,7 +17,7 @@ import xtc.tree.Visitor;
  *
  * @version 0.1
  */
-public class QualifiedIdentifier implements Iterable<String> {
+public class QualifiedIdentifier implements Iterable<String>, Translatable {
   
   private List<String> identifiers;
   
@@ -70,6 +70,17 @@ public class QualifiedIdentifier implements Iterable<String> {
   
   public String getType() {
     return "";
+  }
+  
+  public String getCC(int indent, String className, List<Variable> variables) {
+    StringBuilder s = new StringBuilder();
+    int size = identifiers.size();
+    for (int i = 0; i < size; i++) {
+      s.append(identifiers.get(i));
+      if (i < size - 1)
+        s.append("::");
+    }
+    return s.toString();
   }
   
 }
