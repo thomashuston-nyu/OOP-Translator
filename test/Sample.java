@@ -18,12 +18,13 @@ public class Sample {
   public static void main(String[] args) {
     Sample sample = new Sample(3, 8);
     int a = sample.getX();
-    if (a < 2)
+    if (a < 2) {
       System.out.println("a < 2");
-    else
+    } else {
       while (a > 2)
         a--;
-    // System.out.println(x);
+      System.out.println(a);
+    }
     // System.out.println(a);
   }
 }

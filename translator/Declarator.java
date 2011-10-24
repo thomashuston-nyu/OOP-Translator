@@ -40,6 +40,10 @@ public class Declarator extends TranslationVisitor implements Translatable {
     expression = new BooleanLiteral(n);
   }
   
+  public void visitCallExpression(GNode n) {
+    expression = new CallExpression(n);
+  }
+  
   public void visitDimensions(GNode n) {
     //
   }

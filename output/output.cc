@@ -23,13 +23,14 @@ __Sample_VT __Sample::__vtable;
 
 int main(void) {
   Sample sample = new __Sample(3, 8);
-  int32_t a;
+  int32_t a = sample->__vptr->getX(sample);
   if (a < 2) {
-    println();
+    println(__rt::literal("a < 2")->data);
   } else {
     while (a > 2) {
       a--;
     }
+    println(int_to_string(a));
   }
 }
 

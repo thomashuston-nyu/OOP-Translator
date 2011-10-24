@@ -8,7 +8,7 @@ import java.util.List;
 
 import xtc.tree.GNode;
 
-public class CharacterLiteral extends Expression implements Translatable {
+public class CharacterLiteral extends Literal implements Translatable {
   
   private String value;
 
@@ -18,6 +18,10 @@ public class CharacterLiteral extends Expression implements Translatable {
 
   public String getCC(int indent, String className, List<Variable> variables) {
     return value;
+  }
+  
+  public String getPrintCC() {
+    return "char_to_string(" + value + ")";
   }
   
 }
