@@ -19,5 +19,5 @@ if [ "$1" == "test" ]; then
 fi
 
 javac -g -d classes *.java
-javac -g -d classes test/*.java
-javac -g -d classes translator/*.java
+#javac -g -d classes test/*.java
+#javac -g -d classes translator/*.java

@@ -105,21 +105,51 @@ public class CompilationUnit extends TranslationVisitor implements Translatable 
   }
   
   
+  public List<Declaration> getDependencies() {
+    List<Declaration> l = new ArrayList<Declaration>();
+    if (pkg != null)
+      l.add(pkg);
+    for (ImportDeclaration i : imports)
+      l.add(i);
+    return l;
+  }
+  
+  public String getName() {
+    List<ClassDeclaration> c = classes.get(Visibility.PUBLIC);
+    return c.get(0).getName();
+  }
+  
+  public Extension getExtension() {
+    List<ClassDeclaration> c = classes.get(Visibility.PUBLIC);
+    return c.get(0).getExtension();
+  }
+  
+  public ClassDeclaration getPublic() {
+    List<ClassDeclaration> c = classes.get(Visibility.PUBLIC);
+    return c.get(0);
+  }
+  
+  public void setParent(ClassDeclaration parent) {
+    List<ClassDeclaration> c = classes.get(Visibility.PUBLIC);
+    c.get(0).setParent(parent);
+  }
+  
+  
   // TRANSLATION METHODS
   
   public String getHeader(int indent) {
     StringBuilder s = new StringBuilder();
     String in = getIndent(indent);
-    s.append("#pragma once\n\n");
-    s.append("#include <iostream>\n#include <sstream>\n\n");
-    s.append("#include \"../java/java_lang.h\"\n\n");
-    // other imports
-    s.append("using namespace java::lang;\n\n");
+    /*if (imports.size() > 0) {
+      for (ImportDeclaration i : imports)  {
+        s.append("using namespace " + i.getNamespace() + ";\n");
+      }
+    }
     if (pkg != null) {
       s.append(pkg.getNamespace(indent));
       indent += pkg.size();
       in = getIndent(indent);
-    }
+    }*/
     List<ClassDeclaration> l = classes.get(Visibility.PUBLIC);
     if (l != null) {
       for (ClassDeclaration c : l) {
@@ -132,30 +162,30 @@ public class CompilationUnit extends TranslationVisitor implements Translatable 
         s.append(c.getHeaderVTStruct(indent));
       }
     }
-    if (pkg != null) {
+    /*if (pkg != null) {
       s.append("\n}");
-    }
+    }*/
+    s.append("\n");
     return s.toString();
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     String in = getIndent(indent);
-    s.append("#include \"output.h\"\n\n");
-    if (pkg != null) {
+    /*if (pkg != null) {
       s.append(pkg.getNamespace(indent));
       indent += pkg.size();
       in = getIndent(indent);
-    }
+    }*/
     List<ClassDeclaration> l = classes.get(Visibility.PUBLIC);
     if (l != null) {
       for (ClassDeclaration c : l) {
         s.append(c.getCC(indent, c.getName(), variables));
       }
     }
-    if (pkg != null) {
+   /* if (pkg != null) {
       s.append("\n}");
-    }
+    }*/
     return s.toString();
   }
 

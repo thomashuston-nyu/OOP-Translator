@@ -40,7 +40,8 @@ public class NewClassExpression extends Expression implements Translatable {
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
-    return "";
+    return "new __" + qualified.getCC(indent, className, variables) + "(" + 
+      arguments.getCC(indent, className, variables) + ")";
   }
 
 }

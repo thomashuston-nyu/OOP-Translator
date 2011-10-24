@@ -16,7 +16,7 @@ import xtc.tree.Visitor;
  *
  * @version 0.1
  */
-public class PackageDeclaration extends TranslationVisitor implements Translatable {
+public class PackageDeclaration extends Declaration implements Translatable {
   
   private QualifiedIdentifier pkg;
   
