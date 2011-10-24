@@ -64,12 +64,14 @@ public class Arguments extends TranslationVisitor implements Translatable {
         if (v.name.equals(var)) {
           if (v.type.equals("bool"))
             s.append("bool_to_string(" + var + ")");
-          else if (v.type.equals("int32_t"))
-            s.append("int_to_string(" + var + ")");
-          else if (v.type.equals("float"))
-            s.append("float_to_string(" + var + ")");
+          else if (v.type.equals("char"))
+            s.append("char_to_string(" + var + ")");
           else if (v.type.equals("double"))
             s.append("double_to_string(" + var + ")");
+          else if (v.type.equals("float"))
+            s.append("float_to_string(" + var + ")");
+          else if (v.type.equals("int32_t"))
+            s.append("int_to_string(" + var + ")");
           else
             s.append(var + "->__vptr->toString(" + var + ")->data");
           break;

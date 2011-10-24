@@ -37,6 +37,9 @@ namespace java {
   namespace lang {
     
     std::string bool_to_string(bool b);
+    std::string char_to_string(char c);
+    std::string double_to_string(double d);
+    std::string float_to_string(float f);
     std::string int_to_string(int32_t i);
     
     void println(std::string s);
