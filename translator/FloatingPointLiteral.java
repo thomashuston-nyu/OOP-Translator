@@ -8,18 +8,16 @@ import java.util.List;
 
 import xtc.tree.GNode;
 
-public class FloatingPointLiteral extends PrimaryExpression {
-  private double value;
+public class FloatingPointLiteral extends Expression implements Translatable {
+  
+  private String value;
 
   public FloatingPointLiteral(GNode n) {
-    value = Double.parseDouble(n.getString(0));
+    value = n.getString(0);
   }
 
-  public float getFloat() {
-    return (float) value;
-  }
-
-  public double getDouble() {
+  public String getCC(int indent, String className, List<Variable> variables) {
     return value;
   }
+
 }

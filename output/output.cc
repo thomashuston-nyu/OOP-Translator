@@ -1,43 +1,38 @@
 #include "output.h"
 
-namespace test {
-  __Point2d::__Point2d(double px, double py)
-  : __vptr(&__vtable) {
-    __this->x = px;
-    __this->y = py;
+void __Sample::test(Sample __this) {
+  int x;
+  int y;
+  int z;
+  boolean b;
+  String s;
+  if (x == y) {
+    z = x + y;
+  } else {
+    if (x + 1 == y) {
+      z = x * y;
+    } else {
+      s = __rt::literal("asdf");
+    }
   }
-
-  void __Point2d::setX(Point2d __this, double px) {
-    __this->x = px;
+  while (z > x) {
+    z--;
   }
-
-  double __Point2d::getX(Point2d __this) {
-    return __this->x;
+  if (b) {
+    z = x / y;
   }
-
-  void __Point2d::setY(Point2d __this, double py) {
-    __this->y = py;
+  if (b == true) {
+    z = 1;
   }
-
-  double __Point2d::getY(Point2d __this) {
-    return __this->y;
+  if (x >= 5) {
+    x = 6;
   }
-
-  void __Point2d::setXY(Point2d __this, double px, double py) {
-    __vptr->setX(__this, px);
-    __vptr->setY(__this, py);
+  if (x != 6) {
+    x = 7;
   }
-
-  String __Point2d::toStringForXY(Point2d __this) {
-    String str = __rt::literal("(" + __this->x + ", " + __this->y);
-    return str;
+  while (b) {
+    b = false;
   }
-
-  String __Point2d::toString(Point2d __this) {
-    String str = __rt::literal(__vptr->toStringForXY(__this) + ")");
-    return str;
-  }
-
-  __Point2d_VT __Point2d::__vtable;
-
 }
+
+__Sample_VT __Sample::__vtable;

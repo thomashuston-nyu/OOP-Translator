@@ -10,14 +10,14 @@ import xtc.tree.GNode;
 
 public class StringLiteral extends Expression implements Translatable {
   
-  private String string;
+  private String value;
   
   public StringLiteral(GNode n) {
-    string = n.getString(0);
+    value = n.getString(0);
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
-    return string;
+    return "__rt::literal(" + value + ")";
   }
   
 }
