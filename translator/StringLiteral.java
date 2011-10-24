@@ -17,7 +17,7 @@ public class StringLiteral extends Expression implements Translatable {
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {
-    return value;
+    return "__rt::literal(" + value + ")";
   }
   
 }
