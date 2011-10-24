@@ -79,6 +79,7 @@ public class ForStatement extends Statement implements Translatable {
     statement = new WhileStatement(n);
   }
 
+  // translation
   public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     s.append(getIndent(indent) + "for (" + basicForControl.getCC(indent, className, variables) + ") {\n");
