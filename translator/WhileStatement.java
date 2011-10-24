@@ -18,12 +18,17 @@ public class WhileStatement extends Statement implements Translatable {
     visit(n);
   }
 
+  // expressions
+  public void visitEqualityExpression(GNode n) {
+    expression = new EqualityExpression(n);
+  }
+
   public void visitExpression(GNode n) {
     expression = new Expression(n);
   }
 
-  public void visitEqualityExpression(GNode n) {
-    expression = new EqualityExpression(n);
+  public void visitPrimaryIdentifier(GNode n) {
+    expression = new PrimaryIdentifier(n);
   }
 
   public void visitPostfixExpression(GNode n) {
@@ -34,8 +39,13 @@ public class WhileStatement extends Statement implements Translatable {
     expression = new RelationalExpression(n);
   }
 
+  // statements
   public void visitAssertStatement(GNode n) {
     statement = new AssertStatement(n);
+  }
+
+  public void visitBlock(GNode n) {
+    statement = new Block(n);
   }
 
   public void visitBreakStatement(GNode n) {
@@ -60,10 +70,6 @@ public class WhileStatement extends Statement implements Translatable {
   
   public void visitForStatement(GNode n) {
     statement = new ForStatement(n);
-  }
-
-  public void visitPrimaryIdentifier(GNode n) {
-    expression = new PrimaryIdentifier(n);
   }
   
   public void visitReturnStatement(GNode n) {
@@ -93,8 +99,7 @@ public class WhileStatement extends Statement implements Translatable {
   public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     s.append(getIndent(indent) + "while (" + expression.getCC(indent, className, variables) + ") {\n");
-    s.append(getIndent(indent) + statement.getCC(indent, className, variables) + getIndent(indent) + "}");
-    s.append("\n");
+    s.append(statement.getCC(++indent, className, variables) + getIndent(--indent) + "}\n");
     return s.toString();
   }
   

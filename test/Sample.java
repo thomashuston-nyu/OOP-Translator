@@ -23,5 +23,8 @@ public class Sample {
       x = 7;
     while (b)
       b = false;
+    do {
+      x = 3;
+    } while (x != 3);
   }
 }

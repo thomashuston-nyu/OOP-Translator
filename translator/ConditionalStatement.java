@@ -16,13 +16,37 @@ public class ConditionalStatement extends Statement implements Translatable {
   private Statement elseStatement;
 
   public ConditionalStatement(GNode n) {
-    ifStatement = null;
-    elseStatement = null;
     visit(n);
   }
-  
+ 
+  // expressions
+  public void visitEqualityExpression(GNode n) {
+    expression = new EqualityExpression(n);
+  }
+
+  public void visitExpression(GNode n) {
+    expression = new Expression(n);
+  }
+
+  public void visitPostfixExpression(GNode n) {
+    expression = new PostfixExpression(n);
+  }
+
+  public void visitPrimaryIdentifier(GNode n) {
+    expression = new PrimaryIdentifier(n);
+  }
+
+  public void visitRelationalExpression(GNode n) {
+    expression = new RelationalExpression(n);
+  }
+
+  // statements
   public void visitAssertStatement(GNode n) {
     setStatement(new AssertStatement(n));
+  }
+
+  public void visitBlock(GNode n) {
+    setStatement(new Block(n));
   }
 
   public void visitBreakStatement(GNode n) {
@@ -41,14 +65,6 @@ public class ConditionalStatement extends Statement implements Translatable {
     setStatement(new DoWhileStatement(n));
   }
 
-  public void visitEqualityExpression(GNode n) {
-    expression = new EqualityExpression(n);
-  }
-  
-  public void visitExpression(GNode n) {
-    expression = new Expression(n);
-  }
-  
   public void visitExpressionStatement(GNode n) {
     setStatement(new ExpressionStatement(n));
   }
@@ -57,14 +73,6 @@ public class ConditionalStatement extends Statement implements Translatable {
     setStatement(new ForStatement(n));
   }
 
-  public void visitPrimaryIdentifier(GNode n) {
-    expression = new PrimaryIdentifier(n);
-  }
-
-  public void visitRelationalExpression(GNode n) {
-    expression = new RelationalExpression(n);
-  }
-  
   public void visitReturnStatement(GNode n) {
     setStatement(new ReturnStatement(n));
   }
