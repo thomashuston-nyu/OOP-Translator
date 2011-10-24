@@ -22,8 +22,20 @@ public class ReturnStatement extends Statement implements Translatable {
     expression = new Expression(n);
   }
   
+  public void visitFloatingPointLiteral(GNode n) {
+    expression = new FloatingPointLiteral(n);
+  }
+  
+  public void visitIntegerLiteral(GNode n) {
+    expression = new IntegerLiteral(n);
+  }
+  
   public void visitPrimaryIdentifier(GNode n) {
     expression = new PrimaryIdentifier(n);
+  }
+  
+  public void visitStringLiteral(GNode n) {
+    expression = new StringLiteral(n);
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {

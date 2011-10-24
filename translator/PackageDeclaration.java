@@ -6,16 +6,6 @@ import java.util.List;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-/**
- * Parses an xtc PackageDeclaration node.
- *
- * @author Nabil Hassein
- * @author Thomas Huston
- * @author Marta Wilgan
- * @author Mike Morreale
- *
- * @version 0.1
- */
 public class PackageDeclaration extends Declaration implements Translatable {
   
   private QualifiedIdentifier pkg;

@@ -90,6 +90,8 @@ public class Block extends Statement implements Translatable {
           FieldDeclaration f = (FieldDeclaration)t;
           variables.add(new Variable(f.getType(), f.getName()));
         }
+      } else {
+        variables = new ArrayList<Variable>();
       }
       s.append(t.getCC(indent, className, variables));
     }

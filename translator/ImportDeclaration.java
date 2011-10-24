@@ -6,16 +6,6 @@ import java.util.List;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-/**
- * Parses an xtc ImportDeclaration node.
- *
- * @author Nabil Hassein
- * @author Thomas Huston
- * @author Marta Wilgan
- * @author Mike Morreale
- *
- * @version 0.1
- */
 public class ImportDeclaration extends Declaration {
 
   private boolean hasAsterisk;

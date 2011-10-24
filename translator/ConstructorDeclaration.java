@@ -57,10 +57,10 @@ public class ConstructorDeclaration extends Declaration implements Translatable 
     String in = getIndent(indent);
     s.append(in + "__" + name + "::__" + name + "(");
     s.append(parameters.getParameters() + ")\n" + in + ": __vptr(&__vtable)");
-//    List<Variable> v = new ArrayList<Variable>();
-//    for (FormalParameter f : parameters) {
-//      v.add(new Variable(f.getType(), f.getName()));
-//    }
+    List<Variable> v = new ArrayList<Variable>();
+    for (FormalParameter f : parameters) {
+      v.add(new Variable(f.getType(), f.getName()));
+    }
     s.append(" {\n" + body.getCC(++indent, className, variables) + in + "}");
     return s.toString();
   }

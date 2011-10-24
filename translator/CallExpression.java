@@ -33,7 +33,7 @@ public class CallExpression extends Expression {
     StringBuilder s = new StringBuilder();
     if ((identifier.equals("println") || identifier.equals("print")) && expression != null &&
         ((SelectionExpression)expression).getName().equals("System.out")) {
-      s.append(identifier + "(" + arguments.getCC(indent, className, variables) + ")");
+      s.append(identifier + "(" + arguments.getPrintCC(indent, className, variables) + ")");
     } else {
       s.append("__this->__vptr->" + identifier + "(__this");
       if (arguments.size() > 0)

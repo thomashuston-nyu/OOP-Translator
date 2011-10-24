@@ -46,6 +46,15 @@ public class Arguments extends TranslationVisitor implements Translatable {
     return s.toString();
   }
   
+  public String getStringCC(int indent, String className, List<Variable> variables) {
+    StringBuilder s = new StringBuilder();
+    int size = expressions.size();
+    for (int i = 0; i < 1; i++) {
+      s.append(expressions.get(i).getCC(indent, className, variables));
+    }
+    return s.toString();
+  }
+  
   public String getPrintCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
     Expression e = expressions.get(0);
@@ -53,8 +62,17 @@ public class Arguments extends TranslationVisitor implements Translatable {
       String var = ((PrimaryIdentifier)e).getName();
       for (Variable v : variables) {
         if (v.name.equals(var)) {
-          if (v.type.equals("boolean"))
-            s.append("print_bool(" + var + ")");
+          if (v.type.equals("bool"))
+            s.append("bool_to_string(" + var + ")");
+          else if (v.type.equals("int32_t"))
+            s.append("int_to_string(" + var + ")");
+          else if (v.type.equals("float"))
+            s.append("float_to_string(" + var + ")");
+          else if (v.type.equals("double"))
+            s.append("double_to_string(" + var + ")");
+          else
+            s.append(var + "->__vptr->toString(" + var + ")->data");
+          break;
         }
       }
     }

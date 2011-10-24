@@ -28,20 +28,22 @@ namespace java {
     // really System.out.print, but let's call it java.lang. who's going to stop us
 
     // a helper method for the one c++ primitive whose default behavior in cout isn't java-like
-    std::string print_bool(bool b){
-        if(b==0) return "false";
-        else return "true";
-    }
-
-    // a trivial print method
-    void print(std::string s) {
-        std::cout << s;
+    std::string bool_to_string(bool b) {
+      if (b)
+        return "true";
+      else
+        return "false";
     }
     
     std::string int_to_string(int32_t i) {
       std::stringstream ss;
       ss << i;
       return ss.str();
+    }
+
+    // a trivial print method
+    void print(std::string s) {
+        std::cout << s;
     }
 
     // a trivial println method

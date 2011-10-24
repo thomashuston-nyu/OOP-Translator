@@ -17,7 +17,7 @@ struct __ShallowClass {
 
   __ShallowClass();
 
-  static int test(ShallowClass);
+  static int32_t test(ShallowClass);
 
   static Class __class();
 
@@ -30,7 +30,7 @@ struct __ShallowClass_VT {
   bool (*equals)(Object, Object);
   Class (*getClass)(ShallowClass);
   String (*toString)(Object);
-  int (*test)(ShallowClass);
+  int32_t (*test)(ShallowClass);
 
   __ShallowClass_VT()
   : __isa(__ShallowClass::__class()),
@@ -40,6 +40,7 @@ struct __ShallowClass_VT {
   toString(&__Object::toString),
   test(&__ShallowClass::test) {}
 };
+
 
 
 struct __AClass;
@@ -52,7 +53,7 @@ struct __AClass {
 
   __AClass();
 
-  static int test(AClass);
+  static int32_t test(AClass);
 
   static Class __class();
 
@@ -65,7 +66,7 @@ struct __AClass_VT {
   bool (*equals)(Object, Object);
   Class (*getClass)(AClass);
   String (*toString)(Object);
-  int (*test)(AClass);
+  int32_t (*test)(AClass);
 
   __AClass_VT()
   : __isa(__AClass::__class()),
@@ -75,6 +76,7 @@ struct __AClass_VT {
   toString(&__Object::toString),
   test(&__AClass::test) {}
 };
+
 
 
 struct __BClass;
@@ -99,7 +101,7 @@ struct __BClass_VT {
   bool (*equals)(Object, Object);
   Class (*getClass)(BClass);
   String (*toString)(Object);
-  int (*test)(BClass);
+  int32_t (*test)(BClass);
 
   __BClass_VT()
   : __isa(__BClass::__class()),
@@ -107,8 +109,9 @@ struct __BClass_VT {
   equals(&__Object::equals),
   getClass((Class(*)(BClass))&__Object::getClass),
   toString(&__Object::toString),
-  test(int(*)(BClass))&__AClass::test) {}
+  test((int32_t(*)(BClass))&__AClass::test) {}
 };
+
 
 
 struct __DeepClass;
@@ -121,7 +124,7 @@ struct __DeepClass {
 
   __DeepClass();
 
-  static int test(DeepClass);
+  static int32_t test(DeepClass);
 
   static Class __class();
 
@@ -134,7 +137,7 @@ struct __DeepClass_VT {
   bool (*equals)(Object, Object);
   Class (*getClass)(DeepClass);
   String (*toString)(Object);
-  int (*test)(DeepClass);
+  int32_t (*test)(DeepClass);
 
   __DeepClass_VT()
   : __isa(__DeepClass::__class()),
@@ -144,6 +147,7 @@ struct __DeepClass_VT {
   toString(&__Object::toString),
   test(&__DeepClass::test) {}
 };
+
 
 
 struct __Point2d;
@@ -197,4 +201,6 @@ struct __Point2d_VT {
   setY(&__Point2d::setY),
   getX(&__Point2d::getX) {}
 };
+
+int main(void);
 

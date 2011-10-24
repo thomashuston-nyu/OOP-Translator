@@ -7,16 +7,6 @@ import java.util.List;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-/**
- * Parses an xtc Modifiers node.
- *
- * @author Nabil Hassein
- * @author Thomas Huston
- * @author Marta Magdalena
- * @author Mike Morreale
- *
- * @version 0.1
- */
 public class Modifiers extends TranslationVisitor implements Iterable<String> {
 
   private List<String> modifiers;

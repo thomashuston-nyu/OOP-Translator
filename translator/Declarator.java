@@ -36,6 +36,10 @@ public class Declarator extends TranslationVisitor implements Translatable {
     arrayInitializer = new ArrayInitializer(n);
   }
   
+  public void visitBooleanLiteral(GNode n) {
+    expression = new BooleanLiteral(n);
+  }
+  
   public void visitDimensions(GNode n) {
     //
   }
@@ -44,8 +48,24 @@ public class Declarator extends TranslationVisitor implements Translatable {
     expression = new Expression(n);
   }
   
+  public void visitFloatingPointLiteral(GNode n) {
+    expression = new FloatingPointLiteral(n);
+  }
+  
+  public void visitIntegerLiteral(GNode n) {
+    expression = new IntegerLiteral(n);
+  }
+  
   public void visitNewArrayExpression(GNode n) {
     newArray = new NewArrayExpression(n);
+  }
+  
+  public void visitNewClassExpression(GNode n) {
+    expression = new NewClassExpression(n);
+  }
+  
+  public void visitStringLiteral(GNode n) {
+    expression = new StringLiteral(n);
   }
 
   public String getCC(int indent, String className, List<Variable> variables) {

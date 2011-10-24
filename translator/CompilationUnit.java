@@ -10,16 +10,6 @@ import java.util.List;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-/**
- * Parses an xtc CompilationUnit node.
- *
- * @author Nabil Hassein
- * @author Thomas Huston
- * @author Marta Wilgan
- * @author Mike Morreale
- *
- * @version 0.1
- */
 public class CompilationUnit extends TranslationVisitor implements Translatable {
   
   private HashMap<Visibility, List<ClassDeclaration>> classes;
@@ -160,6 +150,8 @@ public class CompilationUnit extends TranslationVisitor implements Translatable 
         s.append(c.getHeaderStruct(indent));
         s.append("\n");
         s.append(c.getHeaderVTStruct(indent));
+        s.append("\n");
+        s.append(c.getHeader(indent));
       }
     }
     /*if (pkg != null) {

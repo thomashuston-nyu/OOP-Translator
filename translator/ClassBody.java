@@ -86,6 +86,14 @@ public class ClassBody extends TranslationVisitor implements Translatable {
     }
     s.append(getIndent(indent) + "__" + className + "_VT __" + className +
              "::__vtable;\n");
+    if (l != null) {
+      for (MethodDeclaration m : l) {
+        if (m.getName().equals("main") && m.isStatic() && m.getReturnType().getType().equals("void")) {
+          s.append("\n" + m.getMainCC(indent, className, variables) + "\n");
+          break;
+        }
+      }
+    }
     return s.toString();
   }
 }
