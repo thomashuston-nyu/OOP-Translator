@@ -42,6 +42,7 @@ namespace java {
     std::string float_to_string(float f);
     std::string int_to_string(int32_t i);
     
+    void print(std::string s);
     void println(std::string s);
     
     // Forward declarations of data layout and vtables.
