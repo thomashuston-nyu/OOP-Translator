@@ -192,6 +192,8 @@ public class Arguments extends TranslationVisitor implements Translatable {
           break;
         }
       }
+    } else if (e instanceof Literal) {
+      s.append(((Literal)e).getPrintCC());
     }
     return s.toString();
   }
