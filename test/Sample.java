@@ -15,7 +15,8 @@ public class Sample {
     System.out.println(sup);
     System.out.println(sub);
 
-    sub.printX();
+    sub.setX(10);
+    System.out.println(sub.getX());
 
     if (v < 5)
       System.out.println("v < 5");

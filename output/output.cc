@@ -28,22 +28,6 @@ Class __Super::__class() {
 
 __Super_VT __Super::__vtable;
 
-__Sub::__Sub(int32_t x1)
-: __vptr(&__vtable) {
-  x = x1;
-}
-
-String __Sub::toString(Sub __this) {
-  return __rt::literal("This is Sub.");
-}
-
-Class __Sub::__class() {
-  static Class k = new __Class(__rt::literal("Sub"), __Object::__class());
-  return k;
-}
-
-__Sub_VT __Sub::__vtable;
-
 Class __Sample::__class() {
   static Class k = new __Class(__rt::literal("Sample"), __Object::__class());
   return k;
@@ -60,7 +44,8 @@ int main(void) {
   println(int_to_string(v));
   println(sup->__vptr->toString(sup)->data);
   println(sub->__vptr->toString(sub)->data);
-  sub->__vptr->printX(sub);
+  sub->__vptr->setX(sub, 10);
+  println();
   if (v < 5) {
     println(__rt::literal("v < 5")->data);
   } else {
@@ -73,7 +58,8 @@ int main(void) {
   while (v < 10) {
     v++;
   }
-  println(__rt::literal("v = 10")->data);
+  print(__rt::literal("v = ")->data);
+  println(int_to_string(v));
   for (int32_t i = 0; i < 10; i++) {
     print(int_to_string(i));
   }
