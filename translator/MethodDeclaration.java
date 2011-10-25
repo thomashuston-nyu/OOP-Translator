@@ -83,11 +83,12 @@ public class MethodDeclaration extends Declaration implements Translatable {
     }
     s.append(") {\n");
     if (body != null) {
-      List<Variable> v = new ArrayList<Variable>();
+      if (variables == null)
+      variables = new ArrayList<Variable>();
       for (FormalParameter f : parameters) {
-        v.add(new Variable(f.getType(), f.getName()));
+        variables.add(new Variable(f.getType(), f.getName()));
       }
-      s.append(body.getCC(++indent, className, v));
+      s.append(body.getCC(++indent, className, variables));
       in = getIndent(--indent);
     }
     s.append(in + "}\n");
