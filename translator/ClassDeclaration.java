@@ -244,7 +244,7 @@ public class ClassDeclaration extends Declaration implements Translatable {
     if (vtable.containsKey("toString")) {
       s.append(in + ((MethodDeclaration)vtable.get("toString").get(1)).getHeaderVTDeclaration(name) + "\n");
     } else {
-      s.append(in + "String (*toString)(Object);\n");
+      s.append(in + "String (*toString)(" + name + ");\n");
     }
 
     Set<String> methods = vtable.keySet();
@@ -291,7 +291,7 @@ public class ClassDeclaration extends Declaration implements Translatable {
       else
         s.append(",\n" + in + m.getHeaderVTConstructor(name, null));
     } else {
-      s.append(",\n" + in + "toString(&__Object::toString)");
+      s.append(",\n" + in + "toString((String(*)(" + name + "))&__Object::toString)");
     }
     
     for (String method : methods) {

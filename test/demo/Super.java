@@ -20,8 +20,8 @@ public class Super {
     x = x1;
   }
 
-  public void printX() {
-    System.out.println(x);
+  public void printMessage() {
+    System.out.println("Welcome to the demo package.");
   }
 
   public String toString() {
