@@ -1,6 +1,16 @@
-Enter your name once you can access this file:
+Java to C++ Translator
+Version 1.0
+(c) 2011 - Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan
 
-Thomas Huston
-Mike Morreale
-Nabil Hassein
-Marta Wilgan
+To translate Java code, first ensure that you have the following files in a directory:
+- translator.jar
+- translate.sh
+- java_lang/java_lang.cc
+- java_lang/java_lang.h
+
+From the directory in which you have translator.jar, run the following command in a terminal:
+./translate.sh /path/to/JavaFile
+
+The translate.sh script will attempt to compile and run the given Java file, then proceed to
+compile and run the translated C++ files. You will see the output of the Java and C++ versions
+in your terminal for comparison.
