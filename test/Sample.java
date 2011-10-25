@@ -26,7 +26,8 @@ public class Sample {
 
     while (v < 10)
       v++;
-    System.out.println("v = 10");
+    System.out.print("v = ");
+    System.out.println(v);
 
     for (int i = 0; i < 10; i++)
       System.out.print(i);
