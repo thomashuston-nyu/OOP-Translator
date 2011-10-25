@@ -6,15 +6,15 @@ __Super::__Super(int32_t x1)
 }
 
 int32_t __Super::getX(Super __this) {
-  return x;
+  return __this->x;
 }
 
 void __Super::setX(Super __this, int32_t x1) {
-  x = x1;
+  __this->x = x1;
 }
 
 void __Super::printX(Super __this) {
-  println(int_to_string(x));
+  println(int_to_string(__this->x));
 }
 
 String __Super::toString(Super __this) {
@@ -27,6 +27,30 @@ Class __Super::__class() {
 }
 
 __Super_VT __Super::__vtable;
+
+__Sub::__Sub(int32_t x1)
+: __vptr(&__vtable) {
+  x = x1;
+}
+
+int32_t __Sub::getX(Sub __this) {
+  return __this->x;
+}
+
+void __Sub::setX(Sub __this, int32_t x1) {
+  __this->x = x1 + 10;
+}
+
+String __Sub::toString(Sub __this) {
+  return __rt::literal("This is Sub.");
+}
+
+Class __Sub::__class() {
+  static Class k = new __Class(__rt::literal("Sub"), __Object::__class());
+  return k;
+}
+
+__Sub_VT __Sub::__vtable;
 
 Class __Sample::__class() {
   static Class k = new __Class(__rt::literal("Sample"), __Object::__class());
@@ -45,7 +69,8 @@ int main(void) {
   println(sup->__vptr->toString(sup)->data);
   println(sub->__vptr->toString(sub)->data);
   sub->__vptr->setX(sub, 10);
-  println();
+  int32_t w = sub->__vptr->getX(sub);
+  println(int_to_string(w));
   if (v < 5) {
     println(__rt::literal("v < 5")->data);
   } else {

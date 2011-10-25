@@ -90,6 +90,7 @@ public class ClassBody extends TranslationVisitor implements Translatable {
     }
     if (constructor != null)
       s.append(constructor.getCC(indent, className, variables) + "\n\n");
+    variables = new ArrayList<Variable>();
     List<MethodDeclaration> l = methods.get(Visibility.PUBLIC);
     if (l != null) {
       for (MethodDeclaration m : l) {

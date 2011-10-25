@@ -8,6 +8,10 @@ public class Sub extends Super {
     x = x1;
   }
 
+  public int getX() {
+    return x;
+  }
+
   public void setX(int x1) {
     x = x1 + 10;
   }
