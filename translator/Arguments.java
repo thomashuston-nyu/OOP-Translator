@@ -176,9 +176,10 @@ public class Arguments extends TranslationVisitor implements Translatable {
       Expression e = expressions.get(0);
       if (e instanceof PrimaryIdentifier) {
         String var = ((PrimaryIdentifier)e).getName();
+        boolean found = false;
         for (Variable v : variables) {
-          System.out.println(var + " " + v.name);
           if (v.name.equals(var)) {
+            found = true;
             if (v.type.equals("bool"))
               s.append("bool_to_string(" + var + ")");
             else if (v.type.equals("char"))
@@ -193,6 +194,9 @@ public class Arguments extends TranslationVisitor implements Translatable {
               s.append(var + "->__vptr->toString(" + var + ")->data");
             break;
           }
+        }
+        if (!found) {
+          s.append("int_to_string(__this->" + var + ")");
         }
       } else if (e instanceof Literal) {
         s.append(((Literal)e).getPrintCC());
