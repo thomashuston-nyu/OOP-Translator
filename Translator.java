@@ -156,7 +156,7 @@ public class Translator extends xtc.util.Tool {
       if (p.isDirectory()) {
         File[] pFiles = p.listFiles();
         for (File f : pFiles) {
-          if (!f.isDirectory() && !dependencies.containsKey(f.getPath())) {
+          if (!f.isDirectory() && !dependencies.containsKey(f.getPath()) && f.getPath().indexOf(".java") > -1) {
             CompilationUnit c = parseFile(f.getPath());
             dependencies.put(f.getPath(), c);
             try {
