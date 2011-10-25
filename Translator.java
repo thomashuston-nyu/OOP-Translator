@@ -19,6 +19,8 @@
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.Reader;
 
@@ -51,15 +53,15 @@ import xtc.tree.Visitor;
 public class Translator extends xtc.util.Tool {
   
   private HashMap<String, CompilationUnit> dependencies;
+  private HashMap<CompilationUnit, List<CompilationUnit>> requires;
   private List<CompilationUnit> order;
+  private HashMap<CompilationUnit, Boolean> printed;
   private String path;
   private String output;
   
   /** Create a new translator. */
   public Translator(String path, String output) {
-    // The relative path to the source file
     this.path = path;
-    // The name of the C++ executable
     this.output = output;
   }
   
@@ -70,7 +72,12 @@ public class Translator extends xtc.util.Tool {
   
   /** Get the group name. */
   public String getCopy() {
-    return "The Allan Gottlieb Fan Club";
+    return "Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan";
+  }
+  
+  /** Get the version. */
+  public String getVersion() {
+    return "1.0";
   }
   
   /** Initialize the program. */
@@ -90,7 +97,7 @@ public class Translator extends xtc.util.Tool {
   
   /** Write a C++ String to an output file. */
   public void createFile(String s, String extension) throws IOException {
-    File file = new File("../output/output." + extension);
+    File file = new File(output + "." + extension);
     if (file.exists()) {
       file.delete();
     }
@@ -106,23 +113,53 @@ public class Translator extends xtc.util.Tool {
     StringBuffer s = new StringBuffer();
     s.append("#pragma once\n\n");
     s.append("#include <iostream>\n#include <sstream>\n\n");
-    s.append("#include \"java_lang.h\"\n\n");
+    s.append("#include \"java_lang/java_lang.h\"\n\n");
     s.append("using namespace java::lang;\n\n");
-    for (CompilationUnit c : order) {
-      s.append(c.getHeader(0) + "\n");
+    s.append(getHeader(main));
+    return s.toString();
+  }
+  
+  /**
+   * Recursive method to ensure that all classes required
+   * by the compilation unit are printed before it.
+   */
+  public String getHeader(CompilationUnit c) {
+    StringBuilder s = new StringBuilder();
+    List<CompilationUnit> depends = requires.get(c);
+    for (CompilationUnit u : depends) {
+      if (printed.containsKey(u) && printed.get(u))
+        continue;
+      else
+        s.append(getHeader(u));
     }
-    s.append(main.getHeader(0));
+    printed.put(c, true);
+    s.append(c.getHeader(0) + "\n");
     return s.toString();
   }
   
   /** Generate the C++ main file code. */
   public String createCC(CompilationUnit main) {
     StringBuffer s = new StringBuffer();
-    s.append("#include \"output.h\"\n\n");
-    for (CompilationUnit c : order) {
-      s.append(c.getCC(0, null, null) + "\n");
+    s.append("#include \"" + output + ".h\"\n\n");
+    s.append(getCC(main));
+    return s.toString();
+  }
+  
+  /**
+   * Recursive method to ensure that all classes required
+   * by the compilation unit are printed before it.
+   */
+  public String getCC(CompilationUnit c) {
+    StringBuilder s = new StringBuilder();
+    List<CompilationUnit> depends = requires.get(c);
+    for (CompilationUnit u : depends) {
+      if (printed.containsKey(u) && printed.get(u))
+        continue;
+      else
+        s.append(getCC(u));
     }
-    s.append(main.getCC(0, null, null));
+    printed.put(c, true);
+    s.append(c.getCC(0, null, null) + "\n");
     return s.toString();
   }
   
@@ -130,7 +167,7 @@ public class Translator extends xtc.util.Tool {
    * Find all Java files required by the source file, and
    * parse them as compilation units.
    */
-  public void resolveDependencies(List<Declaration> declarations) 
+  public void resolveDependencies(CompilationUnit cu, List<Declaration> declarations) 
     throws IOException, ParseException {
     List<String> dirs = new ArrayList<String>();
     for (Declaration d : declarations) {
@@ -151,16 +188,23 @@ public class Translator extends xtc.util.Tool {
         dirs.add(dirpath);
       }
     }
+    List<CompilationUnit> lcu = new ArrayList<CompilationUnit>();
     for (String dir : dirs) {
       File p = new File(dir);
       if (p.isDirectory()) {
         File[] pFiles = p.listFiles();
         for (File f : pFiles) {
-          if (!f.isDirectory() && !dependencies.containsKey(f.getPath()) && f.getPath().indexOf(".java") > -1) {
-            CompilationUnit c = parseFile(f.getPath());
+          if (!f.isDirectory() && !dependencies.containsKey(f.getPath()) && f.getAbsolutePath().indexOf(".java") > -1) {
+            CompilationUnit c = parseFile(f.getAbsolutePath());
+            Extension ex = c.getExtension();
+            String parentClass = "";
+            if (ex != null)
+              parentClass = ex.getType();
+            if (!cu.getName().equals(parentClass))
+              lcu.add(c);
             dependencies.put(f.getPath(), c);
             try {
-              resolveDependencies(c.getDependencies());
+              resolveDependencies(c, c.getDependencies());
             } catch (IOException e) {
               runtime.console().p("Error resolving dependencies. Files missing.").pln().flush();
             } catch (ParseException e) {
@@ -170,11 +214,12 @@ public class Translator extends xtc.util.Tool {
         }
       }
     }
+    requires.put(cu, lcu);
   }
   
   /** Parse a file. */
   public CompilationUnit parseFile(String f) throws IOException, ParseException {
-    File file = new File(path + f);
+    File file = new File(f);
     Reader in = runtime.getReader(file);
     JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
     Result result = parser.pCompilationUnit(0);
@@ -192,9 +237,9 @@ public class Translator extends xtc.util.Tool {
     if (runtime.test("translateJava")) {
       CompilationUnit unit = new CompilationUnit((GNode)node);
       dependencies = new HashMap<String, CompilationUnit>();
-      order = new LinkedList<CompilationUnit>();
+      requires = new HashMap<CompilationUnit, List<CompilationUnit>>();
       try {
-        resolveDependencies(unit.getDependencies());
+        resolveDependencies(unit, unit.getDependencies());
       } catch (IOException e) {
         runtime.console().p("Error resolving dependencies. Files missing.").pln().flush();
       } catch (ParseException e) {
@@ -210,16 +255,13 @@ public class Translator extends xtc.util.Tool {
             c.getPackage().getPackage().getCC(0, null, null) +
             "/" + e.getType() + ".java";
           c.setParent(dependencies.get(parentPath).getPublic());
-          CompilationUnit requires = dependencies.get(parentPath);
-          index = order.indexOf(requires);
-          if (index < 0)
-            index = 0;
         }
-        order.add(index, c);
       }
       try {
+        printed = new HashMap<CompilationUnit, Boolean>();
         String header = createHeader(unit);
         createFile(header, "h");
+        printed = new HashMap<CompilationUnit, Boolean>();
         String cc = createCC(unit);
         createFile(cc, "cc");
       } catch (IOException e) {}
@@ -229,6 +271,10 @@ public class Translator extends xtc.util.Tool {
   /** Run the translator with the specified command line arguments. */
   public static void main(String[] args) {
     String path, output;
+    if (args.length < 2) {
+      System.out.println("Error: No file or command passed");
+      System.exit(1);
+    }
     int index1 = args[1].lastIndexOf("/");
     int index2 = args[1].lastIndexOf(".");
     if (index1 > -1) {
