@@ -172,28 +172,31 @@ public class Arguments extends TranslationVisitor implements Translatable {
   
   public String getPrintCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder();
-    Expression e = expressions.get(0);
-    if (e instanceof PrimaryIdentifier) {
-      String var = ((PrimaryIdentifier)e).getName();
-      for (Variable v : variables) {
-        if (v.name.equals(var)) {
-          if (v.type.equals("bool"))
-            s.append("bool_to_string(" + var + ")");
-          else if (v.type.equals("char"))
-            s.append("char_to_string(" + var + ")");
-          else if (v.type.equals("double"))
-            s.append("double_to_string(" + var + ")");
-          else if (v.type.equals("float"))
-            s.append("float_to_string(" + var + ")");
-          else if (v.type.equals("int32_t"))
-            s.append("int_to_string(" + var + ")");
-          else
-            s.append(var + "->__vptr->toString(" + var + ")->data");
-          break;
+    if (expressions.size() > 0) {
+      Expression e = expressions.get(0);
+      if (e instanceof PrimaryIdentifier) {
+        String var = ((PrimaryIdentifier)e).getName();
+        for (Variable v : variables) {
+          System.out.println(var + " " + v.name);
+          if (v.name.equals(var)) {
+            if (v.type.equals("bool"))
+              s.append("bool_to_string(" + var + ")");
+            else if (v.type.equals("char"))
+              s.append("char_to_string(" + var + ")");
+            else if (v.type.equals("double"))
+              s.append("double_to_string(" + var + ")");
+            else if (v.type.equals("float"))
+              s.append("float_to_string(" + var + ")");
+            else if (v.type.equals("int32_t"))
+              s.append("int_to_string(" + var + ")");
+            else
+              s.append(var + "->__vptr->toString(" + var + ")->data");
+            break;
+          }
         }
+      } else if (e instanceof Literal) {
+        s.append(((Literal)e).getPrintCC());
       }
-    } else if (e instanceof Literal) {
-      s.append(((Literal)e).getPrintCC());
     }
     return s.toString();
   }

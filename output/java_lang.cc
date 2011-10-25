@@ -65,12 +65,12 @@ namespace java {
     }
 
     // System.out.print(String)
-    void print(std::string s = "") {
+    void print(std::string s) {
         std::cout << s;
     }
     
     // System.out.println(String)
-    void println(std::string s = "") {
+    void println(std::string s) {
         std::cout << s << std::endl;
     }
 

@@ -213,6 +213,7 @@ public class ClassDeclaration extends Declaration implements Translatable {
         if (!m.isStatic() && !m.isAbstract() && !m.isFinal())
           s.append(in + m.getHeaderDeclaration(name) + "\n");
     s.append("\n" + in + "static Class __class();\n\n");
+    
     s.append(in + "static __" + name + "_VT __vtable;\n");
     in = getIndent(--indent);
     s.append(in + "};\n");

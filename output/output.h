@@ -51,6 +51,47 @@ struct __Super_VT {
 
 
 
+struct __Sub;
+struct __Sub_VT;
+
+typedef __Sub* Sub;
+
+struct __Sub {
+  __Sub_VT* __vptr;
+  int32_t x;
+
+  __Sub(int32_t x1);
+
+  static String toString(Sub);
+
+  static Class __class();
+
+  static __Sub_VT __vtable;
+};
+
+struct __Sub_VT {
+  Class __isa;
+  int32_t (*hashCode)(Object);
+  bool (*equals)(Object, Object);
+  Class (*getClass)(Sub);
+  String (*toString)(Sub);
+  void (*printX)(Sub);
+  void (*setX)(Sub, int32_t);
+  int32_t (*getX)(Sub);
+
+  __Sub_VT()
+  : __isa(__Sub::__class()),
+  hashCode(&__Object::hashCode),
+  equals(&__Object::equals),
+  getClass((Class(*)(Sub))&__Object::getClass),
+  toString(&__Sub::toString),
+  printX((void(*)(Sub))&__Super::printX),
+  setX((void(*)(Sub, int32_t))&__Super::setX),
+  getX((int32_t(*)(Sub))&__Super::getX) {}
+};
+
+
+
 struct __Sample;
 struct __Sample_VT;
 
