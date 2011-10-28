@@ -1,7 +1,7 @@
 /**
  * PackageDeclaration? ImportDeclaration* Declaration*
  */
-package translator;
+package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.HashMap;

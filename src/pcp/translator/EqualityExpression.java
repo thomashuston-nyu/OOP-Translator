@@ -2,7 +2,7 @@
  * (EqualityExpression EqualityOperator InstanceOfExpression)/
  * yyValue:InstanceOfExpression
  */
-package translator;
+package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.List;

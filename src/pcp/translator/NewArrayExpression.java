@@ -1,7 +1,7 @@
 /**
  * (PrimitiveType/QualifiedIdentifier) ((ConcreteDimensions Dimensions? null)/(null Dimensions? ArrayInitializer))
  */
-package translator;
+package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -2,7 +2,7 @@
  * (ShiftExpression ShiftOperator AdditiveExpression)/
  * yyValue:AdditiveExpression
  */
-package translator;
+package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.List;

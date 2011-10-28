@@ -1,7 +1,7 @@
 /**
  * null Block (CatchClause* Block)/(CatchClause+ null)
  */
-package translator;
+package pcp.translator;
 
 import java.util.List;
 import java.util.ArrayList;

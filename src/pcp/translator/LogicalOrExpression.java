@@ -2,7 +2,7 @@
  * (LogicalOrExpression LogicalAndExpression)/
  * yyValue:LogicalAndExpression
  */
-package translator;
+package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.List;

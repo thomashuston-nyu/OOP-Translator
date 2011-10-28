@@ -1,21 +1,22 @@
 /*
- * xtc - The eXTensible Compiler
- * Copyright (C) 2011 Robert Grimm
+ * pcp - The Producer of C++ Programs
+ * Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
- * USA.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package pcp;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -30,7 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import translator.*;
+import pcp.translator.*;
 
 import xtc.lang.JavaFiveParser;
 
@@ -44,7 +45,7 @@ import xtc.tree.Visitor;
 /**
  * A translator from (a subset of) Java to (a subset of) C++.
  *
- * @author Nabil "DeepClass" Hassein
+ * @author Nabil Hassein
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
@@ -67,12 +68,12 @@ public class Translator extends xtc.util.Tool {
   
   /** Get the program name. */
   public String getName() {
-    return "Java to C++ Translator";
+    return "pcp - The Producer of C++ Programs";
   }
   
   /** Get the group name. */
   public String getCopy() {
-    return "Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan";
+    return "(C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan";
   }
   
   /** Get the version. */

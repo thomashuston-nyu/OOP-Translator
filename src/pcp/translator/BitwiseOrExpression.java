@@ -2,7 +2,7 @@
  * (BitwiseOrExpression BitwiseXorExpression)/
  * yyValue:BitwiseXorExpression
  */
-package translator;
+package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.List;

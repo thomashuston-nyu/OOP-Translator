@@ -2,7 +2,7 @@
  * (ConditionalExpression AssignmentOperator Expression)/
  * yyValue:ConditionalExpression
  */
-package translator;
+package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.List;

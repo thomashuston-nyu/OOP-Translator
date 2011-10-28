@@ -1,7 +1,7 @@
 /**
  * Declarator Declarator*
  */
-package translator;
+package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.Iterator;

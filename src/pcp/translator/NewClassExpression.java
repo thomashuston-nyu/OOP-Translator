@@ -1,7 +1,7 @@
 /**
  * null null (PrimitiveType/QualifiedIdentifier) Arguments ClassBody?
  */
-package translator;
+package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.List;

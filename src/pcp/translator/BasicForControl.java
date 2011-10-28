@@ -2,7 +2,7 @@
  * (VariableModifiers Type Declarators Expression? ExpressionList?)/
  * (null null ExpressionList? Expression? ExpressionList?)
  */
-package translator;
+package pcp.translator;
 
 import java.util.List;
 import java.util.ArrayList;
