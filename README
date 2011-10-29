@@ -2,6 +2,10 @@ pcp - The Producer of C++ Programs
 Version 1.0
 Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan
 
-For make to work, you'll need to add the path to this project to your bash profile.
+Supported ant commands:
 
-export OOP_ROOT = /path/to/pcp
+ant            : compiles the source code
+ant compile    : same as ant
+ant clean      : cleans out the build and dist directories
+ant dist       : builds a jar file
+ant docs       : generates javadocs
