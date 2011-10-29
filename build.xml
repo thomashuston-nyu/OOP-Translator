@@ -1,0 +1,66 @@
+<project name="pcp" default="compile" basedir=".">
+	<description>
+    pcp build file
+  </description>
+	
+	<!-- Directories -->
+  <property name="build" location="build"/>
+  <property name="docs"  location="docs"/>
+  <property name="dist"  location="dist"/>
+  <property name="lib"  location="lib"/>
+	<property name="src" location="src"/>
+	<property environment="env"/>
+
+	<!-- Include jars -->
+	<path id="classpath">
+		<fileset dir="${lib}" includes="*.jar"/>
+	</path>
+
+	<!-- Initialize -->
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp>
+			<format property="now" pattern="yyyy-MM-dd-HH-mm"/>
+		</tstamp>
+		<!-- Create the build directory -->
+		<mkdir dir="${build}"/>
+	</target>
+
+	<!-- Compile the Java source code -->
+	<target name="compile" depends="init" description="compile the source">
+		<javac srcdir="${src}" destdir="${build}" classpathref="classpath" includeantruntime="false"/>
+	</target>
+	
+	<!-- Generate the distribution jar -->
+	<target name="dist" depends="compile" description="generate the distribution">
+	  <!-- Create the distribution directory -->
+		<mkdir dir="${dist}"/>
+		<!-- Put everything in the build directory into the distrbution jar -->
+		<jar jarfile="${dist}/pcp-${now}.jar" basedir="${build}"/>
+	</target>
+	
+	<!-- Generate the Java documentation -->
+	<target name="docs" description="generation the documentation">
+		<javadoc destdir="${docs}"
+		         protected="true"
+		         version="true"
+			       use="true"
+			       sourcepath="${src}"
+			       packagenames="*"
+			       Splitindex="true"
+			       Windowtitle="pcp - the Producer of C++ Programs"
+			       Overview="overview.html">
+			<Doctitle>Java Class Documentation for pcp</Doctitle>
+	    <bottom><![CDATA[<center>(C) Copyright 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan</center>]]></bottom>
+			<link offline="true" href="http://download.oracle.com/javase/1,5.0/docs/api" packagelistLoc="${env.JAVA_DEV_ROOT}"/>
+			<link offline="true" href="${env.JAVA_DEV_ROOT}/doc" packagelistLoc="."/>
+		</javadoc>
+	</target>	
+
+	<!-- Clean up the build and distribution directories -->
+	<target name="clean" description="clean up">
+		<delete dir="${build}"/>
+		<delete dir="${dist}"/>
+	</target>
+	
+</project>

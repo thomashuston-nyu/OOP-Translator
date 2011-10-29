@@ -3,3 +3,8 @@ xtc
 *.class
 *.xcworkspace
 *.jar
+build
+dist
+.project
+.externalToolBuilders
+.metadata
