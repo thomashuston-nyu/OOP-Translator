@@ -49,6 +49,8 @@ import xtc.tree.Node;
 public class Program {
 
   private Map<String, CompilationUnit> files;
+  private Map<CompilationUnit, CompilationUnit> requires;
+  private Map<CompilationUnit, Boolean> printed;
   private String classpath;
   private File main;
 
@@ -62,8 +64,10 @@ public class Program {
    * @throws ParseException Signals a parse error.
    */
   public Program(File file, Node node) throws IOException, ParseException {
-    // Instantiate the hash
+    // Instantiate the hashes
     files = new HashMap<String, CompilationUnit>();
+    requires = new HashMap<CompilationUnit, CompilationUnit>();
+    printed = new HashMap<CompilationUnit, Boolean>();
 
     // Set the main program file
     main = file;
@@ -85,6 +89,12 @@ public class Program {
 
     // Resolve dependencies
     resolve(file, c);
+
+    // Print out the classes in order of dependence
+    Set<CompilationUnit> keys = requires.keySet();
+    for (CompilationUnit key : keys) {
+      printOrder(key);
+    }
   }
   
   /**
@@ -162,6 +172,7 @@ public class Program {
         extpath = classpath + ext;
         if (files.containsKey(extpath)) {
           cd.setParent(files.get(extpath).getPublicClass());
+          requires.put(c, files.get(extpath));
           found = true;
         }
       } else {
@@ -170,6 +181,7 @@ public class Program {
           extpath = classpath + pkg.getPath() + "/" + ext;
           if (files.containsKey(extpath)) {
             cd.setParent(files.get(extpath).getPublicClass());
+            requires.put(c, files.get(extpath));
             found = true;
           }
         }
@@ -181,6 +193,7 @@ public class Program {
               extpath = classpath + importpath;
               if (files.containsKey(extpath)) {
                 cd.setParent(files.get(extpath).getPublicClass());
+                requires.put(c, files.get(extpath));
                 found = true;
                 break;
               }
@@ -188,6 +201,7 @@ public class Program {
               extpath = classpath + importpath + "/" + ext;
               if (files.containsKey(extpath)) {
                 cd.setParent(files.get(extpath).getPublicClass());
+                requires.put(c, files.get(extpath));
                 found = true;
                 break;
               }
@@ -197,7 +211,12 @@ public class Program {
       }                                         
       if (!found)
         throw new RuntimeException("Superclass not found: " + ext);
+    } else {
+      requires.put(c, null);
     }
+
+    // Initialize printed to false for this compilation unit
+    printed.put(c, false);
   }
   
   /**
@@ -213,6 +232,23 @@ public class Program {
     if (files.containsKey(file.getAbsolutePath())) 
       return;
     resolve(file, new CompilationUnit(parse(file)));
+  }
+
+  /**
+   * Recursively prints the Java classes in order based
+   * on their dependencies.
+   *
+   * @param c The compilation unit to print.
+   */
+  public void printOrder(CompilationUnit c) {
+    if (printed.get(c))
+      return;
+    CompilationUnit d = requires.get(c);
+    if (null != d && !printed.get(d))
+      printOrder(d);
+    // TODO Print out VTables in this order.
+    System.out.println(c.getPublicClass().getName());
+    printed.put(c, true);
   }
 
 }
