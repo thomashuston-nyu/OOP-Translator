@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 
-import pcp.translator.*;
+import pcp.translator.Program;
 
 import xtc.lang.JavaFiveParser;
 
@@ -125,10 +125,10 @@ public class Translator extends Tool {
       try {
         Program p = new Program(file, node);
       } catch (IOException i) {
-        System.out.println("Error reading file " + file.getPath());
+        System.out.println("Error reading file: " + file.getPath());
         System.exit(1);
       } catch (ParseException p) {
-        System.out.println("Error parsing file " + file.getPath());
+        System.out.println("Error parsing file: " + file.getPath());
         System.exit(1);
       }
     }

@@ -7,5 +7,7 @@ Supported ant commands:
 ant            : defaults to src
 ant src        : compiles the source code
 ant jar        : builds a jar file
+ant run        : runs the jar file
+                 requires the flag -DtranslateJava=/path/to/file
 ant docs       : generates javadocs
 ant clean      : deletes the classes and dist directories
