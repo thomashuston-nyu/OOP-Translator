@@ -21,6 +21,7 @@ public class Super {
   }
 
   public void printMessage() {
+    Sub sub = new Sub(5);
     System.out.println("Welcome to the demo package.");
   }
 

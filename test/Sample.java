@@ -1,5 +1,4 @@
-import demo.Sub;
-import demo.Super;
+import demo.*;
 
 public class Sample {
   

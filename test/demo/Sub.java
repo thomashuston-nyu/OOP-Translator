@@ -38,4 +38,8 @@ public class Sub extends Super {
     return "This is Sub.";
   }
 
+  public static void main(String[] args) {
+    Super s = new Super();
+  }
+
 }

@@ -4,8 +4,8 @@ Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan
 
 Supported ant commands:
 
-ant            : compiles the source code
-ant compile    : same as ant
-ant clean      : cleans out the build and dist directories
-ant dist       : builds a jar file
+ant            : defaults to src
+ant src        : compiles the source code
+ant jar        : builds a jar file
 ant docs       : generates javadocs
+ant clean      : deletes the classes and dist directories

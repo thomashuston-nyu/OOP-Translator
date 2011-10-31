@@ -1,10 +1,10 @@
-<project name="pcp" default="compile" basedir=".">
+<project name="pcp" default="src" basedir=".">
 	<description>
     pcp build file
   </description>
 	
 	<!-- Directories -->
-  <property name="build" location="build"/>
+  <property name="classes" location="classes"/>
   <property name="docs"  location="docs"/>
   <property name="dist"  location="dist"/>
   <property name="lib"  location="lib"/>
@@ -16,28 +16,37 @@
 		<fileset dir="${lib}" includes="*.jar"/>
 	</path>
 
-	<!-- Initialize -->
-	<target name="init">
-		<!-- Create the time stamp -->
-		<tstamp>
-			<format property="now" pattern="yyyy-MM-dd-HH-mm"/>
-		</tstamp>
-		<!-- Create the build directory -->
-		<mkdir dir="${build}"/>
-	</target>
-
 	<!-- Compile the Java source code -->
-	<target name="compile" depends="init" description="compile the source">
-		<javac srcdir="${src}" destdir="${build}" classpathref="classpath" includeantruntime="false"/>
+	<target name="src" description="compile the source">
+		<!-- Create the classes directory -->
+    <mkdir dir="${classes}"/>
+    <!-- Compile the source code -->
+		<javac srcdir="${src}" destdir="${classes}" classpathref="classpath" includeantruntime="false"/>
 	</target>
 	
 	<!-- Generate the distribution jar -->
-	<target name="dist" depends="compile" description="generate the distribution">
+	<target name="jar" depends="src" description="generate the distribution">
 	  <!-- Create the distribution directory -->
 		<mkdir dir="${dist}"/>
 		<!-- Put everything in the build directory into the distrbution jar -->
-		<jar jarfile="${dist}/pcp-${now}.jar" basedir="${build}"/>
+		<jar jarfile="${dist}/pcp.jar" basedir="${classes}">
+			<manifest>
+                <attribute name="Main-Class" value="pcp.Translator"/>
+            </manifest>
+		</jar>
 	</target>
+	
+	<!-- Run the distribution jar -->
+	<target name="run" depends="jar" if="translateJava" description="run the distribution">
+    <java fork="true" classname="pcp.Translator">
+      <classpath>
+        <path refid="classpath"/>
+        <path location="${dist}/pcp.jar"/>
+      </classpath>
+      <arg value="-translateJava"/>
+      <arg value="${translateJava}"/>
+    </java>
+  </target>
 	
 	<!-- Generate the Java documentation -->
 	<target name="docs" description="generation the documentation">
@@ -57,9 +66,9 @@
 		</javadoc>
 	</target>	
 
-	<!-- Clean up the build and distribution directories -->
+	<!-- Clean up the classes and distribution directories -->
 	<target name="clean" description="clean up">
-		<delete dir="${build}"/>
+		<delete dir="${classes}"/>
 		<delete dir="${dist}"/>
 	</target>
 	

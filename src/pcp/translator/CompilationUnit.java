@@ -1,39 +1,62 @@
-/**
- * PackageDeclaration? ImportDeclaration* Declaration*
+/*
+ * pcp - The Producer of C++ Programs
+ * Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class CompilationUnit extends TranslationVisitor implements Translatable {
+/**
+ * A compilation unit.
+ *
+ * @author Nabil Hassein
+ * @author Thomas Huston
+ * @author Mike Morreale
+ * @author Marta Wilgan
+ * @version 1.0
+ */
+public class CompilationUnit extends TranslationVisitor {
   
-  private HashMap<Visibility, List<ClassDeclaration>> classes;
+  private Map<Visibility, List<ClassDeclaration>> classes;
   private List<ImportDeclaration> imports;
   private PackageDeclaration pkg;
   
   /**
-   * Constructs the CompilationUnit.
+   * Create a new compilation unit.
    * 
-   * @param n the CompilationUnit node.
+   * @param n The AST node.
    */
   public CompilationUnit(GNode n) {
     classes = new HashMap<Visibility, List<ClassDeclaration>>();
     imports = new ArrayList<ImportDeclaration>();
-    pkg = null;
     visit(n);
   }
   
   /**
    * Gets a list of the classes of a specific visibility.
    *
-   * @param v the visibility of the classes to return.
+   * @param v The visibility of the classes to return.
    *
-   * @return a list of classes of the specified visibility.
+   * @return The classes of the specified visibility.
    */
   public List<ClassDeclaration> getClasses(Visibility v) {
     if (classes.containsKey(v))
@@ -45,16 +68,27 @@ public class CompilationUnit extends TranslationVisitor implements Translatable 
   /**
    * Gets a list of the import declarations.
    *
-   * @return a list of all imports.
+   * @return The imports.
    */
   public List<ImportDeclaration> getImports() {
     return imports;
+  }
+
+  /**
+   * Gets the public class.
+   *
+   * @return The main class.
+   */
+  public ClassDeclaration getPublicClass() {
+    if (!classes.containsKey(Visibility.PUBLIC))
+        return null;
+    return classes.get(Visibility.PUBLIC).get(0);
   }
   
   /**
    * Gets the package.
    * 
-   * @return the package.
+   * @return The package.
    */
   public PackageDeclaration getPackage() {
     return pkg;
@@ -62,9 +96,9 @@ public class CompilationUnit extends TranslationVisitor implements Translatable 
   
   /**
    * Visits a ClassDeclaration node and adds it to the
-   * list in the classes HashMap for its visibility.
+   * list in the classes hash for its visibility.
    * 
-   * @param n the ClassDeclaration node to visit.
+   * @param n The AST node to visit.
    */
   public void visitClassDeclaration(GNode n) {
     ClassDeclaration c = new ClassDeclaration(n);
@@ -78,7 +112,7 @@ public class CompilationUnit extends TranslationVisitor implements Translatable 
    * Visits an ImportDeclaration node and adds it to
    * the imports list.
    *
-   * @param n the ImportDeclaration node to visit.
+   * @param n The AST node to visit.
    */
   public void visitImportDeclaration(GNode n) {
     imports.add(new ImportDeclaration(n));
@@ -88,97 +122,10 @@ public class CompilationUnit extends TranslationVisitor implements Translatable 
    * Visits a PackageDeclaration node and sets it as
    * the unit package.
    * 
-   * @param n the PackageDeclaration node to visit.
+   * @param n The AST node to visit.
    */
   public void visitPackageDeclaration(GNode n) {
     pkg = new PackageDeclaration(n);
   }
   
-  
-  public List<Declaration> getDependencies() {
-    List<Declaration> l = new ArrayList<Declaration>();
-    if (pkg != null)
-      l.add(pkg);
-    for (ImportDeclaration i : imports)
-      l.add(i);
-    return l;
-  }
-  
-  public String getName() {
-    List<ClassDeclaration> c = classes.get(Visibility.PUBLIC);
-    return c.get(0).getName();
-  }
-  
-  public Extension getExtension() {
-    List<ClassDeclaration> c = classes.get(Visibility.PUBLIC);
-    return c.get(0).getExtension();
-  }
-  
-  public ClassDeclaration getPublic() {
-    List<ClassDeclaration> c = classes.get(Visibility.PUBLIC);
-    return c.get(0);
-  }
-  
-  public void setParent(ClassDeclaration parent) {
-    List<ClassDeclaration> c = classes.get(Visibility.PUBLIC);
-    c.get(0).setParent(parent);
-  }
-  
-  
-  // TRANSLATION METHODS
-  
-  public String getHeader(int indent) {
-    StringBuilder s = new StringBuilder();
-    String in = getIndent(indent);
-    /*if (imports.size() > 0) {
-      for (ImportDeclaration i : imports)  {
-        s.append("using namespace " + i.getNamespace() + ";\n");
-      }
-    }
-    if (pkg != null) {
-      s.append(pkg.getNamespace(indent));
-      indent += pkg.size();
-      in = getIndent(indent);
-    }*/
-    List<ClassDeclaration> l = classes.get(Visibility.PUBLIC);
-    if (l != null) {
-      for (ClassDeclaration c : l) {
-        String className = c.getName();
-        s.append(in + "struct __" + className + ";\n");
-        s.append(in + "struct __" + className + "_VT;\n\n");
-        s.append(in + "typedef __" + className + "* " + className + ";\n\n");
-        s.append(c.getHeaderStruct(indent));
-        s.append("\n");
-        s.append(c.getHeaderVTStruct(indent));
-        s.append("\n");
-        s.append(c.getHeader(indent));
-      }
-    }
-    /*if (pkg != null) {
-      s.append("\n}");
-    }*/
-    s.append("\n");
-    return s.toString();
-  }
-  
-  public String getCC(int indent, String className, List<Variable> variables) {
-    StringBuilder s = new StringBuilder();
-    String in = getIndent(indent);
-    /*if (pkg != null) {
-      s.append(pkg.getNamespace(indent));
-      indent += pkg.size();
-      in = getIndent(indent);
-    }*/
-    List<ClassDeclaration> l = classes.get(Visibility.PUBLIC);
-    if (l != null) {
-      for (ClassDeclaration c : l) {
-        s.append(c.getCC(indent, c.getName(), variables));
-      }
-    }
-   /* if (pkg != null) {
-      s.append("\n}");
-    }*/
-    return s.toString();
-  }
-
 }

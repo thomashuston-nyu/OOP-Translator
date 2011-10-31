@@ -1,21 +1,48 @@
+/*
+ * pcp - The Producer of C++ Programs
+ * Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class ClassDeclaration extends Declaration implements Translatable {
+/**
+ * A class declaration.
+ *
+ * @author Nabil Hassein
+ * @author Thomas Huston
+ * @author Mike Morreale
+ * @author Marta Wilgan
+ * @version 1.0
+ */
+public class ClassDeclaration extends Declaration {
   
   private HashMap<String, List<Object>> vtable;
   private ClassDeclaration parent;
   
   private ClassBody body;
   private Extension extension;
-  private List<Implementation> implementation;
+  private List<Implementation> interfaces;
   private boolean isAbstract;
   private boolean isFinal;
   private boolean isStatic;
@@ -25,23 +52,22 @@ public class ClassDeclaration extends Declaration implements Translatable {
   /**
    * Constructs the ClassDeclaration.
    * 
-   * @param n the ClassDeclaration node.
+   * @param n The ClassDeclaration node.
    */
   public ClassDeclaration(GNode n) {
-    parent = null;
     name = n.getString(1);
-    extension = null;
-    implementation = new ArrayList<Implementation>();
+    interfaces = new ArrayList<Implementation>();
     isAbstract = false;
     isFinal = false;
     isStatic = false;
+    visibility = Visibility.PACKAGE_PRIVATE;
     visit(n);
   }
   
   /**
    * Gets the superclass.
    *
-   * @return the extension.
+   * @return The superclass.
    */
   public Extension getExtension() {
     return extension;
@@ -50,56 +76,111 @@ public class ClassDeclaration extends Declaration implements Translatable {
   /**
    * Gets the list of implemented interfaces.
    *
-   * @return the implementation list.
+   * @return The interfaces.
    */
   public List<Implementation> getImplementation() {
-    return implementation;
+    return interfaces;
   }
   
+  /**
+   * Gets the name of the class.
+   *
+   * @return The name.
+   */
   public String getName() {
     return name;
   }
   
   /**
+   * Gets the superclass.
+   *
+   * @return The superclass.
+   */
+  public ClassDeclaration getParent() {
+    return parent;
+  }
+
+  /**
    * Gets the visibility of the class.
    *
-   * @return the visibility.
+   * @return The visibility.
    */
   public Visibility getVisibility() {
     return visibility;
   }
   
-  public void setParent(ClassDeclaration parent) {
-    this.parent = parent;
-  }
-  
+  /**
+   * Tests whether the class has a superclass.
+   *
+   * @return True if it has a superclass; false otherwise.
+   */
   public boolean hasExtension() {
     return extension != null;
   }
   
+  /**
+   * Tests whether the class is abstract.
+   *
+   * @return True if the class is abstract; false otherwise.
+   */
   public boolean isAbstract() {
     return isAbstract;
   }
   
+  /**
+   * Tests whether the class is final.
+   *
+   * @return True if the class is final; false otherwise.
+   */
   public boolean isFinal() {
     return isFinal;
   }
   
+  /**   
+   * Sets the superclass.
+   *
+   * @param parent The superclass.
+   */
+  public void setParent(ClassDeclaration parent) {
+    this.parent = parent;
+  }
+  
+  /**
+   * Visits the class body.
+   *
+   * @param n The AST node to visit.
+   */
   public void visitClassBody(GNode n) {
     body = new ClassBody(n);
   }
   
+  /**
+   * Visits the extension.
+   *
+   * @param n The AST node to visit.
+   */
   public void visitExtension(GNode n) {
     extension = new Extension(n);
   }
   
+  /**
+   * Visits an interface.
+   *
+   * @param n The AST node to visit.
+   */
   public void visitImplementation(GNode n) {
-    implementation.add(new Implementation(n));
+    interfaces.add(new Implementation(n));
   }
   
+  /**
+   * Visits the modifiers.
+   *
+   * @param n The AST node to visit.
+   */
   public void visitModifiers(GNode n) {
     Modifiers modifiers = new Modifiers(n);
-    for (String m : modifiers) {
+    for (Object o : n) {
+      String m = ((GNode)o).getString(0);
       if (m.equals("public"))
         visibility = Visibility.PUBLIC;
       else if (m.equals("private"))
