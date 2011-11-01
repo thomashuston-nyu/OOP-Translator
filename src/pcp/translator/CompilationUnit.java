@@ -36,9 +36,9 @@ import xtc.tree.Visitor;
  */
 public class CompilationUnit extends TranslationVisitor {
   
-  private Map<Visibility, List<ClassDeclaration>> classes;
-  private List<ImportDeclaration> imports;
-  private PackageDeclaration pkg;
+  private Map<Visibility, List<Class>> classes;
+  private List<Import> imports;
+  private Package pkg;
   
   /**
    * Create a new compilation unit.
@@ -46,8 +46,11 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n The AST node.
    */
   public CompilationUnit(GNode n) {
-    classes = new HashMap<Visibility, List<ClassDeclaration>>();
-    imports = new ArrayList<ImportDeclaration>();
+    classes = new HashMap<Visibility, List<Class>>();
+    for (Visibility v : Visibility.values()) {
+      classes.put(v, new ArrayList<Class>());
+    }
+    imports = new ArrayList<Import>();
     visit(n);
   }
   
@@ -58,11 +61,8 @@ public class CompilationUnit extends TranslationVisitor {
    *
    * @return The classes of the specified visibility.
    */
-  public List<ClassDeclaration> getClasses(Visibility v) {
-    if (classes.containsKey(v))
-      return classes.get(v);
-    else
-      return null;
+  public List<Class> getClasses(Visibility v) {
+    return classes.get(v);
   }
   
   /**
@@ -70,7 +70,7 @@ public class CompilationUnit extends TranslationVisitor {
    *
    * @return The imports.
    */
-  public List<ImportDeclaration> getImports() {
+  public List<Import> getImports() {
     return imports;
   }
 
@@ -79,8 +79,8 @@ public class CompilationUnit extends TranslationVisitor {
    *
    * @return The main class.
    */
-  public ClassDeclaration getPublicClass() {
-    if (!classes.containsKey(Visibility.PUBLIC))
+  public Class getPublicClass() {
+    if (classes.get(Visibility.PUBLIC).size() == 0)
         return null;
     return classes.get(Visibility.PUBLIC).get(0);
   }
@@ -90,7 +90,7 @@ public class CompilationUnit extends TranslationVisitor {
    * 
    * @return The package.
    */
-  public PackageDeclaration getPackage() {
+  public Package getPackage() {
     return pkg;
   }
   
@@ -101,10 +101,8 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n The AST node to visit.
    */
   public void visitClassDeclaration(GNode n) {
-    ClassDeclaration c = new ClassDeclaration(n);
+    Class c = new Class(n);
     Visibility v = c.getVisibility();
-    if (!classes.containsKey(v))
-      classes.put(v, new ArrayList<ClassDeclaration>());
     classes.get(v).add(c);
   }
   
@@ -115,7 +113,7 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n The AST node to visit.
    */
   public void visitImportDeclaration(GNode n) {
-    imports.add(new ImportDeclaration(n));
+    imports.add(new Import(n));
   }
   
   /**
@@ -125,7 +123,7 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n The AST node to visit.
    */
   public void visitPackageDeclaration(GNode n) {
-    pkg = new PackageDeclaration(n);
+    pkg = new Package(n);
   }
   
 }

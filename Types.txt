@@ -73,6 +73,10 @@ PrimitiveType
 Type
 VoidType
 
+// 
+Extension
+Implementation
+
 // Other
 Arguments
 ArrayInitializer
@@ -88,10 +92,8 @@ Declarators
 DefaultClause
 Dimensions
 ExpressionList
-Extension
 FormalParameter
 FormalParameters
-Implementation
 Modifier
 Modifiers
 SwitchClause

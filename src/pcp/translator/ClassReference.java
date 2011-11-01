@@ -24,7 +24,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 /**
- * An interface declaration.
+ * A reference to a Java class or interface.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -32,30 +32,37 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class InterfaceDeclaration extends Declaration {
-  
-  private ClassBody body;
-  private ClassReference extension;
-  private boolean isAbstract;
-  private String name;
+public class ClassReference {
+
+  private List<String> reference;
   
   /**
-   * Constructs the interface.
+   * Creates the reference.
    *
-   * @param n The interface node.
+   * @param n The extension or implementation AST node.
    */
-  public InterfaceDeclaration(GNode n) {
-    for (Object o : n.getNode(0)) {
-      if (((String)o).equals("abstract"))
-        isAbstract = true;
+  public ClassReference(GNode n) {
+    reference = new ArrayList<String>();
+    for (Object o : n.getGeneric(0).getGeneric(0)) {
+      reference.add((String)o);
     }
-    name = n.getString(1);
-    if (n.getNode(3).hasName("Extension")) {
-      extension = new ClassReference(n.getGeneric(3));
-      body = new ClassBody(n.getGeneric(4));
-    } else {
-      body = new ClassBody(n.getGeneric(3));
+  }
+
+  /**
+   * Gets the path to the class or interface.
+   *
+   * @return The path.
+   */
+  public String getPath() {
+    StringBuilder s = new StringBuilder();
+    int size = reference.size();
+    for (int i = 0; i < size; i++) {
+      s.append(reference.get(i));
+      if (i < size - 1)
+        s.append("/");
     }
+    s.append(".java");
+    return s.toString();
   }
 
 }

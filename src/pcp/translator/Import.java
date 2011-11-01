@@ -24,7 +24,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 /**
- * An extension.
+ * An import declaration.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -32,37 +32,50 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class Extension extends Declaration {
+public class Import extends Declaration {
 
-  private List<String> extension;
+  private boolean star;
+  private List<String> imp;
   
   /**
-   * Creates the extension.
-   *
-   * @param n The AST node.
+   * Constructs the import.
+   * 
+   * @param n the import declaration node.
    */
-  public Extension(GNode n) {
-    extension = new ArrayList<String>();
-    for (Object o : n.getGeneric(0).getGeneric(0)) {
-      extension.add((String)o);
+  public Import(GNode n) {
+    imp = new ArrayList<String>();
+    GNode name = n.getGeneric(1);
+    for (Object o : name) {
+      imp.add((String)o);
     }
+    star = null != n.get(2);
   }
 
   /**
-   * Gets the extension path.
+   * Gets the import.
+   *
+   * @return The import.
+   */
+  public List<String> getImport() {
+    return imp;
+  }
+
+  /**
+   * Gets the path to the import.
    *
    * @return The path.
    */
   public String getPath() {
     StringBuilder s = new StringBuilder();
-    int size = extension.size();
+    int size = imp.size();
     for (int i = 0; i < size; i++) {
-      s.append(extension.get(i));
+      s.append(imp.get(i));
       if (i < size - 1)
         s.append("/");
     }
-    s.append(".java");
+    if (!star)
+      s.append(".java");
     return s.toString();
   }
-
+  
 }

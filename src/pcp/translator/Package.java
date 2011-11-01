@@ -24,7 +24,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 /**
- * An interface declaration.
+ * A package declaration.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -32,30 +32,46 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class InterfaceDeclaration extends Declaration {
+public class Package extends Declaration {
   
-  private ClassBody body;
-  private ClassReference extension;
-  private boolean isAbstract;
-  private String name;
+  private List<String> pkg;
   
   /**
-   * Constructs the interface.
-   *
-   * @param n The interface node.
+   * Constructs the PackageDeclaration.
+   * 
+   * @param n The PackageDeclaration node.
    */
-  public InterfaceDeclaration(GNode n) {
-    for (Object o : n.getNode(0)) {
-      if (((String)o).equals("abstract"))
-        isAbstract = true;
-    }
-    name = n.getString(1);
-    if (n.getNode(3).hasName("Extension")) {
-      extension = new ClassReference(n.getGeneric(3));
-      body = new ClassBody(n.getGeneric(4));
-    } else {
-      body = new ClassBody(n.getGeneric(3));
+  public Package(GNode n) {
+    GNode name = n.getGeneric(1);
+    pkg = new ArrayList<String>();
+    for (Object o : name) {
+      pkg.add((String)o);
     }
   }
+  
+  /**
+   * Gets the package identifier.
+   *
+   * @return The package.
+   */
+  public List<String> getPackage() {
+    return pkg;
+  }
 
+  /**
+   * Gets the package as a path.
+   *
+   * @return The package path.
+   */
+  public String getPath() {
+    StringBuilder p = new StringBuilder();
+    int size = pkg.size();
+    for (int i = 0; i < size; i++) {
+      p.append(pkg.get(i));
+      if (i < size - 1)
+        p.append("/");
+    }
+    return p.toString();
+  }
+  
 }

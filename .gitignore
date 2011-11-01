@@ -2,7 +2,6 @@ xtc
 .DS_Store
 *.class
 *.xcworkspace
-*.jar
 build
 dist
 .project

@@ -55,7 +55,8 @@ public class Block extends Statement implements Translatable {
   }
   
   public void visitInterfaceDeclaration(GNode n) {
-    parts.add(new InterfaceDeclaration(n));
+    // InterfaceDeclaraiton is no longer Translatable
+    //parts.add(new InterfaceDeclaration(n));
   }
   
   public void visitReturnStatement(GNode n) {

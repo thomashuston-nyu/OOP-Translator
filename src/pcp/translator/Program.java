@@ -74,7 +74,7 @@ public class Program {
 
     // Find the classpath for the program
     CompilationUnit c = new CompilationUnit((GNode)node);
-    PackageDeclaration pkg = c.getPackage();
+    Package pkg = c.getPackage();
     String absPath = file.getAbsolutePath();
     absPath = absPath.substring(0, absPath.lastIndexOf("/")+1);
     if (null != pkg) {
@@ -133,7 +133,7 @@ public class Program {
     files.put(filePath, c);
 
     // Resolve dependencies for classes in the package
-    PackageDeclaration pkg = c.getPackage();
+    Package pkg = c.getPackage();
     if (null != pkg) {
       File dir = new File(classpath + pkg.getPath());
       File[] files = dir.listFiles(new JavaFilter());
@@ -144,8 +144,8 @@ public class Program {
     }
 
     // Resolve dependencies for imported classes
-    List<ImportDeclaration> imp = c.getImports();
-    for (ImportDeclaration i : imp) {
+    List<Import> imp = c.getImports();
+    for (Import i : imp) {
       File f = new File(classpath + i.getPath());
       if (f.isFile()) {
         resolve(f);   
@@ -161,7 +161,7 @@ public class Program {
     }
 
     // Set the superclass
-    ClassDeclaration cd = c.getPublicClass();
+    Class cd = c.getPublicClass();
     if (cd.hasExtension()) {
       String ext = cd.getExtension().getPath();
       String extpath;
@@ -187,7 +187,7 @@ public class Program {
         }
         // Check the imported packages and classes
         if (!found) {
-          for (ImportDeclaration i : imp) {
+          for (Import i : imp) {
             String importpath = i.getPath();
             if (importpath.endsWith(ext)) {
               extpath = classpath + importpath;
@@ -210,13 +210,13 @@ public class Program {
         }
       }                                         
       if (!found)
-        throw new RuntimeException("Superclass not found: " + ext);
+        throw new RuntimeException("Superclass not found: " + ext); 
     } else {
       requires.put(c, null);
     }
 
     // Initialize printed to false for this compilation unit
-    printed.put(c, false);
+    printed.put(c, false); 
   }
   
   /**
