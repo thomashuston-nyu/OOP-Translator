@@ -32,7 +32,7 @@ import xtc.tree.Visitor;
 /**
  * ("final":Word)? Modifiers Type Declarators
  */
-public class Field extends Declaration {
+public class JavaField extends Declaration {
   
   private Declarators declarators;
   private boolean isAbstract;
@@ -46,7 +46,7 @@ public class Field extends Declaration {
    *
    * @param n The field declaration node.
    */
-  public Field(GNode n) {
+  public JavaField(GNode n) {
     // Check if the field is final
     int i = 0;
     if (n.getNode(1).hasName("Modifiers")) {
@@ -131,7 +131,7 @@ public class Field extends Declaration {
   public void visitWord(GNode n) {
     isFinal = true;
   }
-
+/*
   public String getCC(int indent, String className, List<Variable> variables) {
     StringBuilder s = new StringBuilder(getIndent(indent));
     if (isFinal)
@@ -149,5 +149,5 @@ public class Field extends Declaration {
     variables.add(v);
     return s.toString();
   }
-
+ */
 }

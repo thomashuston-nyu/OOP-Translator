@@ -32,7 +32,7 @@ import xtc.tree.Visitor;
 /**
  * Modifiers null (VoidType/Type) Identifier FormalParameters Dimensions? ThrowsClause? Block/null
  */
-public class Method extends Declaration {
+public class JavaMethod extends Declaration {
 
   private Block body;
   private ThrowsClause exception;
@@ -49,11 +49,11 @@ public class Method extends Declaration {
    *
    * @param n The method declaration node.
    */
-  public Method(GNode n) {
+  public JavaMethod(GNode n) {
     // Determine the visibility
     visibility = Visibility.PACKAGE_PRIVATE;
     for (Object o : n.getNode(0)) {
-      String m = ((Node)o).getString(0);
+      String m = ((GNode)o).getString(0);
       if (m.equals("public"))
         visibility = Visibility.PUBLIC;
       else if (m.equals("private"))
@@ -97,4 +97,52 @@ public class Method extends Declaration {
     }
   }
 
+  /**
+   * Gets the return type of this method.
+   *
+   * @return The return type.
+   */
+  public Type getReturnType() {
+    return returnType;
+  }
+
+  /**
+   * Gets the visibility of the method.
+   *
+   * @return The visibility.
+   */
+  public Visibility getVisibility() {
+    return visibility;
+  }
+
+  /**
+   * Returns <code>true</code> if this method is abstract.
+   *
+   * @return <code>true</code> if this method is abstract; 
+   * <code>false</code> otherwise;
+   */
+  public boolean isAbstract() {
+    return isAbstract;
+  }
+
+
+  /**
+   * Returns <code>true</code> if this method is final.
+   *
+   * @return <code>true</code> if this method is final; 
+   * <code>false</code> otherwise;
+   */
+  public boolean isFinal() {
+    return isFinal;
+  }
+
+  /**
+   * Returns <code>true</code> if this method is static.
+   *
+   * @return <code>true</code> if this method is static; 
+   * <code>false</code> otherwise;
+   */
+  public boolean isStatic() {
+    return isStatic;
+  }
 }

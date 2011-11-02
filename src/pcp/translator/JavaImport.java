@@ -24,7 +24,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 /**
- * A package declaration.
+ * An import declaration.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -32,46 +32,50 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class Package extends Declaration {
-  
-  private List<String> pkg;
+public class JavaImport extends Declaration {
+
+  private boolean star;
+  private List<String> imp;
   
   /**
-   * Constructs the PackageDeclaration.
+   * Constructs the import.
    * 
-   * @param n The PackageDeclaration node.
+   * @param n the import declaration node.
    */
-  public Package(GNode n) {
+  public JavaImport(GNode n) {
+    imp = new ArrayList<String>();
     GNode name = n.getGeneric(1);
-    pkg = new ArrayList<String>();
     for (Object o : name) {
-      pkg.add((String)o);
+      imp.add((String)o);
     }
-  }
-  
-  /**
-   * Gets the package identifier.
-   *
-   * @return The package.
-   */
-  public List<String> getPackage() {
-    return pkg;
+    star = null != n.get(2);
   }
 
   /**
-   * Gets the package as a path.
+   * Gets the import.
    *
-   * @return The package path.
+   * @return The import.
+   */
+  public List<String> getImport() {
+    return imp;
+  }
+
+  /**
+   * Gets the path to the import.
+   *
+   * @return The path.
    */
   public String getPath() {
-    StringBuilder p = new StringBuilder();
-    int size = pkg.size();
+    StringBuilder s = new StringBuilder();
+    int size = imp.size();
     for (int i = 0; i < size; i++) {
-      p.append(pkg.get(i));
+      s.append(imp.get(i));
       if (i < size - 1)
-        p.append("/");
+        s.append("/");
     }
-    return p.toString();
+    if (!star)
+      s.append(".java");
+    return s.toString();
   }
   
 }

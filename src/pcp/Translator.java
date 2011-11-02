@@ -18,10 +18,18 @@
 package pcp;
 
 import java.io.File;
+import java.io.FilenameFilter;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 
-import pcp.translator.Program;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import pcp.translator.*;
 
 import xtc.lang.JavaFiveParser;
 
@@ -45,7 +53,11 @@ import xtc.util.Tool;
  */
 public class Translator extends Tool {
   
-  File file;
+  private Map<String, CompilationUnit> files;
+  private Map<CompilationUnit, CompilationUnit> requires;
+  private Map<CompilationUnit, Boolean> printed;
+  private String classpath;
+  private File main;
 
   /** 
    * Creates a new translator.
@@ -94,6 +106,22 @@ public class Translator extends Tool {
   /**
    * Parses the specified file.
    *
+   * @param file The corresponding file.
+   *
+   * @return The AST corresponding to the file's contents, 
+   * or null if no tree has been generated.
+   *
+   * @throws IOException Signals an I/O error.
+   * @throws ParseException Signals a parse error.
+   */
+  public Node parse(File file) throws IOException, ParseException {
+    Reader in = new FileReader(file);
+    return parse(in, file);
+  }
+
+  /**
+   * Parses the specified file.
+   *
    * @param in The input stream for the file.
    * @param file The corresponding file.
    *
@@ -104,10 +132,28 @@ public class Translator extends Tool {
    * @throws ParseException Signals a parse error.
    */
   public Node parse(Reader in, File file) throws IOException, ParseException {
-    this.file = file;
+    if (main == null)
+      main = file;
     JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
     Result result = parser.pCompilationUnit(0);
     return (Node)parser.value(result);
+  }
+
+  /**
+  * Recursively prints the Java classes in order based
+  * on their dependencies.
+  *
+  * @param c The compilation unit to print.
+  */
+  public void printOrder(CompilationUnit c) {
+    if (printed.get(c))
+      return;
+    CompilationUnit d = requires.get(c);
+    if (null != d && !printed.get(d))
+      printOrder(d);
+    // TODO Print out VTables in this order.
+    runtime.console().p(c.getPublicClass().getName()).pln().flush();
+    printed.put(c, true);
   }
   
   /**
@@ -123,17 +169,181 @@ public class Translator extends Tool {
     // Translates Java to C++
     if (runtime.test("translateJava")) {
       try {
-        Program p = new Program(file, node);
+        // Instantiate the hashes
+        files = new HashMap<String, CompilationUnit>();
+        requires = new HashMap<CompilationUnit, CompilationUnit>();
+        printed = new HashMap<CompilationUnit, Boolean>();
+
+        // Find the classpath for the program
+        CompilationUnit c = new CompilationUnit((GNode)node);
+        JavaPackage pkg = c.getPackage();
+        String absPath = main.getAbsolutePath();
+        absPath = absPath.substring(0, absPath.lastIndexOf("/")+1);
+        if (null != pkg) {
+          String pkgPath = pkg.getPath();
+          int index = absPath.lastIndexOf(pkgPath);
+          if (0 > index)
+            runtime.errConsole().p("Package name does not match directory: ").p(pkg.getPath())
+              .pln().flush();
+          classpath = absPath.substring(0, index);
+        } else {
+          classpath = absPath; 
+        }
+
+        // Resolve dependencies
+        resolve(main, c);
+
+        // Print out the classes in order of dependence
+        Set<CompilationUnit> keys = requires.keySet();
+        for (CompilationUnit key : keys) {
+          printOrder(key);
+        }
       } catch (IOException i) {
-        System.out.println("Error reading file: " + file.getPath());
-        System.exit(1);
+        runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();
       } catch (ParseException p) {
-        System.out.println("Error parsing file: " + file.getPath());
-        System.exit(1);
+        runtime.errConsole().p("Error parsing file: ").p(main.getPath()).pln().flush();
       }
     }
   }
+
+  /**
+  * First parses the specified file and creates its
+  * compilation unit, then resolves dependencies.
+  *
+  * @param file The file to resolve.
+  *
+  * @throws IOException Signals an I/O error.
+  * @throws ParseException Signals a parse error.
+  */
+  public void resolve(File file) throws IOException, ParseException {
+    if (files.containsKey(file.getAbsolutePath())) 
+      return;
+    resolve(file, new CompilationUnit((GNode)parse(file)));
+  }
   
+  /**
+  * Recursively resolves dependencies for the specified class.
+  *
+  * @param file The file to resolve.
+  * @param c The compilation unit for the file.
+  *
+  * @throws IOException Signals an I/O error.
+  * @throws ParseException Signals a parse error.
+  */
+  public void resolve(File file, CompilationUnit c) throws IOException, ParseException {
+    if (files.containsKey(file.getAbsolutePath())) 
+      return;
+
+    // Add the file to the hash
+    String filePath = file.getAbsolutePath();
+    files.put(filePath, c);
+
+    // Resolve dependencies for classes in the package
+    JavaPackage pkg = c.getPackage();
+    if (null != pkg) {
+      File dir = new File(classpath + pkg.getPath());
+      File[] files = dir.listFiles(new JavaFilter());
+      for (File fi : files) {
+        if (!fi.getAbsolutePath().equals(filePath)) 
+          resolve(fi);
+      }
+    }
+
+    // Resolve dependencies for imported classes
+    List<JavaImport> imp = c.getImports();
+    for (JavaImport i : imp) {
+      File f = new File(classpath + i.getPath());
+      if (f.isFile()) {
+        resolve(f);   
+      } else if (f.isDirectory()) {
+        File[] files = f.listFiles(new JavaFilter());
+        for (File fi : files) {
+          if (!fi.getAbsolutePath().equals(filePath)) 
+            resolve(fi);
+        }
+      } else {
+        runtime.errConsole().p("Error reading imported file: ").p(f.getAbsolutePath()).pln().flush();
+      }
+    }
+
+    // Set the superclass
+    JavaClass cd = c.getPublicClass();
+    if (cd.hasExtension()) {
+      String ext = cd.getExtension().getPath();
+      String extpath;
+      boolean found = false;
+      int index = ext.lastIndexOf("/");
+      // If the superclass path is given explicitly, use that path
+      if (-1 < index) {
+        extpath = classpath + ext;
+        if (files.containsKey(extpath)) {
+          cd.setParent(files.get(extpath).getPublicClass());
+          requires.put(c, files.get(extpath));
+          found = true;
+        }
+      } else {
+        // Check the package
+        if (null != pkg) {
+          extpath = classpath + pkg.getPath() + "/" + ext;
+          if (files.containsKey(extpath)) {
+            cd.setParent(files.get(extpath).getPublicClass());
+            requires.put(c, files.get(extpath));
+            found = true;
+          }
+        }
+        // Check the imported packages and classes
+        if (!found) {
+          for (JavaImport i : imp) {
+            String importpath = i.getPath();
+            if (importpath.endsWith(ext)) {
+              extpath = classpath + importpath;
+              if (files.containsKey(extpath)) {
+                cd.setParent(files.get(extpath).getPublicClass());
+                requires.put(c, files.get(extpath));
+                found = true;
+                break;
+              }
+            } else if (!importpath.endsWith(".java")) {
+              extpath = classpath + importpath + "/" + ext;
+              if (files.containsKey(extpath)) {
+                cd.setParent(files.get(extpath).getPublicClass());
+                requires.put(c, files.get(extpath));
+                found = true;
+                break;
+              }
+            }
+          }
+        }
+      }                                         
+      if (!found)
+        runtime.errConsole().p("Superclass not found: ").p(ext).pln().flush();
+    } else {
+      requires.put(c, null);
+    }
+
+    // Initialize printed to false for this compilation unit
+    printed.put(c, false); 
+  }
+
+  /**
+  * A filter for Java files.
+  */                
+  class JavaFilter implements FilenameFilter {
+    
+    /**
+    * Tests if the specified file is a Java file.
+    *
+    * @param dir The file directory.
+    * @param name The name of the file.
+    *
+    * @return True if it is a Java file; false otherwise.
+    */
+    public boolean accept(File dir, String name) {
+      return name.endsWith(".java");
+    }
+
+  }
+
   /**
    * Runs the translator with the specified command line arguments.
    *

@@ -17,11 +17,14 @@
  */
 package pcp.translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 /**
- * A class constructor.
+ * An interface declaration.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -29,42 +32,29 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class Constructor extends Declaration {
+public class JavaInterface extends Declaration {
   
-  private Block body;
-  private ThrowsClause exception;
+  private ClassBody body;
+  private ClassReference extension;
+  private boolean isAbstract;
   private String name;
-  private FormalParameters parameters;
-  private Visibility visibility;
   
   /**
-   * Creates the constructor.
+   * Constructs the interface.
    *
-   * @param n The constructor declaration node.
+   * @param n The interface node.
    */
-  public Constructor(GNode n) {
-    // Determine the visibility
-    visibility = Visibility.PUBLIC;
+  public JavaInterface(GNode n) {
     for (Object o : n.getNode(0)) {
-      String m = ((GNode)o).getString(0);
-      if (m.equals("private"))
-        visibility = Visibility.PRIVATE;
-      else if (m.equals("protected"))
-        visibility = Visibility.PROTECTED;
+      if (((String)o).equals("abstract"))
+        isAbstract = true;
     }
-
-    // Get the name of the constructor
-    name = n.getString(2);
-
-    // Get the parameters
-    parameters = new FormalParameters(n.getGeneric(3));
-
-    // Get the throws clause and constructor body
-    if (n.getNode(4).hasName("ThrowsClause")) {
-      exception = new ThrowsClause(n.getGeneric(4));
-      body = new Block(n.getGeneric(5));
+    name = n.getString(1);
+    if (n.getNode(3).hasName("Extension")) {
+      extension = new ClassReference(n.getGeneric(3));
+      body = new ClassBody(n.getGeneric(4));
     } else {
-      body = new Block(n.getGeneric(4));
+      body = new ClassBody(n.getGeneric(3));
     }
   }
 

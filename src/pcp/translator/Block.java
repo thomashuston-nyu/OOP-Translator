@@ -47,7 +47,7 @@ public class Block extends Statement implements Translatable {
   }
   
   public void visitFieldDeclaration(GNode n) {
-    parts.add(new FieldDeclaration(n));
+   // parts.add(new FieldDeclaration(n));
   }
   
   public void visitForStatement(GNode n) {
@@ -87,10 +87,10 @@ public class Block extends Statement implements Translatable {
     StringBuilder s = new StringBuilder();
     for (Translatable t : parts) {
       if (variables != null) {
-        if (t instanceof FieldDeclaration) {
+      /*  if (t instanceof FieldDeclaration) {
           FieldDeclaration f = (FieldDeclaration)t;
           variables.add(new Variable(f.getType(), f.getName()));
-        }
+        }*/
       } else {
         variables = new ArrayList<Variable>();
       }

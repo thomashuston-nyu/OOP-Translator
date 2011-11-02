@@ -36,9 +36,9 @@ import xtc.tree.Visitor;
  */
 public class CompilationUnit extends TranslationVisitor {
   
-  private Map<Visibility, List<Class>> classes;
-  private List<Import> imports;
-  private Package pkg;
+  private Map<Visibility, List<JavaClass>> classes;
+  private List<JavaImport> imports;
+  private JavaPackage pkg;
   
   /**
    * Create a new compilation unit.
@@ -46,11 +46,11 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n The AST node.
    */
   public CompilationUnit(GNode n) {
-    classes = new HashMap<Visibility, List<Class>>();
+    classes = new HashMap<Visibility, List<JavaClass>>();
     for (Visibility v : Visibility.values()) {
-      classes.put(v, new ArrayList<Class>());
+      classes.put(v, new ArrayList<JavaClass>());
     }
-    imports = new ArrayList<Import>();
+    imports = new ArrayList<JavaImport>();
     visit(n);
   }
   
@@ -61,7 +61,7 @@ public class CompilationUnit extends TranslationVisitor {
    *
    * @return The classes of the specified visibility.
    */
-  public List<Class> getClasses(Visibility v) {
+  public List<JavaClass> getClasses(Visibility v) {
     return classes.get(v);
   }
   
@@ -70,7 +70,7 @@ public class CompilationUnit extends TranslationVisitor {
    *
    * @return The imports.
    */
-  public List<Import> getImports() {
+  public List<JavaImport> getImports() {
     return imports;
   }
 
@@ -79,7 +79,7 @@ public class CompilationUnit extends TranslationVisitor {
    *
    * @return The main class.
    */
-  public Class getPublicClass() {
+  public JavaClass getPublicClass() {
     if (classes.get(Visibility.PUBLIC).size() == 0)
         return null;
     return classes.get(Visibility.PUBLIC).get(0);
@@ -90,7 +90,7 @@ public class CompilationUnit extends TranslationVisitor {
    * 
    * @return The package.
    */
-  public Package getPackage() {
+  public JavaPackage getPackage() {
     return pkg;
   }
   
@@ -101,7 +101,7 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n The AST node to visit.
    */
   public void visitClassDeclaration(GNode n) {
-    Class c = new Class(n);
+    JavaClass c = new JavaClass(n);
     Visibility v = c.getVisibility();
     classes.get(v).add(c);
   }
@@ -113,7 +113,7 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n The AST node to visit.
    */
   public void visitImportDeclaration(GNode n) {
-    imports.add(new Import(n));
+    imports.add(new JavaImport(n));
   }
   
   /**
@@ -123,7 +123,7 @@ public class CompilationUnit extends TranslationVisitor {
    * @param n The AST node to visit.
    */
   public void visitPackageDeclaration(GNode n) {
-    pkg = new Package(n);
+    pkg = new JavaPackage(n);
   }
   
 }

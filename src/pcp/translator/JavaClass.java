@@ -34,18 +34,18 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class Class extends Declaration {
+public class JavaClass extends Declaration {
   
-  private Constructor constructor;
+  private JavaConstructor constructor;
   private ClassReference extension;
-  private Map<Visibility, List<Field>> fields;
+  private Map<Visibility, List<JavaField>> fields;
   private List<ClassReference> interfaces;
   private boolean isAbstract;
   private boolean isFinal;
   private boolean isStatic;
-  private Map<Visibility, List<Method>> methods;
+  private Map<Visibility, List<JavaMethod>> methods;
   private String name;
-  private Class parent;
+  private JavaClass parent;
   private Visibility visibility;
   
   /**
@@ -53,7 +53,7 @@ public class Class extends Declaration {
    * 
    * @param n The class declaration node.
    */
-  public Class(GNode n) {
+  public JavaClass(GNode n) {
     // Get the class name
     name = n.getString(1);
 
@@ -67,11 +67,11 @@ public class Class extends Declaration {
     interfaces = new ArrayList<ClassReference>();
 
     // Instantiate the hashes
-    fields = new HashMap<Visibility, List<Field>>();
-    methods = new HashMap<Visibility, List<Method>>();
+    fields = new HashMap<Visibility, List<JavaField>>();
+    methods = new HashMap<Visibility, List<JavaMethod>>();
     for (Visibility v : Visibility.values()) {
-      fields.put(v, new ArrayList<Field>());
-      methods.put(v, new ArrayList<Method>());
+      fields.put(v, new ArrayList<JavaField>());
+      methods.put(v, new ArrayList<JavaMethod>());
     }
 
     // Visit the nodes in the class
@@ -110,7 +110,7 @@ public class Class extends Declaration {
    *
    * @return The superclass.
    */
-  public Class getParent() {
+  public JavaClass getParent() {
     return parent;
   }
 
@@ -158,7 +158,7 @@ public class Class extends Declaration {
    *
    * @param parent The superclass.
    */
-  public void setParent(Class parent) {
+  public void setParent(JavaClass parent) {
     this.parent = parent;
   }
   
@@ -177,7 +177,7 @@ public class Class extends Declaration {
    * @param n The AST node to visit.
    */
   public void visitConstructorDeclaration(GNode n) {
-    constructor = new Constructor(n);
+    constructor = new JavaConstructor(n);
   }
   
   /**
@@ -195,7 +195,7 @@ public class Class extends Declaration {
    * @param n The AST node to visit.
    */
   public void visitFieldDeclaration(GNode n) {
-    Field f = new Field(n);
+    JavaField f = new JavaField(n);
     fields.get(f.getVisibility()).add(f);
   }
   
@@ -214,7 +214,7 @@ public class Class extends Declaration {
    * @param n The AST node to visit.
    */
   public void visitMethodDeclaration(GNode n) {
-    Method m = new Method(n);
+    JavaMethod m = new JavaMethod(n);
     methods.get(m.getVisibility()).add(m);
   }
   
