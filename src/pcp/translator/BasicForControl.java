@@ -16,7 +16,7 @@ public class BasicForControl extends TranslationVisitor implements Translatable 
   private Expression expression;
   private ExpressionList expressions;
   private Modifiers modifiers;
-  private Type type;
+  private JavaType type;
 
   public BasicForControl(GNode n) {
     visit(n);
@@ -35,7 +35,7 @@ public class BasicForControl extends TranslationVisitor implements Translatable 
   }
 
   public void visitType(GNode n) {
-    type = new Type(n);
+    type = new JavaType(n);
   }
 
   // expressions
@@ -148,7 +148,7 @@ public class BasicForControl extends TranslationVisitor implements Translatable 
     StringBuilder s = new StringBuilder();
     Variable v = new Variable(type.getType(), declarators.get(0).getName());
     variables.add(v);
-    s.append(type.getCC(indent, className, variables) + " " +  declarators.getCC(indent, className, variables) + "; ");
+   // s.append(type.getCC(indent, className, variables) + " " +  declarators.getCC(indent, className, variables) + "; ");
     s.append(expression.getCC(indent, className, variables) + "; ");
     for (Expression expression : expressions)
       s.append(expression.getCC(indent, className, variables));

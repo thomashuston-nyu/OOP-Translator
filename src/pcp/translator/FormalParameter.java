@@ -15,7 +15,7 @@ public class FormalParameter extends TranslationVisitor {
   private boolean isFinal;
   private Modifiers modifiers;
   private String name;
-  private Type type;
+  private JavaType type;
   
   public FormalParameter(GNode n) {
     isArray = false;
@@ -54,7 +54,7 @@ public class FormalParameter extends TranslationVisitor {
   }
   
   public void visitType(GNode n) {
-    type = new Type(n);
+    type = new JavaType(n);
   }
   
   public void visitWord(GNode n) {

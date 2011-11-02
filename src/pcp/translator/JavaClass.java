@@ -186,7 +186,7 @@ public class JavaClass extends Declaration {
    * @param n The AST node to visit.
    */
   public void visitExtension(GNode n) {
-    extension = new ClassReference(n);
+    extension = new ClassReference(n.getGeneric(0));
   }
 
   /**
@@ -205,7 +205,7 @@ public class JavaClass extends Declaration {
    * @param n The AST node to visit.
    */
   public void visitImplementation(GNode n) {
-    interfaces.add(new ClassReference(n));
+    interfaces.add(new ClassReference(n.getGeneric(0)));
   }
 
   /**

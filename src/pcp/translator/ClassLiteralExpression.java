@@ -12,14 +12,14 @@ import xtc.tree.Visitor;
 
 public class ClassLiteralExpression extends Expression implements Translatable {
 
-  private Type returnType;
+  private JavaType returnType;
   
   public ClassLiteralExpression(GNode n) {
     visit(n);
   }
   
   public void visitType(GNode n) {
-    returnType = new Type(n);
+    returnType = new JavaType(n);
   }
   
   public void visitVoidType(GNode n) {

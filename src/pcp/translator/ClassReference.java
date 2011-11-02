@@ -43,7 +43,7 @@ public class ClassReference {
    */
   public ClassReference(GNode n) {
     reference = new ArrayList<String>();
-    for (Object o : n.getGeneric(0).getGeneric(0)) {
+    for (Object o : n.getGeneric(0)) {
       reference.add((String)o);
     }
   }

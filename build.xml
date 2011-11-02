@@ -37,14 +37,14 @@
 	</target>
 	
 	<!-- Run the distribution jar -->
-	<target name="run" depends="jar" if="translateJava" description="run the distribution">
+	<target name="run" depends="jar" description="run the distribution">
     <java fork="true" classname="pcp.Translator">
       <classpath>
         <path refid="classpath"/>
         <path location="${dist}/pcp.jar"/>
       </classpath>
-      <arg value="-translateJava"/>
-      <arg value="${translateJava}"/>
+      <arg value="-${flag}"/>
+      <arg value="${file}"/>
     </java>
   </target>
 	

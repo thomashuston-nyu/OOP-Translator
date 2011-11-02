@@ -6,7 +6,7 @@ import java.util.List;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class VoidType extends Type {
+public class VoidType extends JavaType {
   
   public VoidType(GNode n) {
     super(n);

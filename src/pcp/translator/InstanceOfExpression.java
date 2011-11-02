@@ -13,7 +13,7 @@ import xtc.tree.Visitor;
 public class InstanceOfExpression extends Expression implements Translatable {
   
   private RelationalExpression relationalExpression;
-  private Type type;
+  private JavaType type;
 
   public InstanceOfExpression(GNode n) {
     visit(n);
@@ -24,7 +24,7 @@ public class InstanceOfExpression extends Expression implements Translatable {
   }
 
   public void visitType(GNode n) {
-    type = new Type(n);
+    type = new JavaType(n);
   }
   
   public String getCC(int indent, String className, List<Variable> variables) {

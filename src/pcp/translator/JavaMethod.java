@@ -41,7 +41,7 @@ public class JavaMethod extends Declaration {
   private boolean isStatic;
   private String name;
   private FormalParameters parameters;
-  private Type returnType;
+  private JavaType returnType;
   private Visibility visibility;
   
   /**
@@ -69,7 +69,8 @@ public class JavaMethod extends Declaration {
     }
 
     // Get the return type
-    returnType = new Type(n.getGeneric(2));
+    if (n.getNode(2).hasName("Type"))
+      returnType = new JavaType(n.getGeneric(2));
 
     // Get the name of the constructor
     name = n.getString(3);
@@ -102,7 +103,7 @@ public class JavaMethod extends Declaration {
    *
    * @return The return type.
    */
-  public Type getReturnType() {
+  public JavaType getReturnType() {
     return returnType;
   }
 

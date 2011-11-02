@@ -38,7 +38,7 @@ public class JavaField extends Declaration {
   private boolean isAbstract;
   private boolean isFinal;
   private boolean isStatic;
-  private Type type;
+  private JavaType type;
   private Visibility visibility;
   
   /**
@@ -74,7 +74,7 @@ public class JavaField extends Declaration {
     }
 
     // Get the type
-    type = new Type(n.getGeneric(++i));
+    type = new JavaType(n.getGeneric(++i));
 
     // Get the declarators
 
@@ -125,7 +125,7 @@ public class JavaField extends Declaration {
   }
   
   public void visitType(GNode n) {
-    type = new Type(n);
+    type = new JavaType(n);
   }
   
   public void visitWord(GNode n) {
