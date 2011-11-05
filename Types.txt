@@ -1,14 +1,17 @@
-// Declarations
+// JavaBlock
 BlockDeclaration
-ClassDeclaration
-FieldDeclaration
-ImportDeclaration
-InterfaceDeclaration
-MethodDeclaration
-PackageDeclaration
 
-// Expressions
+// JavaClass
+ClassDeclaration
+ClassBody
+ConstructorDeclaration
+Extension
+MethodDeclaration
+
+// JavaExpression
 AdditiveExpression
+Arguments
+ArrayInitializer
 BasicCastExpression
 BitwiseAndExpression
 BitwiseNegateExpression
@@ -38,20 +41,24 @@ SuperExpression
 ThisCallExpression
 ThisExpression
 UnaryExpression
+VariableInitializer
 
-// Identifiers
-Identifier
-PrimaryIdentifier
-QualifiedIdentifier
+// JavaField
+FieldDeclaration
 
-// Literals
+// JavaFile
+CompilationUnit
+ImportDeclaration
+PackageDeclaration
+
+// JavaLiteral
 BooleanLiteral
 CharacterLiteral
 FloatingPointLiteral
 IntegerLiteral
 StringLiteral
 
-// Statements
+// JavaStatement
 AssertStatement
 Block
 BreakStatement
@@ -68,37 +75,7 @@ ThrowStatement
 TryCatchFinallyStatement
 WhileStatement
 
-// Types
+// JavaType
 PrimitiveType
 Type
 VoidType
-
-// 
-Extension
-Implementation
-
-// Other
-Arguments
-ArrayInitializer
-BasicForControl
-CaseClause
-CatchClause
-ClassBody
-CompilationUnit
-ConcreteDimension
-ConcreteDimensions
-Declarator
-Declarators
-DefaultClause
-Dimensions
-ExpressionList
-FormalParameter
-FormalParameters
-Modifier
-Modifiers
-SwitchClause
-Symbol
-ThrowsClause
-Variable
-VariableInitializer
-Word
