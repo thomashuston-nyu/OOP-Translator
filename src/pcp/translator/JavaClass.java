@@ -24,6 +24,7 @@ import java.util.Map;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Printer;
 import xtc.tree.Visitor;
 
 /**
@@ -38,7 +39,7 @@ import xtc.tree.Visitor;
 public class JavaClass extends Visitor implements Translatable {
   
   private JavaConstructor constructor;
-  private ClassReference extension;
+  private JavaClassReference extension;
   private Map<Visibility, List<JavaField>> fields;
   private boolean isAbstract;
   private boolean isFinal;
@@ -84,7 +85,7 @@ public class JavaClass extends Visitor implements Translatable {
    *
    * @return The reference.
    */
-  public ClassReference getExtension() {
+  public JavaClassReference getExtension() {
     return extension;
   }
   
@@ -160,7 +161,11 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitClassBody(GNode n) {
-    //visit(n);
+    for (Object o : n) {
+      if (o instanceof Node) {
+        dispatch((Node)o);
+      }
+    }
   }
 
   /**
@@ -178,7 +183,7 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitExtension(GNode n) {
-    extension = new ClassReference(n.getGeneric(0));
+    extension = new JavaClassReference(n.getGeneric(0));
   }
 
   /**

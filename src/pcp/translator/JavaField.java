@@ -34,7 +34,7 @@ import xtc.tree.Visitor;
  */
 public class JavaField {
   
-  private Declarators declarators;
+  //private Declarators declarators;
   private boolean isAbstract;
   private boolean isFinal;
   private boolean isStatic;
@@ -82,7 +82,7 @@ public class JavaField {
   }
   
   public String getDeclaration() {
-    String declaration = type.getType() + " " + declarators.get(0).getName();
+    String declaration = "";//type.getType() + " " + declarators.get(0).getName();
     if (type.isArray()) {
       declaration += "[]";
     }
@@ -90,8 +90,9 @@ public class JavaField {
   }
 
   public String getName() {
-    Declarator d = declarators.get(0);
-    return d.getName();
+    //Declarator d = declarators.get(0);
+    //return d.getName();
+    return "";
   }
   
   public String getType() {
@@ -101,53 +102,5 @@ public class JavaField {
   public Visibility getVisibility() {
     return visibility;
   }
-  
-  public void visitDeclarators(GNode n) {
-    declarators = new Declarators(n);
-  }
-  
-  public void visitModifiers(GNode n) {
-    Modifiers modifiers = new Modifiers(n);
-    for (String s : modifiers) {
-      if (s.equals("public"))
-        visibility = visibility.PUBLIC;
-      else if (s.equals("private"))
-        visibility = visibility.PRIVATE;
-      else if (s.equals("protected"))
-        visibility = visibility.PROTECTED;
-      else if (s.equals("final"))
-        isFinal = true;
-      else if (s.equals("static"))
-        isStatic = true;
-      else if (s.equals("abstract"))
-        isAbstract = true;
-    }
-  }
-  
-  public void visitType(GNode n) {
-    type = new JavaType(n);
-  }
-  
-  public void visitWord(GNode n) {
-    isFinal = true;
-  }
-/*
-  public String getCC(int indent, String className, List<Variable> variables) {
-    StringBuilder s = new StringBuilder(getIndent(indent));
-    if (isFinal)
-      s.append("const ");
-    if (isStatic)
-      s.append("static ");
-    if (isAbstract)
-      s.append("abstract ");
-    s.append(type.getType() + " ");
-    if (type.getType().equals("String"))
-      s.append(declarators.getCC(indent, className, variables, true) + ";\n");
-    else
-      s.append(declarators.getCC(indent, className, variables) + ";\n");
-    Variable v = new Variable(type.getType(), declarators.get(0).getName());
-    variables.add(v);
-    return s.toString();
-  }
- */
+
 }

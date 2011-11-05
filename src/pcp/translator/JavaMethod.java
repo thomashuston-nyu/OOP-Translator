@@ -34,12 +34,12 @@ import xtc.tree.Visitor;
 public class JavaMethod extends Visitor implements Translatable {
 
   private JavaStatement body;
-  private ThrowsClause exception;
+  //private ThrowsClause exception;
   private boolean isAbstract;
   private boolean isFinal;
   private boolean isStatic;
   private String name;
-  private FormalParameters parameters;
+  //private FormalParameters parameters;
   private JavaType returnType;
   private Visibility visibility;
   
@@ -75,7 +75,7 @@ public class JavaMethod extends Visitor implements Translatable {
     name = n.getString(3);
 
     // Get the parameters
-    parameters = new FormalParameters(n.getGeneric(4));
+    //parameters = new FormalParameters(n.getGeneric(4));
 
     // Get the dimensions, throws clause, and method body
     if (n.size() == 6) {
@@ -85,13 +85,13 @@ public class JavaMethod extends Visitor implements Translatable {
       if (n.getNode(5).hasName("Dimensions")) {
         // TODO What are dimensions in a method declaration?
       } else {
-        exception = new ThrowsClause(n.getGeneric(5));
+        //exception = new ThrowsClause(n.getGeneric(5));
       }
       if (null != n.get(6))
         body = new JavaStatement(n.getGeneric(6));
     } else if (n.size() == 8) {
       // TODO What are the dimensions in a method declaration?
-      exception = new ThrowsClause(n.getGeneric(6));
+      //exception = new ThrowsClause(n.getGeneric(6));
       if (null != n.get(7))
         body = new JavaStatement(n.getGeneric(7));
     }

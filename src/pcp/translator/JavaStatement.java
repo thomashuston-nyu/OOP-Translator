@@ -17,6 +17,9 @@
  */
 package pcp.translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Printer;
@@ -46,7 +49,7 @@ public class JavaStatement extends Visitor implements Translatable {
   }
 
   public void visitBlock(GNode n) {
-    
+    s = new Block(n);
   }
 
   public void visitBreakStatement(GNode n) {
@@ -63,6 +66,10 @@ public class JavaStatement extends Visitor implements Translatable {
   
   public void visitDoWhileStatement(GNode n) {
     
+  }
+
+  public void visitEmptyStatement(GNode n) {
+
   }
   
   public void visitExpressionStatement(GNode n) {
@@ -97,6 +104,28 @@ public class JavaStatement extends Visitor implements Translatable {
     s = new WhileStatement(n);
   }
 
+  private class Block extends JavaStatement {
+    
+    private List<JavaStatement> statements;
+
+    public Block(GNode n) {
+      statements = new ArrayList<JavaStatement>();
+      for (Object o : n) {
+        if (null == o)
+          continue;
+        statements.add(new JavaStatement((GNode)o));
+      }
+    }
+
+    public Printer translate(Printer out) {
+      for (JavaStatement s : statements) {
+        s.translate(out);
+      }
+      return out;
+    }
+
+  }
+
   private class WhileStatement extends JavaStatement {
 
     private JavaExpression e;
@@ -119,6 +148,8 @@ public class JavaStatement extends Visitor implements Translatable {
   }
 
   public Printer translate(Printer out) {
+    if (s == null) 
+      return out;
     return s.translate(out);
   }
 

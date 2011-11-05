@@ -46,6 +46,10 @@ public class JavaExpression extends Visitor implements Translatable {
     e = new AdditiveExpression(n);
   }
 
+  public void visitArrayInitializer(GNode n) {
+    e = new ArrayInitializer(n);
+  }
+
   public void visitBasicCastExpression(GNode n) {
     e = new BasicCastExpression(n);
   }
@@ -65,13 +69,21 @@ public class JavaExpression extends Visitor implements Translatable {
   public void visitBitwiseXorExpression(GNode n) {
     e = new BitwiseXorExpression(n);
   }
-
+  */
+  public void visitBooleanLiteral(GNode n) {
+    e = new Literal(n);
+  }
+  /*
   public void visitCallExpression(GNode n) {
     e = new CallExpression(n);
   }
 
   public void visitCastExpression(GNode n) {
     e = new CastExpression(n);
+  }
+
+  public void visitCharacterLiteral(GNode n) {
+    e = new Literal(n);
   }
 
   public void visitClassLiteralExpression(GNode n) {
@@ -90,8 +102,16 @@ public class JavaExpression extends Visitor implements Translatable {
     e = new Expression(n);
   }
 
+  public void visitFloatingPointLiteral(GNode n) {
+    e = new Literal(n);
+  }
+
   public void visitInstanceOfExpression(GNode n) {
     e = new InstanceOfExpression(n);
+  }
+
+  public void visitIntegerLiteral(GNode n) {
+    e = new Literal(n);
   }
 
   public void visitLogicalAndExpression(GNode n) {
@@ -138,12 +158,20 @@ public class JavaExpression extends Visitor implements Translatable {
     e = new ShiftExpression(n);
   }
 
+  public void visitStringLiteral(GNode n) {
+    e = new Literal(n);
+  }
+
   public void visitThisExpression(GNode n) {
     e = new ThisExpression(n);
   }
 
   public void visitUnaryExpression(GNode n) {
     e = new UnaryExpression(n);
+  }
+
+  public void visitVariableInitializer(GNode n) {
+    e = new VariableInitializer(n);
   }
   */
 

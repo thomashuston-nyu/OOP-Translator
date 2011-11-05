@@ -283,6 +283,7 @@ public class Translator extends Tool {
         // runtime.console().pln("##### HEADER #####").pln().flush();
         // printHeader(runtime.console());
         c.translate(runtime.console());
+        runtime.console().flush();
       } catch (IOException i) {
         runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();
       } catch (ParseException p) {

@@ -48,7 +48,7 @@ public class JavaType {
   }
 
   private int dimensions;
-  private ClassReference classType;
+  private JavaClassReference classType;
   private String primitiveType;
   
   /**
@@ -64,7 +64,7 @@ public class JavaType {
       if (n.getNode(0).hasName("PrimitiveType")) {
         primitiveType = n.getNode(0).getString(0);
       } else {
-        classType = new ClassReference(n);
+        classType = new JavaClassReference(n);
       }
       if (n.size() == 2 && null != n.get(1)) {
         dimensions = n.getNode(1).size();

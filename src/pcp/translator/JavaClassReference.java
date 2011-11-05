@@ -17,11 +17,14 @@
  */
 package pcp.translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 /**
- * A class constructor.
+ * A reference to a Java class.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -29,43 +32,37 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaConstructor {
-  
-  private JavaStatement body;
-  //private ThrowsClause exception;
-  private String name;
-  //private FormalParameters parameters;
-  private Visibility visibility;
+public class JavaClassReference {
+
+  private List<String> reference;
   
   /**
-   * Creates the constructor.
+   * Creates the reference.
    *
-   * @param n The constructor declaration node.
+   * @param n The extension or implementation AST node.
    */
-  public JavaConstructor(GNode n) {
-
-    // Determine the visibility
-    visibility = Visibility.PUBLIC;
-    for (Object o : n.getNode(0)) {
-      String m = ((GNode)o).getString(0);
-      if (m.equals("private"))
-        visibility = Visibility.PRIVATE;
-      else if (m.equals("protected"))
-        visibility = Visibility.PROTECTED;
+  public JavaClassReference(GNode n) {
+    reference = new ArrayList<String>();
+    for (Object o : n.getGeneric(0)) {
+      reference.add((String)o);
     }
+  }
 
-    // Get the name of the constructor
-    name = n.getString(2);
-
-    // Get the parameters
-    //parameters = new FormalParameters(n.getGeneric(3));
-
-    // Get the throws clause
-    //if (null != n.get(4))
-      //exception = new ThrowsClause(n.getGeneric(4));
-
-    // Get the constructor body
-    body = new JavaStatement(n.getGeneric(5));
+  /**
+   * Gets the path to the class or interface.
+   *
+   * @return The path.
+   */
+  public String getPath() {
+    StringBuilder s = new StringBuilder();
+    int size = reference.size();
+    for (int i = 0; i < size; i++) {
+      s.append(reference.get(i));
+      if (i < size - 1)
+        s.append("/");
+    }
+    s.append(".java");
+    return s.toString();
   }
 
 }
