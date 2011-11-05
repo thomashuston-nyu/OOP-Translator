@@ -38,6 +38,7 @@ import xtc.parser.Result;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
+import xtc.tree.Printer;
 import xtc.tree.Visitor;
 
 import xtc.util.Tool;
@@ -140,19 +141,104 @@ public class Translator extends Tool {
   }
 
   /**
-  * Recursively prints the Java classes in order based
+   * Constructs the C++ header file.
+   *
+   * @param out The output stream.
+   */
+  public void printHeader(Printer out) {
+    // Print includes
+    out.pln("#pragma once").pln();
+    out.pln("#include <iostream>");
+    out.pln("#include <sstream>").pln();
+    out.pln("#include \"java/lang/java_lang.h\"").pln();
+    out.pln("using namespace java::lang;").pln();
+
+    // Declare classes
+    Set<CompilationUnit> keys = requires.keySet();
+    for (CompilationUnit key : keys) {
+      String className = key.getPublicClass().getName();
+      List<String> pack = null;
+      if (null != key.getPackage())
+        pack = key.getPackage().getPackage();
+      if (null != pack) {
+        for (String p : pack) {
+          out.indent().p("namespace ").p(p).pln(" {").incr();
+        }
+      }
+      out.indent().p("struct __").p(className).pln(";");
+      out.indent().p("struct __").p(className).pln("_VT;").pln();
+      out.indent().p("typedef __").p(className).p("* ").p(className).pln(";");
+      if (null != pack) {
+        for (int i = 0; i < pack.size(); i++) {
+          out.decr().indent().pln("}");
+        }
+      }
+      out.pln();
+    }
+
+    // Print header structs
+    for (CompilationUnit key : keys) {
+      printHeaderVTable(out, key);
+    }
+
+    // Flush the output
+    out.flush();
+  }
+
+  /**
+  * Recursively prints the VTables in order based
   * on their dependencies.
   *
   * @param c The compilation unit to print.
   */
-  public void printOrder(CompilationUnit c) {
+  public void printHeaderVTable(Printer out, CompilationUnit c) {
+    // Don't print out the structs twice
     if (printed.get(c))
       return;
+
+    // Make sure that all dependencies have been printed first
     CompilationUnit d = requires.get(c);
     if (null != d && !printed.get(d))
-      printOrder(d);
-    // TODO Print out VTables in this order.
-    runtime.console().p(c.getPublicClass().getName()).pln().flush();
+      printHeaderVTable(out, d);
+
+    // Print the namespace
+    List<String> pack = null;
+    if (null != c.getPackage())
+      pack = c.getPackage().getPackage();
+    if (null != pack) {
+      for (String p : pack) {
+        out.indent().p("namespace ").p(p).pln(" {").incr();
+      }
+    }
+    
+    // Print the structs
+    String className = c.getPublicClass().getName();
+
+    // Class struct
+    out.indent().p("struct __").p(className).pln(" {").incr();
+    out.indent().p("__").p(className).pln("_VT* __vptr;").pln();
+    out.indent().p("__").p(className).pln("();").pln();
+    out.indent().pln("static Class __class();").pln();
+    out.indent().p("static __").p(className).pln("_VT __vtable;").decr();
+    out.indent().pln("};").pln();
+    
+    // VTable struct
+    out.indent().p("struct __").p(className).pln("_VT {").incr();
+    out.indent().pln("Class __isa;").pln();
+    out.indent().p("__").p(className).pln("_VT()");
+    out.indent().p(": __isa(__").p(className).pln("::__class())").decr();
+    out.indent().pln("};");
+
+    // Close the namespace
+    if (null != pack) {
+      for (int i = 0; i < pack.size(); i++) {
+        out.decr().indent().pln("}");
+      }
+    }
+
+    out.pln();
+
+    // Mark this compilation unit as printed
     printed.put(c, true);
   }
   
@@ -194,10 +280,8 @@ public class Translator extends Tool {
         resolve(main, c);
 
         // Print out the classes in order of dependence
-        Set<CompilationUnit> keys = requires.keySet();
-        for (CompilationUnit key : keys) {
-          printOrder(key);
-        }
+        runtime.console().pln("##### HEADER #####").pln().flush();
+        printHeader(runtime.console());
       } catch (IOException i) {
         runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();
       } catch (ParseException p) {

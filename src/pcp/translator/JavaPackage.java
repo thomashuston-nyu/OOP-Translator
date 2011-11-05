@@ -32,7 +32,7 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaPackage extends Declaration {
+public class JavaPackage {
   
   private List<String> pkg;
   

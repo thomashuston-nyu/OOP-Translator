@@ -32,7 +32,7 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaImport extends Declaration {
+public class JavaImport {
 
   private boolean star;
   private List<String> imp;

@@ -29,7 +29,7 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaConstructor extends Declaration {
+public class JavaConstructor {
   
   private Block body;
   private ThrowsClause exception;

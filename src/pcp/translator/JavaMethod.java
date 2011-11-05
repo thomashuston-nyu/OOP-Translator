@@ -29,10 +29,7 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-/**
- * Modifiers null (VoidType/Type) Identifier FormalParameters Dimensions? ThrowsClause? Block/null
- */
-public class JavaMethod extends Declaration {
+public class JavaMethod {
 
   private Block body;
   private ThrowsClause exception;

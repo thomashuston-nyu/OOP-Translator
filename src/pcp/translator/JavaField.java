@@ -32,7 +32,7 @@ import xtc.tree.Visitor;
 /**
  * ("final":Word)? Modifiers Type Declarators
  */
-public class JavaField extends Declaration {
+public class JavaField {
   
   private Declarators declarators;
   private boolean isAbstract;

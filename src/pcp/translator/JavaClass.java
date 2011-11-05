@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import xtc.tree.GNode;
+import xtc.tree.Node;
 import xtc.tree.Visitor;
 
 /**
@@ -34,12 +35,11 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaClass extends Declaration {
+public class JavaClass extends Visitor {
   
   private JavaConstructor constructor;
   private ClassReference extension;
   private Map<Visibility, List<JavaField>> fields;
-  private List<ClassReference> interfaces;
   private boolean isAbstract;
   private boolean isFinal;
   private boolean isStatic;
@@ -63,9 +63,6 @@ public class JavaClass extends Declaration {
     isStatic = false;
     visibility = Visibility.PACKAGE_PRIVATE;
 
-    // Create the list of interfaces
-    interfaces = new ArrayList<ClassReference>();
-
     // Instantiate the hashes
     fields = new HashMap<Visibility, List<JavaField>>();
     methods = new HashMap<Visibility, List<JavaMethod>>();
@@ -75,7 +72,11 @@ public class JavaClass extends Declaration {
     }
 
     // Visit the nodes in the class
-    visit(n);
+    for (Object o : n) {
+      if (o instanceof Node) {
+        dispatch((Node)o);
+      }
+    }
   }
   
   /**
@@ -85,15 +86,6 @@ public class JavaClass extends Declaration {
    */
   public ClassReference getExtension() {
     return extension;
-  }
-  
-  /**
-   * Gets the list of implemented interfaces.
-   *
-   * @return The interfaces.
-   */
-  public List<ClassReference> getInterfaces() {
-    return interfaces;
   }
   
   /**
@@ -168,7 +160,7 @@ public class JavaClass extends Declaration {
    * @param n The AST node to visit.
    */
   public void visitClassBody(GNode n) {
-    visit(n);
+    //visit(n);
   }
 
   /**
@@ -197,15 +189,6 @@ public class JavaClass extends Declaration {
   public void visitFieldDeclaration(GNode n) {
     JavaField f = new JavaField(n);
     fields.get(f.getVisibility()).add(f);
-  }
-  
-  /**
-   * Visits an interface.
-   *
-   * @param n The AST node to visit.
-   */
-  public void visitImplementation(GNode n) {
-    interfaces.add(new ClassReference(n.getGeneric(0)));
   }
 
   /**

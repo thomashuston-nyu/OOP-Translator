@@ -24,16 +24,13 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 /**
- * A Java type.
+ * A Java primitive type, class type, or void type.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
  * @version 1.0
- */
-/**
- * (PrimitiveType/QualifiedIdentifier) Dimensions?
  */
 public class JavaType {
   
@@ -47,25 +44,50 @@ public class JavaType {
     primitives.put("double", "double");
     primitives.put("boolean", "bool");
     primitives.put("char", "char");
+    primitives.put("void", "void");
   }
 
   private int dimensions;
   private ClassReference classType;
   private String primitiveType;
   
+  /**
+   * Creates the type.
+   *
+   * @param n The type node.
+   */
   public JavaType(GNode n) {
-    if (n.getNode(0).hasName("PrimitiveType")) {
-      primitiveType = n.getNode(0).getString(0);
-    } else {
-      classType = new ClassReference(n);
-    }
-    if (n.size() == 2 && null != n.get(1)) {
-      dimensions = n.getNode(1).size();
-    } else {
+    if (n.size() == 0) {
+      primitiveType = "void";
       dimensions = 0;
+    } else {
+      if (n.getNode(0).hasName("PrimitiveType")) {
+        primitiveType = n.getNode(0).getString(0);
+      } else {
+        classType = new ClassReference(n);
+      }
+      if (n.size() == 2 && null != n.get(1)) {
+        dimensions = n.getNode(1).size();
+      } else {
+        dimensions = 0;
+      }
     }
   }
+
+  /**
+   * Gets the number of array dimensions.
+   *
+   * @return The dimensions.
+   */
+  public int getDimensions() {
+    return dimensions;
+  }
   
+  /**
+   * Gets the C++ primitive type or class reference.
+   *
+   * @return The C++ type.
+   */
   public String getType() {
     if (primitiveType != null)
       return primitives.get(primitiveType);
@@ -73,6 +95,12 @@ public class JavaType {
       return classType.getPath();
   }
 
+  /**
+   * Checks if the type is an array.
+   *
+   * @return <code>true</code> if it is an array;
+   * <code>false</code> otherwise.
+   */
   public boolean isArray() {
     return 0 < dimensions;
   }

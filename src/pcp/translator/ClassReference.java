@@ -24,7 +24,7 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 /**
- * A reference to a Java class or interface.
+ * A reference to a Java class.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
