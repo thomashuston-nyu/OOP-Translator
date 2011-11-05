@@ -54,9 +54,9 @@ import xtc.util.Tool;
  */
 public class Translator extends Tool {
   
-  private Map<String, CompilationUnit> files;
-  private Map<CompilationUnit, CompilationUnit> requires;
-  private Map<CompilationUnit, Boolean> printed;
+  private Map<String, JavaFile> files;
+  private Map<JavaFile, JavaFile> requires;
+  private Map<JavaFile, Boolean> printed;
   private String classpath;
   private File main;
 
@@ -154,8 +154,8 @@ public class Translator extends Tool {
     out.pln("using namespace java::lang;").pln();
 
     // Declare classes
-    Set<CompilationUnit> keys = requires.keySet();
-    for (CompilationUnit key : keys) {
+    Set<JavaFile> keys = requires.keySet();
+    for (JavaFile key : keys) {
       String className = key.getPublicClass().getName();
       List<String> pack = null;
       if (null != key.getPackage())
@@ -177,7 +177,7 @@ public class Translator extends Tool {
     }
 
     // Print header structs
-    for (CompilationUnit key : keys) {
+    for (JavaFile key : keys) {
       printHeaderVTable(out, key);
     }
 
@@ -191,13 +191,13 @@ public class Translator extends Tool {
   *
   * @param c The compilation unit to print.
   */
-  public void printHeaderVTable(Printer out, CompilationUnit c) {
+  public void printHeaderVTable(Printer out, JavaFile c) {
     // Don't print out the structs twice
     if (printed.get(c))
       return;
 
     // Make sure that all dependencies have been printed first
-    CompilationUnit d = requires.get(c);
+    JavaFile d = requires.get(c);
     if (null != d && !printed.get(d))
       printHeaderVTable(out, d);
 
@@ -256,12 +256,12 @@ public class Translator extends Tool {
     if (runtime.test("translateJava")) {
       try {
         // Instantiate the hashes
-        files = new HashMap<String, CompilationUnit>();
-        requires = new HashMap<CompilationUnit, CompilationUnit>();
-        printed = new HashMap<CompilationUnit, Boolean>();
+        files = new HashMap<String, JavaFile>();
+        requires = new HashMap<JavaFile, JavaFile>();
+        printed = new HashMap<JavaFile, Boolean>();
 
         // Find the classpath for the program
-        CompilationUnit c = new CompilationUnit((GNode)node);
+        JavaFile c = new JavaFile((GNode)node);
         JavaPackage pkg = c.getPackage();
         String absPath = main.getAbsolutePath();
         absPath = absPath.substring(0, absPath.lastIndexOf("/")+1);
@@ -280,8 +280,9 @@ public class Translator extends Tool {
         resolve(main, c);
 
         // Print out the classes in order of dependence
-        runtime.console().pln("##### HEADER #####").pln().flush();
-        printHeader(runtime.console());
+        // runtime.console().pln("##### HEADER #####").pln().flush();
+        // printHeader(runtime.console());
+        c.translate(runtime.console());
       } catch (IOException i) {
         runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();
       } catch (ParseException p) {
@@ -302,7 +303,7 @@ public class Translator extends Tool {
   public void resolve(File file) throws IOException, ParseException {
     if (files.containsKey(file.getAbsolutePath())) 
       return;
-    resolve(file, new CompilationUnit((GNode)parse(file)));
+    resolve(file, new JavaFile((GNode)parse(file)));
   }
   
   /**
@@ -314,7 +315,7 @@ public class Translator extends Tool {
   * @throws IOException Signals an I/O error.
   * @throws ParseException Signals a parse error.
   */
-  public void resolve(File file, CompilationUnit c) throws IOException, ParseException {
+  public void resolve(File file, JavaFile c) throws IOException, ParseException {
     if (files.containsKey(file.getAbsolutePath())) 
       return;
 

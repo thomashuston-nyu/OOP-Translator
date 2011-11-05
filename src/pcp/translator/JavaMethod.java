@@ -18,6 +18,8 @@
 package pcp.translator;
 
 import xtc.tree.GNode;
+import xtc.tree.Node;
+import xtc.tree.Printer;
 import xtc.tree.Visitor;
 
 /**
@@ -29,9 +31,9 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaMethod {
+public class JavaMethod extends Visitor implements Translatable {
 
-  private Block body;
+  private JavaStatement body;
   private ThrowsClause exception;
   private boolean isAbstract;
   private boolean isFinal;
@@ -78,7 +80,7 @@ public class JavaMethod {
     // Get the dimensions, throws clause, and method body
     if (n.size() == 6) {
       if (null != n.get(5))
-        body = new Block(n.getGeneric(5));
+        body = new JavaStatement(n.getGeneric(5));
     } else if (n.size() == 7) {
       if (n.getNode(5).hasName("Dimensions")) {
         // TODO What are dimensions in a method declaration?
@@ -86,12 +88,12 @@ public class JavaMethod {
         exception = new ThrowsClause(n.getGeneric(5));
       }
       if (null != n.get(6))
-        body = new Block(n.getGeneric(6));
+        body = new JavaStatement(n.getGeneric(6));
     } else if (n.size() == 8) {
       // TODO What are the dimensions in a method declaration?
       exception = new ThrowsClause(n.getGeneric(6));
       if (null != n.get(7))
-        body = new Block(n.getGeneric(7));
+        body = new JavaStatement(n.getGeneric(7));
     }
   }
 
@@ -143,4 +145,9 @@ public class JavaMethod {
   public boolean isStatic() {
     return isStatic;
   }
+
+  public Printer translate(Printer out) {
+    return body.translate(out);
+  }
+
 }

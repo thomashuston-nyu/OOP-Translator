@@ -35,7 +35,7 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaClass extends Visitor {
+public class JavaClass extends Visitor implements Translatable {
   
   private JavaConstructor constructor;
   private ClassReference extension;
@@ -222,6 +222,10 @@ public class JavaClass extends Visitor {
       else if (m.equals("static"))
         isStatic = true;
     }
+  }
+
+  public Printer translate(Printer out) {
+    return methods.get(Visibility.PUBLIC).get(0).translate(out);
   }
 
 }
