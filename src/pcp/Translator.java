@@ -25,6 +25,8 @@ import java.io.Reader;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,8 +57,9 @@ import xtc.util.Tool;
 public class Translator extends Tool {
   
   private Map<String, JavaFile> files;
-  private Map<JavaFile, JavaFile> requires;
+  private Map<String, Set<String>> packages;
   private Map<JavaFile, Boolean> printed;
+  private Map<JavaFile, JavaFile> requires;
   private String classpath;
   private File main;
 
@@ -153,8 +156,15 @@ public class Translator extends Tool {
     out.pln("#include \"java/lang/java_lang.h\"").pln();
     out.pln("using namespace java::lang;").pln();
 
+    Set<String> keys = packages.keySet();
+    for (String pkg : keys) {
+      Set<String> subpkg = packages.get(pkg);
+      runtime.console().pln(pkg).flush();
+    }
+
+
     // Declare classes
-    Set<JavaFile> keys = requires.keySet();
+    /*Set<JavaFile> keys = requires.keySet();
     for (JavaFile key : keys) {
       String className = key.getPublicClass().getName();
       List<String> pack = null;
@@ -179,7 +189,7 @@ public class Translator extends Tool {
     // Print header structs
     for (JavaFile key : keys) {
       printHeaderVTable(out, key);
-    }
+    } */
 
     // Flush the output
     out.flush();
@@ -259,6 +269,7 @@ public class Translator extends Tool {
         files = new HashMap<String, JavaFile>();
         requires = new HashMap<JavaFile, JavaFile>();
         printed = new HashMap<JavaFile, Boolean>();
+        packages = new LinkedHashMap<String, Set<String>>();
 
         // Find the classpath for the program
         JavaFile c = new JavaFile((GNode)node);
@@ -282,6 +293,9 @@ public class Translator extends Tool {
         // Print out the classes in order of dependence
         // runtime.console().pln("##### HEADER #####").pln().flush();
         // printHeader(runtime.console());
+        
+        runtime.console().pln(packages.toString()).flush();
+
         c.translate(runtime.console());
         runtime.console().flush();
       } catch (IOException i) {
@@ -324,8 +338,25 @@ public class Translator extends Tool {
     String filePath = file.getAbsolutePath();
     files.put(filePath, c);
 
-    // Resolve dependencies for classes in the package
+    // Add package to the hash
     JavaPackage pkg = c.getPackage();
+    if (null != pkg) {
+      List<String> pkgparts = pkg.getPackage();
+      String pkgpath = "";
+      for (String part : pkgparts) {
+        if (pkgpath != "") {
+          Set<String> subpkg = packages.get(pkgpath);
+          pkgpath += "/" + part;
+          subpkg.add(pkgpath);
+        } else {
+          pkgpath += part;
+        }
+        if (!packages.containsKey(pkgpath))
+          packages.put(pkgpath, new HashSet<String>());
+      }
+    } 
+
+    // Resolve dependencies for classes in the package
     if (null != pkg) {
       File dir = new File(classpath + pkg.getPath());
       File[] files = dir.listFiles(new JavaFilter());

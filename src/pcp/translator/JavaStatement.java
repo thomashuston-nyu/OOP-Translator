@@ -48,6 +48,10 @@ public class JavaStatement extends Visitor implements Translatable {
     s = new Block(n);
   }
 
+  public void visitBlockDeclaration(GNode n) {
+    s = new BlockDeclaration(n);
+  }
+
   public void visitBreakStatement(GNode n) {
     s = new BreakStatement(n);
   }
@@ -70,6 +74,10 @@ public class JavaStatement extends Visitor implements Translatable {
   
   public void visitExpressionStatement(GNode n) {
     s = new ExpressionStatement(n);
+  }
+
+  public void visitFieldDeclaration(GNode n) {
+    s = new FieldDeclaration(n);
   }
   
   public void visitForStatement(GNode n) {
@@ -112,6 +120,16 @@ public class JavaStatement extends Visitor implements Translatable {
     public Printer translate(Printer out) {
       for (JavaStatement s : statements)
         s.translate(out);
+      return out;
+    }
+
+  }
+
+  private class BlockDeclaration extends JavaStatement {
+
+    public BlockDeclaration(GNode n) {}
+
+    public Printer translate(Printer out) {
       return out;
     }
 
@@ -179,14 +197,14 @@ public class JavaStatement extends Visitor implements Translatable {
     private JavaStatement s;
 
     public DoWhileStatement(GNode n) {
-      e = new JavaExpression(n.getGeneric(0));
-      s = new JavaStatement(n.getGeneric(1));
+      s = new JavaStatement(n.getGeneric(0));
+      e = new JavaExpression(n.getGeneric(1));
     }
 
     public Printer translate(Printer out) {
       out.indent().pln("do {").incr();
       s.translate(out);
-      out.decr().indent().pln("} while(");
+      out.decr().indent().p("} while (");
       e.translate(out);
       out.pln(");");
       return out;
@@ -206,6 +224,78 @@ public class JavaStatement extends Visitor implements Translatable {
       out.indent();
       e.translate(out);
       return out.pln(";");
+    }
+
+  }
+
+  private class FieldDeclaration extends JavaStatement { 
+
+    private boolean isAbstract;
+    private boolean isFinal;
+    private boolean isStatic;
+    private JavaType type;
+    private Visibility v;
+    private List<String> identifiers;
+    private List<Integer> dimensions;
+    private List<JavaExpression> values;
+
+    public FieldDeclaration(GNode n) {
+      identifiers = new ArrayList<String>();
+      dimensions = new ArrayList<Integer>();
+      values = new ArrayList<JavaExpression>();
+      for (Object o : n.getNode(0)) {
+        String m = ((Node)o).getString(0);
+        if (m.equals("public"))
+          v = Visibility.PUBLIC;
+        else if (m.equals("private"))
+          v = Visibility.PRIVATE;
+        else if (m.equals("protected"))
+          v = Visibility.PROTECTED;
+        else if (m.equals("abstract"))
+          isAbstract = true;
+        else if (m.equals("final"))
+          isFinal = true;
+        else if (m.equals("static"))
+          isStatic = true;
+      }
+      type = new JavaType(n.getGeneric(1));
+      int typeDimensions = type.getDimensions();
+      for (Object o : n.getNode(2)) {
+        Node declarator = (Node)o;
+        identifiers.add(declarator.getString(0));
+        if (declarator.get(1) == null)
+          dimensions.add(typeDimensions);
+        else
+          dimensions.add(declarator.getNode(1).size());
+        if (declarator.get(2) == null)
+          values.add(null);
+        else
+          values.add(new JavaExpression(declarator.getGeneric(2)));
+      }
+    }
+
+    public Printer translate(Printer out) {
+      out.indent();
+      if (dimensions.size() > 0 && 0 < dimensions.get(0))
+        out.p("__rt::Array<");
+      type.translate(out);
+      if (dimensions.size() > 0 && 0 < dimensions.get(0))
+        out.p(">* ");
+      else
+        out.p(" ");
+      int size = identifiers.size();
+      for (int i = 0; i < size; i++) {
+        out.p(identifiers.get(i));
+        if (null != values.get(i)) {
+          out.p(" = ");
+          values.get(i).translate(out);
+        }
+        if (i < size - 1)
+          out.p(", ");
+        else
+          out.p(";");
+      }
+      return out.pln();
     }
 
   }
@@ -275,22 +365,20 @@ public class JavaStatement extends Visitor implements Translatable {
           }
           if (i < identifiers.size() - 1)
             out.p(", ");
-          else
-            out.p("; ");
         }
       }
+      out.p("; ");
       if (condition != null)
         condition.translate(out);
+      out.p("; ");
       if (updates != null) {
         for (int i = 0; i < updates.size(); i++) {
           updates.get(i).translate(out);
           if (i < updates.size() - 1)
             out.p(", ");
-          else
-            out.p("; ");
         }
       }
-      out.pln(")").incr();
+      out.pln(") {").incr();
       statement.translate(out).decr();
       out.indent().pln("}");
       return out;

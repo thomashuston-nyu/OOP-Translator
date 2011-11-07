@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import xtc.tree.GNode;
+import xtc.tree.Node;
 import xtc.tree.Visitor;
 
 /**
@@ -43,9 +44,15 @@ public class JavaClassReference {
    */
   public JavaClassReference(GNode n) {
     reference = new ArrayList<String>();
-    for (Object o : n.getGeneric(0)) {
-      reference.add((String)o);
+    if (n.get(0) instanceof String) {
+      reference.add(n.getString(0));
+    } else {
+      for (Object o : n.getNode(0)) {
+        reference.add((String)o);
+      }       
     }
+    if (n.size() > 1 && n.get(1) != null)
+      reference.add(n.getString(1));
   }
 
   /**

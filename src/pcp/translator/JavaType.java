@@ -17,10 +17,14 @@
  */
 package pcp.translator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import xtc.tree.GNode;
+import xtc.tree.Node;
+import xtc.tree.Printer;
 import xtc.tree.Visitor;
 
 /**
@@ -32,7 +36,7 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaType {
+public class JavaType extends Visitor implements Translatable {
   
   private final static Map<String, String> primitives = new HashMap<String, String>();
   static {
@@ -48,7 +52,7 @@ public class JavaType {
   }
 
   private int dimensions;
-  private JavaClassReference classType;
+  private List<String> classType;
   private String primitiveType;
   
   /**
@@ -57,20 +61,24 @@ public class JavaType {
    * @param n The type node.
    */
   public JavaType(GNode n) {
-    if (n.size() == 0) {
-      primitiveType = "void";
-      dimensions = 0;
-    } else {
+    if (n.hasName("Type")) {
       if (n.getNode(0).hasName("PrimitiveType")) {
         primitiveType = n.getNode(0).getString(0);
       } else {
-        classType = new JavaClassReference(n);
+        classType = new ArrayList<String>();
+        for (Object o : n.getNode(0)) {
+          classType.add((String)o);
+        }
       }
       if (n.size() == 2 && null != n.get(1)) {
         dimensions = n.getNode(1).size();
       } else {
         dimensions = 0;
       }
+    } else if (n.hasName("VoidType")) {
+      primitiveType = "void";
+    } else if (n.hasName("PrimitiveType")) {
+      primitiveType = n.getString(0);
     }
   }
 
@@ -82,6 +90,34 @@ public class JavaType {
   public int getDimensions() {
     return dimensions;
   }
+
+  /**
+   * Gets the path to the class reference.
+   *
+   * @return The path.
+   */
+  public String getPath() {
+    if (classType == null)
+      return null;
+    StringBuilder s = new StringBuilder();
+    int size = classType.size();
+    for (int i = 0; i < size; i++) {
+      s.append(classType.get(i));
+      if (i < size - 1)
+        s.append("/");
+    }
+    s.append(".java");
+    return s.toString();
+  }
+
+  /**
+   * Gets the class reference.
+   *
+   * @return The class reference.
+   */
+  public List<String> getReference() {
+    return classType;
+  }
   
   /**
    * Gets the C++ primitive type or class reference.
@@ -92,17 +128,21 @@ public class JavaType {
     if (primitiveType != null)
       return primitives.get(primitiveType);
     else
-      return classType.getPath();
+      return getPath();
   }
 
   /**
    * Checks if the type is an array.
    *
-   * @return <code>true</code> if it is an array;
+   * @return <code>True</code> if it is an array;
    * <code>false</code> otherwise.
    */
   public boolean isArray() {
     return 0 < dimensions;
+  }
+
+  public Printer translate(Printer out) {
+    return out.p(getType());
   }
 
 }

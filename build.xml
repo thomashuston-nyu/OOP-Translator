@@ -36,7 +36,7 @@
 		</jar>
 	</target>
 	
-	<!-- Run the distribution jar -->
+	<!-- Run the distribution jar using any arguments -->
 	<target name="run" depends="jar" description="run the distribution">
     <java fork="true" classname="pcp.Translator">
       <classpath>
@@ -44,6 +44,30 @@
         <path location="${dist}/pcp.jar"/>
       </classpath>
       <arg value="-${flag}"/>
+      <arg value="${file}"/>
+    </java>
+  </target>
+
+  <!-- Run the distribution jar to translate a file -->
+	<target name="translate" depends="jar" description="run the distribution">
+    <java fork="true" classname="pcp.Translator">
+      <classpath>
+        <path refid="classpath"/>
+        <path location="${dist}/pcp.jar"/>
+      </classpath>
+      <arg value="-translateJava"/>
+      <arg value="${file}"/>
+    </java>
+  </target>
+
+  <!-- Run the distribution jar to print the AST -->
+	<target name="ast" depends="jar" description="run the distribution">
+    <java fork="true" classname="pcp.Translator">
+      <classpath>
+        <path refid="classpath"/>
+        <path location="${dist}/pcp.jar"/>
+      </classpath>
+      <arg value="-printJavaAST"/>
       <arg value="${file}"/>
     </java>
   </target>

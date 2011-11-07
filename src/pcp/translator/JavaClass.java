@@ -39,7 +39,7 @@ import xtc.tree.Visitor;
 public class JavaClass extends Visitor implements Translatable {
   
   private JavaConstructor constructor;
-  private JavaClassReference extension;
+  private JavaType extension;
   private Map<Visibility, List<JavaField>> fields;
   private boolean isAbstract;
   private boolean isFinal;
@@ -85,7 +85,7 @@ public class JavaClass extends Visitor implements Translatable {
    *
    * @return The reference.
    */
-  public JavaClassReference getExtension() {
+  public JavaType getExtension() {
     return extension;
   }
   
@@ -183,7 +183,7 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitExtension(GNode n) {
-    extension = new JavaClassReference(n.getGeneric(0));
+    extension = new JavaType(n.getGeneric(0));
   }
 
   /**
