@@ -21,11 +21,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Printer;
-import xtc.tree.Visitor;
 
 /**
  * A Java primitive type, class type, or void type.
@@ -36,7 +36,7 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaType extends Visitor implements Translatable {
+public class JavaType implements Translatable {
   
   private final static Map<String, String> primitives = new HashMap<String, String>();
   static {
@@ -79,6 +79,13 @@ public class JavaType extends Visitor implements Translatable {
       primitiveType = "void";
     } else if (n.hasName("PrimitiveType")) {
       primitiveType = n.getString(0);
+    } else if (n.hasName("QualifiedIdentifier")) {
+      classType = new ArrayList<String>();
+      for (Object o : n) {
+        classType.add((String)o);
+      }
+    } else {
+      Global.runtime.errConsole().pln(n.toString()).flush();
     }
   }
 
@@ -125,10 +132,18 @@ public class JavaType extends Visitor implements Translatable {
    * @return The C++ type.
    */
   public String getType() {
-    if (primitiveType != null)
+    if (primitiveType != null) {
       return primitives.get(primitiveType);
-    else
-      return getPath();
+    } else {
+      Set<String> fileKeys = Global.files.keySet();
+      for (String filepath : fileKeys) {
+        JavaFile file = Global.files.get(filepath);
+        if (null != file.getPackage()) {
+          Global.runtime.console().pln(file.getPackage().getPath()).flush();
+        }
+      }
+      return classType.get(0);
+    }
   }
 
   /**

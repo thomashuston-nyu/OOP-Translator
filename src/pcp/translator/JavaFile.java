@@ -39,7 +39,7 @@ import xtc.tree.Visitor;
 public class JavaFile extends Visitor implements Translatable {
   
   private Map<Visibility, List<JavaClass>> classes;
-  private List<JavaImport> imports;
+  private List<JavaPackage> imports;
   private JavaPackage pkg;
   
   /**
@@ -52,7 +52,7 @@ public class JavaFile extends Visitor implements Translatable {
     for (Visibility v : Visibility.values()) {
       classes.put(v, new ArrayList<JavaClass>());
     }
-    imports = new ArrayList<JavaImport>();
+    imports = new ArrayList<JavaPackage>();
     for (Object o : n)
       if (o instanceof Node)
         dispatch((Node) o);
@@ -74,10 +74,19 @@ public class JavaFile extends Visitor implements Translatable {
    *
    * @return The imports.
    */
-  public List<JavaImport> getImports() {
+  public List<JavaPackage> getImports() {
     return imports;
   }
 
+  /**
+   * Gets the package.
+   * 
+   * @return The package.
+   */
+  public JavaPackage getPackage() {
+    return pkg;
+  }
+  
   /**
    * Gets the public class.
    *
@@ -87,15 +96,6 @@ public class JavaFile extends Visitor implements Translatable {
     if (classes.get(Visibility.PUBLIC).size() == 0)
       return null;
     return classes.get(Visibility.PUBLIC).get(0);
-  }
-  
-  /**
-   * Gets the package.
-   * 
-   * @return The package.
-   */
-  public JavaPackage getPackage() {
-    return pkg;
   }
   
   /**
@@ -117,7 +117,7 @@ public class JavaFile extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitImportDeclaration(GNode n) {
-    imports.add(new JavaImport(n));
+    imports.add(new JavaPackage(n));
   }
   
   /**
@@ -131,7 +131,11 @@ public class JavaFile extends Visitor implements Translatable {
   }
 
   public Printer translate(Printer out) {
-    return getPublicClass().translate(out);
+    JavaClass publicClass = getPublicClass();
+    if (null != publicClass)
+      return publicClass.translate(out);
+    else
+      return out;
   }
   
 }

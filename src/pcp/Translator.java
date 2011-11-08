@@ -56,18 +56,17 @@ import xtc.util.Tool;
  */
 public class Translator extends Tool {
   
-  private Map<String, JavaFile> files;
-  private Map<String, Set<String>> packages;
   private Map<JavaFile, Boolean> printed;
   private Map<JavaFile, JavaFile> requires;
   private String classpath;
   private File main;
+  private String currentPkg;
 
-  /** 
+  /**
    * Creates a new translator.
    */
   public Translator() {
-    // Nothing to do
+    Global.runtime = runtime;
   }
 
   /**
@@ -144,52 +143,77 @@ public class Translator extends Tool {
   }
 
   /**
-   * Constructs the C++ header file.
+   * Constructs the C++ header file for the specific package.
    *
    * @param out The output stream.
+   * @param pkg The package.
    */
-  public void printHeader(Printer out) {
-    // Print includes
+  public void printHeader(Printer out, JavaPackage pkg) {
+    // Get the files in the package
+    Set<JavaFile> files;
+    if (null != pkg)
+      files = Global.packages.get(pkg.getPath());
+    else
+      files = Global.packages.get("");
+
+    if (null != pkg)
+      runtime.console().p("### HEADER: ").p(pkg.getString("_")).pln(".h").flush();
+
+    // Get any imports
+    Set<JavaPackage> using = new HashSet<JavaPackage>();
+    for (JavaFile file : files) {
+      List<JavaPackage> imports = file.getImports();
+      for (JavaPackage i : imports) {
+        if (null == pkg || !i.getPath().equals(pkg.getPath()))
+          using.add(i);
+      }
+    }
+
+    // Include any imported headers
     out.pln("#pragma once").pln();
     out.pln("#include <iostream>");
     out.pln("#include <sstream>").pln();
-    out.pln("#include \"java/lang/java_lang.h\"").pln();
-    out.pln("using namespace java::lang;").pln();
-
-    Set<String> keys = packages.keySet();
-    for (String pkg : keys) {
-      Set<String> subpkg = packages.get(pkg);
-      runtime.console().pln(pkg).flush();
+    out.pln("#include \"java_lang.h\"");
+    for (JavaPackage i : using) {
+      out.p("#include \"").p(i.getString("_")).pln(".h\"");
     }
 
+    // Declare namespaces being used
+    out.pln().pln("using namespace java::lang;");
+    for (JavaPackage i : using) {
+      out.p("using namespace ").p(i.getString("::")).pln(";");
+    }
+    out.pln();
 
-    // Declare classes
-    /*Set<JavaFile> keys = requires.keySet();
-    for (JavaFile key : keys) {
-      String className = key.getPublicClass().getName();
-      List<String> pack = null;
-      if (null != key.getPackage())
-        pack = key.getPackage().getPackage();
-      if (null != pack) {
-        for (String p : pack) {
-          out.indent().p("namespace ").p(p).pln(" {").incr();
-        }
+    // Add the namespace
+    if (null != pkg) {
+      List<String> pkgparts = pkg.getPackage();
+      for (String part : pkgparts) {
+        out.indent().p("namespace ").p(part).pln(" {").incr();
       }
+    }
+
+    // Declare the class structs
+    for (JavaFile file : files) {
+      String className = file.getPublicClass().getName();
       out.indent().p("struct __").p(className).pln(";");
-      out.indent().p("struct __").p(className).pln("_VT;").pln();
-      out.indent().p("typedef __").p(className).p("* ").p(className).pln(";");
-      if (null != pack) {
-        for (int i = 0; i < pack.size(); i++) {
-          out.decr().indent().pln("}");
-        }
-      }
-      out.pln();
+      out.indent().p("struct __").p(className).pln("_VT;");
+      out.pln().indent().p("typedef __").p(className).p("* ")
+        .p(className).pln(";").pln();
     }
 
     // Print header structs
-    for (JavaFile key : keys) {
-      printHeaderVTable(out, key);
-    } */
+    for (JavaFile file : files) {
+      printHeaderVTable(out, file);
+    } 
+
+    // Close the namespace
+    if (null != pkg) {
+      List<String> pkgparts = pkg.getPackage();
+      for (int i = 0; i < pkgparts.size(); i++) {
+        out.decr().indent().pln("}");
+      }
+    }
 
     // Flush the output
     out.flush();
@@ -208,19 +232,20 @@ public class Translator extends Tool {
 
     // Make sure that all dependencies have been printed first
     JavaFile d = requires.get(c);
-    if (null != d && !printed.get(d))
-      printHeaderVTable(out, d);
-
-    // Print the namespace
-    List<String> pack = null;
-    if (null != c.getPackage())
-      pack = c.getPackage().getPackage();
-    if (null != pack) {
-      for (String p : pack) {
-        out.indent().p("namespace ").p(p).pln(" {").incr();
-      }
+    if (null != d) {
+    	if (null != c.getPackage() && null != d.getPackage()) {
+    		if (!c.getPackage().equals(d.getPackage()))
+    			return;
+    		if (!printed.get(d))
+    			printHeaderVTable(out, d);
+    	} else if (null != c.getPackage() || null != d.getPackage()) {
+    		return;
+    	} else {
+    		if (!printed.get(d))
+    			printHeaderVTable(out, d);
+    	}
     }
-    
+
     // Print the structs
     String className = c.getPublicClass().getName();
 
@@ -238,17 +263,9 @@ public class Translator extends Tool {
     out.indent().p("__").p(className).pln("_VT()");
     out.indent().p(": __isa(__").p(className).pln("::__class())").decr();
     out.indent().pln("};");
-
-    // Close the namespace
-    if (null != pack) {
-      for (int i = 0; i < pack.size(); i++) {
-        out.decr().indent().pln("}");
-      }
-    }
-
     out.pln();
 
-    // Mark this compilation unit as printed
+    // Mark this class as printed
     printed.put(c, true);
   }
   
@@ -266,10 +283,9 @@ public class Translator extends Tool {
     if (runtime.test("translateJava")) {
       try {
         // Instantiate the hashes
-        files = new HashMap<String, JavaFile>();
         requires = new HashMap<JavaFile, JavaFile>();
         printed = new HashMap<JavaFile, Boolean>();
-        packages = new LinkedHashMap<String, Set<String>>();
+        currentPkg = "";
 
         // Find the classpath for the program
         JavaFile c = new JavaFile((GNode)node);
@@ -291,10 +307,12 @@ public class Translator extends Tool {
         resolve(main, c);
 
         // Print out the classes in order of dependence
-        // runtime.console().pln("##### HEADER #####").pln().flush();
-        // printHeader(runtime.console());
-        
-        runtime.console().pln(packages.toString()).flush();
+        runtime.console().pln("##### HEADER #####").pln().flush();
+        Set<String> keys = Global.files.keySet();
+        for (String key : keys) {
+          if (!printed.get(Global.files.get(key)))
+            printHeader(runtime.console(), Global.files.get(key).getPackage());
+        }
 
         c.translate(runtime.console());
         runtime.console().flush();
@@ -316,7 +334,7 @@ public class Translator extends Tool {
   * @throws ParseException Signals a parse error.
   */
   public void resolve(File file) throws IOException, ParseException {
-    if (files.containsKey(file.getAbsolutePath())) 
+    if (Global.files.containsKey(file.getAbsolutePath())) 
       return;
     resolve(file, new JavaFile((GNode)parse(file)));
   }
@@ -331,52 +349,50 @@ public class Translator extends Tool {
   * @throws ParseException Signals a parse error.
   */
   public void resolve(File file, JavaFile c) throws IOException, ParseException {
-    if (files.containsKey(file.getAbsolutePath())) 
+    if (Global.files.containsKey(file.getAbsolutePath())) 
       return;
 
     // Add the file to the hash
     String filePath = file.getAbsolutePath();
-    files.put(filePath, c);
+    Global.files.put(filePath, c);
+    if (!Global.imports.containsKey(c))
+      Global.imports.put(c, new HashSet<JavaFile>());
 
-    // Add package to the hash
+    // Add the file to the packages hash and
+    // resolve dependencies for classes in the package
     JavaPackage pkg = c.getPackage();
     if (null != pkg) {
-      List<String> pkgparts = pkg.getPackage();
-      String pkgpath = "";
-      for (String part : pkgparts) {
-        if (pkgpath != "") {
-          Set<String> subpkg = packages.get(pkgpath);
-          pkgpath += "/" + part;
-          subpkg.add(pkgpath);
-        } else {
-          pkgpath += part;
-        }
-        if (!packages.containsKey(pkgpath))
-          packages.put(pkgpath, new HashSet<String>());
-      }
-    } 
-
-    // Resolve dependencies for classes in the package
-    if (null != pkg) {
-      File dir = new File(classpath + pkg.getPath());
+      String pkgpath = pkg.getPath();
+      if (!Global.packages.containsKey(pkgpath))
+        Global.packages.put(pkgpath, new HashSet<JavaFile>());
+      Global.packages.get(pkgpath).add(c);
+      File dir = new File(classpath + pkgpath);
       File[] files = dir.listFiles(new JavaFilter());
       for (File fi : files) {
-        if (!fi.getAbsolutePath().equals(filePath)) 
+        if (!fi.getAbsolutePath().equals(filePath)) {
           resolve(fi);
+          Global.imports.get(c).add(Global.files.get(fi.getAbsolutePath()));
+        }
       }
+    } else {
+      if (!Global.packages.containsKey(""))
+        Global.packages.put("", new HashSet<JavaFile>());
+      Global.packages.get("").add(c);
     }
 
     // Resolve dependencies for imported classes
-    List<JavaImport> imp = c.getImports();
-    for (JavaImport i : imp) {
+    List<JavaPackage> imp = c.getImports();
+    for (JavaPackage i : imp) {
       File f = new File(classpath + i.getPath());
       if (f.isFile()) {
         resolve(f);   
       } else if (f.isDirectory()) {
         File[] files = f.listFiles(new JavaFilter());
         for (File fi : files) {
-          if (!fi.getAbsolutePath().equals(filePath)) 
+          if (!fi.getAbsolutePath().equals(filePath)) {
             resolve(fi);
+            Global.imports.get(c).add(Global.files.get(fi.getAbsolutePath()));
+          }
         }
       } else {
         runtime.errConsole().p("Error reading imported file: ").p(f.getAbsolutePath()).pln().flush();
@@ -393,38 +409,38 @@ public class Translator extends Tool {
       // If the superclass path is given explicitly, use that path
       if (-1 < index) {
         extpath = classpath + ext;
-        if (files.containsKey(extpath)) {
-          cd.setParent(files.get(extpath).getPublicClass());
-          requires.put(c, files.get(extpath));
+        if (Global.files.containsKey(extpath)) {
+          cd.setParent(Global.files.get(extpath).getPublicClass());
+          requires.put(c, Global.files.get(extpath));
           found = true;
         }
       } else {
         // Check the package
         if (null != pkg) {
           extpath = classpath + pkg.getPath() + "/" + ext;
-          if (files.containsKey(extpath)) {
-            cd.setParent(files.get(extpath).getPublicClass());
-            requires.put(c, files.get(extpath));
+          if (Global.files.containsKey(extpath)) {
+            cd.setParent(Global.files.get(extpath).getPublicClass());
+            requires.put(c, Global.files.get(extpath));
             found = true;
           }
         }
         // Check the imported packages and classes
         if (!found) {
-          for (JavaImport i : imp) {
+          for (JavaPackage i : imp) {
             String importpath = i.getPath();
             if (importpath.endsWith(ext)) {
               extpath = classpath + importpath;
-              if (files.containsKey(extpath)) {
-                cd.setParent(files.get(extpath).getPublicClass());
-                requires.put(c, files.get(extpath));
+              if (Global.files.containsKey(extpath)) {
+                cd.setParent(Global.files.get(extpath).getPublicClass());
+                requires.put(c, Global.files.get(extpath));
                 found = true;
                 break;
               }
             } else if (!importpath.endsWith(".java")) {
               extpath = classpath + importpath + "/" + ext;
-              if (files.containsKey(extpath)) {
-                cd.setParent(files.get(extpath).getPublicClass());
-                requires.put(c, files.get(extpath));
+              if (Global.files.containsKey(extpath)) {
+                cd.setParent(Global.files.get(extpath).getPublicClass());
+                requires.put(c, Global.files.get(extpath));
                 found = true;
                 break;
               }

@@ -38,7 +38,7 @@ import xtc.tree.Visitor;
  */
 public class JavaClass extends Visitor implements Translatable {
   
-  private JavaConstructor constructor;
+  private JavaMethod constructor;
   private JavaType extension;
   private Map<Visibility, List<JavaField>> fields;
   private boolean isAbstract;
@@ -174,7 +174,7 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitConstructorDeclaration(GNode n) {
-    constructor = new JavaConstructor(n);
+    constructor = new JavaMethod(n);
   }
   
   /**

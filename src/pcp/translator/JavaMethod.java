@@ -17,13 +17,16 @@
  */
 package pcp.translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Printer;
 import xtc.tree.Visitor;
 
 /**
- * A method.
+ * A method or constructor.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -39,7 +42,9 @@ public class JavaMethod extends Visitor implements Translatable {
   private boolean isFinal;
   private boolean isStatic;
   private String name;
-  //private FormalParameters parameters;
+  private List<Integer> paramDimensions;
+  private List<String> paramNames;
+  private List<JavaType> paramTypes;
   private JavaType returnType;
   private Visibility visibility;
   
@@ -49,52 +54,28 @@ public class JavaMethod extends Visitor implements Translatable {
    * @param n The method declaration node.
    */
   public JavaMethod(GNode n) {
-    // Determine the visibility
+    
+    // Set the default visibility
     visibility = Visibility.PACKAGE_PRIVATE;
-    for (Object o : n.getNode(0)) {
-      String m = ((GNode)o).getString(0);
-      if (m.equals("public"))
-        visibility = Visibility.PUBLIC;
-      else if (m.equals("private"))
-        visibility = Visibility.PRIVATE;
-      else if (m.equals("protected"))
-        visibility = Visibility.PROTECTED;
-      else if (m.equals("abstract"))
-        isAbstract = true;
-      else if (m.equals("final"))
-        isFinal = true;
-      else if (m.equals("static"))
-        isStatic = true;
-    }
 
-    // Get the return type
-    if (n.getNode(2).hasName("Type"))
-      returnType = new JavaType(n.getGeneric(2));
+    // Initialize the parameter lists
+    paramDimensions = new ArrayList<Integer>();
+    paramNames = new ArrayList<String>();
+    paramTypes = new ArrayList<JavaType>();
 
-    // Get the name of the constructor
-    name = n.getString(3);
+    // Get the name
+    if (n.hasName("MethodDeclaration"))
+      name = n.getString(3);
+    else
+      name= n.getString(2);
 
-    // Get the parameters
-    //parameters = new FormalParameters(n.getGeneric(4));
-
-    // Get the dimensions, throws clause, and method body
-    if (n.size() == 6) {
-      if (null != n.get(5))
-        body = new JavaStatement(n.getGeneric(5));
-    } else if (n.size() == 7) {
-      if (n.getNode(5).hasName("Dimensions")) {
-        // TODO What are dimensions in a method declaration?
-      } else {
-        //exception = new ThrowsClause(n.getGeneric(5));
+    // Dispatch over the child nodes
+    for (Object o : n) {
+      if (o instanceof Node) {
+        dispatch((Node)o);
       }
-      if (null != n.get(6))
-        body = new JavaStatement(n.getGeneric(6));
-    } else if (n.size() == 8) {
-      // TODO What are the dimensions in a method declaration?
-      //exception = new ThrowsClause(n.getGeneric(6));
-      if (null != n.get(7))
-        body = new JavaStatement(n.getGeneric(7));
     }
+
   }
 
   /**
@@ -144,6 +125,97 @@ public class JavaMethod extends Visitor implements Translatable {
    */
   public boolean isStatic() {
     return isStatic;
+  }
+
+  /**
+   * Parses the body of the method.
+   *
+   * @param n The block node.
+   */
+  public void visitBlock(GNode n) {
+    body = new JavaStatement(n);
+  }
+
+  /**
+   * Parses the dimensions of the method.
+   *
+   * @param n The dimensions node.
+   */
+  public void visitDimensions(GNode n) {
+    // TODO: What are dimensions in a method declaration?  
+  }
+     
+  /**
+   * Parses the parameters of the method.
+   *
+   * @param n The formal parameters node.
+   */
+  public void visitFormalParameters(GNode n) {
+    for (Object o : n) {
+      Node param = (Node)o;
+      int j;
+      if (param.getNode(1).hasName("Type")) 
+        j = 1;
+      else
+        j = 2;
+      paramTypes.add(new JavaType(param.getGeneric(j++)));
+      paramNames.add(param.getString(++j));
+      if (++j < param.size() - 1)
+        paramDimensions.add(param.getNode(j).size());
+      else
+        paramDimensions.add(0);
+    }
+  }
+
+  /**
+   * Parses the modifiers of the method.
+   *
+   * @param n The modifiers node.
+   */
+  public void visitModifiers(GNode n) {
+    for (Object o : n) {
+      String m = ((GNode)o).getString(0);
+      if (m.equals("public"))
+        visibility = Visibility.PUBLIC;
+      else if (m.equals("private"))
+        visibility = Visibility.PRIVATE;
+      else if (m.equals("protected"))
+        visibility = Visibility.PROTECTED;
+      else if (m.equals("abstract"))
+        isAbstract = true;
+      else if (m.equals("final"))
+        isFinal = true;
+      else if (m.equals("static"))
+        isStatic = true;
+    }
+  }
+
+  /**
+   * Parses the exceptions thrown by the method.
+   *
+   * @param n The throws clause node.
+   */
+  public void visitThrowsClause(GNode n) {
+    // TODO: handle exceptions
+    //exception = new ThrowsClause(n);
+  }
+
+  /**
+   * Parses the return type of the method.
+   *
+   * @param n The type node.
+   */
+  public void visitType(GNode n) {
+    returnType = new JavaType(n);
+  }
+
+  /**
+   * Sets the return type to void.
+   *
+   * @param n The void type node.
+   */
+  public void visitVoidType(GNode n) {
+    returnType = new JavaType(n);
   }
 
   public Printer translate(Printer out) {

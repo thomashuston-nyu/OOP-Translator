@@ -17,6 +17,7 @@
  */
 package pcp.translator;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,11 @@ import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
 /**
- * A package declaration.
+ * The path to a package; operates on
+ * both <code>PackageDeclaration</code> and
+ * <code>ImportDeclaration</code> nodes as
+ * we need all classes from a package even if
+ * the Java file only explicitly imports one.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -35,18 +40,56 @@ import xtc.tree.Visitor;
 public class JavaPackage {
   
   private List<String> pkg;
+  private String namespace, pkgpath;
   
   /**
-   * Constructs the PackageDeclaration.
+   * Constructs the package.
    * 
-   * @param n The PackageDeclaration node.
+   * @param n The package or import declaration node.
    */
   public JavaPackage(GNode n) {
-    GNode name = n.getGeneric(1);
     pkg = new ArrayList<String>();
-    for (Object o : name) {
-      pkg.add((String)o);
+    int size;
+    if (n.hasName("ImportDeclaration")) {
+      if (null == n.get(2))
+        size = n.getNode(1).size() - 1;
+      else
+        size = n.getNode(1).size();
+    } else {
+      size = n.getNode(1).size();
     }
+    for (int i = 0; i < size; i++) {
+      pkg.add(n.getNode(1).getString(i));
+    }
+  }
+
+  /**
+   * Checks if the path of two packages is the same.
+   *
+   * @return <code>True</code> if the path is the same;
+   * <code>false</code> otherwise.
+   */
+  public boolean equals(JavaPackage o) {
+    return o.getPath().equals(getPath());
+  }
+
+  /**
+   * Gets the package as a namespace.
+   *
+   * @return The namespace.
+   */
+  public String getNamespace() {
+    if (null != namespace)
+      return namespace;
+    StringBuilder p = new StringBuilder();
+    int size = pkg.size();
+    for (int i = 0; i < size; i++) {
+      p.append(pkg.get(i));
+      if (i < size - 1)
+        p.append("::");
+    }
+    pkgpath = p.toString();
+    return namespace;
   }
   
   /**
@@ -64,12 +107,33 @@ public class JavaPackage {
    * @return The package path.
    */
   public String getPath() {
+    if (null != pkgpath)
+      return pkgpath;
     StringBuilder p = new StringBuilder();
     int size = pkg.size();
     for (int i = 0; i < size; i++) {
       p.append(pkg.get(i));
       if (i < size - 1)
         p.append("/");
+    }
+    pkgpath = p.toString();
+    return pkgpath;
+  }
+
+  /**
+   * Creates a string using the specified separator.
+   *
+   * @param sep The separator.
+   *
+   * @return The package string.
+   */
+  public String getString(String sep) {
+    StringBuilder p = new StringBuilder();
+    int size = pkg.size();
+    for (int i = 0; i < size; i++) {
+      p.append(pkg.get(i));
+      if (i < size - 1)
+        p.append(sep);
     }
     return p.toString();
   }

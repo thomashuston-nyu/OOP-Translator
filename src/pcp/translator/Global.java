@@ -18,13 +18,17 @@
 package pcp.translator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import xtc.tree.GNode;
-import xtc.tree.Visitor;
+import xtc.util.Runtime;
 
 /**
- * An import declaration.
+ * A static class to store globally available data;
+ * eliminates need to pass lots of data up and down the tree.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -32,50 +36,11 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaImport {
+public class Global {
 
-  private boolean star;
-  private List<String> imp;
-  
-  /**
-   * Constructs the import.
-   * 
-   * @param n the import declaration node.
-   */
-  public JavaImport(GNode n) {
-    imp = new ArrayList<String>();
-    GNode name = n.getGeneric(1);
-    for (Object o : name) {
-      imp.add((String)o);
-    }
-    star = null != n.get(2);
-  }
+  public static Map<String, JavaFile> files = new HashMap<String, JavaFile>();
+  public static Map<JavaFile, Set<JavaFile>> imports = new HashMap<JavaFile, Set<JavaFile>>();
+  public static Map<String, Set<JavaFile>> packages = new HashMap<String, Set<JavaFile>>();
+  public static Runtime runtime;
 
-  /**
-   * Gets the import.
-   *
-   * @return The import.
-   */
-  public List<String> getImport() {
-    return imp;
-  }
-
-  /**
-   * Gets the path to the import.
-   *
-   * @return The path.
-   */
-  public String getPath() {
-    StringBuilder s = new StringBuilder();
-    int size = imp.size();
-    for (int i = 0; i < size; i++) {
-      s.append(imp.get(i));
-      if (i < size - 1)
-        s.append("/");
-    }
-    if (!star)
-      s.append(".java");
-    return s.toString();
-  }
-  
 }

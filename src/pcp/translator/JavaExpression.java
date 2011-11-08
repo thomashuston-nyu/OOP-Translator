@@ -261,6 +261,15 @@ public class JavaExpression extends Visitor implements Translatable {
   }
   
   /**
+   * Creates a new new class expression.
+   *
+   * @param n The new class expression node.
+   */
+  public void visitNewClassExpression(GNode n) {
+    e = new NewClassExpression(n);
+  }
+  
+  /**
    * Creates a new postfix expression.
    *
    * @param n The postfix expression node.
@@ -803,6 +812,53 @@ public class JavaExpression extends Visitor implements Translatable {
         // TODO: handle multi-dimensional arrays
         return out;
       }
+    }
+
+  }
+
+  /**
+   * A new class expression
+   * (for example, <code>new Object()</code>).
+   */
+  private class NewClassExpression extends JavaExpression {
+
+    private List<JavaExpression> arguments;
+    private JavaType type;
+
+    /**
+     * Creates a new new class expression.
+     *
+     * @param n The new class expression node.
+     */
+    public NewClassExpression(GNode n) {
+      type = new JavaType(n.getGeneric(2));
+      arguments = new ArrayList<JavaExpression>();
+      for (Object o : n.getNode(3)) {
+        if (null == o)
+          continue;
+        arguments.add(new JavaExpression((GNode)o));
+      }
+    }
+
+    /**
+     * Translates the expression and adds it 
+     * to the output stream.
+     *
+     * @param out The output stream.
+     *
+     * @return The output stream.
+     */
+    public Printer translate(Printer out) {
+      out.p("new __");
+      type.translate(out);
+      out.p("(");
+      int size = arguments.size();
+      for (int i = 0; i < size; i++) {
+        arguments.get(i).translate(out);
+        if (i < size - 1)
+          out.p(", ");
+      }
+      return out.p(")");
     }
 
   }
