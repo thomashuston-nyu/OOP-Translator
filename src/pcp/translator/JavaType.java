@@ -26,6 +26,7 @@ import java.util.Set;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Printer;
+import xtc.tree.Visitor;
 
 /**
  * A Java primitive type, class type, or void type.
@@ -36,8 +37,9 @@ import xtc.tree.Printer;
  * @author Marta Wilgan
  * @version 1.0
  */
-public class JavaType implements Translatable {
+public class JavaType extends Visitor implements Translatable {
   
+  // Map from Java primitive types to C++ primitive types
   private final static Map<String, String> primitives = new HashMap<String, String>();
   static {
     primitives.put("byte", "int8_t");
@@ -52,98 +54,77 @@ public class JavaType implements Translatable {
   }
 
   private int dimensions;
-  private List<String> classType;
-  private String primitiveType;
+  private JavaPackage pkg;
+  private String classType, primitiveType;
   
   /**
-   * Creates the type.
+   * Creates the type from a GNode.
    *
    * @param n The type node.
    */
   public JavaType(GNode n) {
-    if (n.hasName("Type")) {
-      if (n.getNode(0).hasName("PrimitiveType")) {
-        primitiveType = n.getNode(0).getString(0);
-      } else {
-        classType = new ArrayList<String>();
-        for (Object o : n.getNode(0)) {
-          classType.add((String)o);
-        }
-      }
-      if (n.size() == 2 && null != n.get(1)) {
-        dimensions = n.getNode(1).size();
-      } else {
-        dimensions = 0;
-      }
-    } else if (n.hasName("VoidType")) {
-      primitiveType = "void";
-    } else if (n.hasName("PrimitiveType")) {
-      primitiveType = n.getString(0);
-    } else if (n.hasName("QualifiedIdentifier")) {
-      classType = new ArrayList<String>();
-      for (Object o : n) {
-        classType.add((String)o);
-      }
-    } else {
-      Global.runtime.errConsole().pln(n.toString()).flush();
-    }
+    dispatch(n);
   }
 
   /**
-   * Gets the number of array dimensions.
+   * Gets the dimensions if it's an array.
    *
-   * @return The dimensions.
+   * @return The dimensions if it's an array;
+   * <code>0</code> otherwise.
    */
   public int getDimensions() {
     return dimensions;
   }
 
   /**
-   * Gets the path to the class reference.
+   * Gets the file for the class type.
+   *
+   * @return The file.
+   */
+  public JavaFile getFile() {
+    if (null == classType)
+      return null;
+    if (Global.files.containsKey(getPath()))
+      return Global.files.get(getPath());
+    else
+      Global.runtime.errConsole().p("File not found for type: ").pln(getPath()).flush();
+    return null;
+  }
+
+  /**
+   * Gets the path to the class type.
    *
    * @return The path.
    */
   public String getPath() {
-    if (classType == null)
+    if (null == classType)
       return null;
-    StringBuilder s = new StringBuilder();
-    int size = classType.size();
-    for (int i = 0; i < size; i++) {
-      s.append(classType.get(i));
-      if (i < size - 1)
-        s.append("/");
+    if (null != pkg) {
+      return pkg.getPath() + "/" + classType + ".java";
+    } else {
+      return classType + ".java";
     }
-    s.append(".java");
-    return s.toString();
   }
 
-  /**
-   * Gets the class reference.
-   *
-   * @return The class reference.
-   */
-  public List<String> getReference() {
-    return classType;
-  }
-  
   /**
    * Gets the C++ primitive type or class reference.
    *
    * @return The C++ type.
    */
   public String getType() {
-    if (primitiveType != null) {
-      return primitives.get(primitiveType);
+    StringBuilder type = new StringBuilder();
+    if (0 < dimensions)
+      type.append("__rt::Array<");
+    if (null != primitiveType) {
+      type.append(primitives.get(primitiveType));
     } else {
-      Set<String> fileKeys = Global.files.keySet();
-      for (String filepath : fileKeys) {
-        JavaFile file = Global.files.get(filepath);
-        if (null != file.getPackage()) {
-          Global.runtime.console().pln(file.getPackage().getPath()).flush();
-        }
-      }
-      return classType.get(0);
+      if (null != pkg)
+        type.append(pkg.getNamespace()).append("::");
+      type.append(classType);
     }
+    if (0 < dimensions)
+      type.append(">");
+    return type.toString();
   }
 
   /**
@@ -156,6 +137,82 @@ public class JavaType implements Translatable {
     return 0 < dimensions;
   }
 
+  /**
+   * Set the package of the class.
+   *
+   * @param pkg The package.
+   */
+  public void setPackage(JavaPackage pkg) {
+    this.pkg = pkg;
+  }
+
+  /**
+   * Set the dimensions of the array.
+   *
+   * @param dim The dimensions.
+   */
+  public void setDimensions(int dim) {
+    if (dim >= 0)
+      dimensions = dim;
+    else
+      Global.runtime.errConsole().p("Invalid array dimensions: ").pln(dim).flush();
+  }
+
+  /**
+   * Sets the primitive type.
+   *
+   * @param n The primitive type node.
+   */
+  public void visitPrimitiveType(GNode n) {
+    primitiveType = n.getString(0);
+  }
+
+  /**
+   * Sets the package and class type.
+   *
+   * @param n The qualified identifier node.
+   */
+  public void visitQualifiedIdentifier(GNode n) {
+    List<String> pkg = new ArrayList<String>();
+    int size = n.size();
+    for (int i = 0; i < size; i++) {
+      if (i < size - 1)
+        pkg.add(n.getString(i));
+      else
+        classType = n.getString(i);
+    }
+    if (0 < pkg.size())
+      this.pkg = new JavaPackage(pkg);
+  }
+
+  /**
+   * Sets the primitive or class type.
+   *
+   * @param n The type node.
+   */
+  public void visitType(GNode n) {
+    dispatch(n.getNode(0));
+    if (null != n.get(1))
+      dimensions = n.getNode(1).size();
+  }
+
+  /**
+   * Sets the type to void.
+   *
+   * @param n The void type node.
+   */
+  public void visitVoidType(GNode n) {
+    primitiveType = "void"; 
+  }
+
+  /**
+    * Translates the type and adds it 
+    * to the output stream.
+    *
+    * @param out The output stream.
+    *
+    * @return The output stream.
+    */
   public Printer translate(Printer out) {
     return out.p(getType());
   }

@@ -27,7 +27,7 @@ import xtc.tree.Visitor;
 
 /**
  * A wrapper around the various types of Java expressions;
- * Used to avoid repetitive visit methods.
+ * used to avoid repetitive visit methods.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -86,7 +86,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise and expression node.
    */
   public void visitBitwiseAndExpression(GNode n) {
-    e = new BitwiseLogicalExpression(n,"&");
+    e = new Expression(n,"&");
   }
 
   /**
@@ -95,7 +95,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise negation expression node.
    */
   public void visitBitwiseNegationExpression(GNode n) {
-    e = new BitwiseLogicalExpression(n,"~");
+    e = new Expression(n,"~");
   }
 
   /**
@@ -104,7 +104,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise or expression node.
    */
   public void visitBitwiseOrExpression(GNode n) {
-    e = new BitwiseLogicalExpression(n,"|");
+    e = new Expression(n,"|");
   }
 
   /**
@@ -113,7 +113,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise xor expression node.
    */
   public void visitBitwiseXorExpression(GNode n) {
-    e = new BitwiseLogicalExpression(n,"^");
+    e = new Expression(n,"^");
   }
 
   /**
@@ -221,7 +221,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The logical and expression node.
    */
   public void visitLogicalAndExpression(GNode n) {
-    e = new BitwiseLogicalExpression(n,"&&");
+    e = new Expression(n,"&&");
   }
 
   /**
@@ -230,7 +230,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The logical negation expression node.
    */
   public void visitLogicalNegationExpression(GNode n) {
-    e = new BitwiseLogicalExpression(n,"!");
+    e = new Expression(n,"!");
   }
 
   /**
@@ -239,7 +239,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The logical or expression node.
    */
   public void visitLogicalOrExpression(GNode n) {
-    e = new BitwiseLogicalExpression(n,"||");
+    e = new Expression(n,"||");
   }
 
   /**
@@ -468,52 +468,6 @@ public class JavaExpression extends Visitor implements Translatable {
   }
 
   /**
-   * A bitwise expression
-   * (for example, <code>5 & 8</code>,
-   * <code>~5</code>, <code>5 | 8</code>,
-   * <code>5 ^ 8</code>)
-   * or a logical expression
-   * (for example, <code>x && y</code>,
-   * <code>!x</code>, <code>x || y</code>).
-   */
-  private class BitwiseLogicalExpression extends JavaExpression {
-
-    private JavaExpression left, right;
-    String operator;
-     
-    /**
-     * Creates a new bitwise or logical expression.
-     *
-     * @param n The bitwise or logical expression node.
-     */
-    public BitwiseLogicalExpression(GNode n, String operator) {
-      left = new JavaExpression(n.getGeneric(0));
-      this.operator = operator;
-      if (!operator.equals("~") && !operator.equals("!"))
-        right = new JavaExpression(n.getGeneric(1));
-    }
-
-    /**
-     * Translates the expression and adds it 
-     * to the output stream.
-     *
-     * @param out The output stream.
-     *
-     * @return The output stream.
-     */
-    public Printer translate(Printer out) {
-      if (right != null) {
-        left.translate(out).p(" ").p(operator).p(" ");
-        return right.translate(out);
-      } else {
-        out.p(operator);
-        return left.translate(out);
-      }
-    }
-
-  }    
-
-  /**
    * A call expression
    * (for example, <code>System.out.println("test")</code>).
    */
@@ -668,8 +622,15 @@ public class JavaExpression extends Visitor implements Translatable {
    * (for example, <code>x == y</code>),
    * a relational expression,
    * (for example, <code>x &lt;= y</code>),
-   * or a shift expression
-   * (for example, <code>x &lt;&lt; 5</code>).
+   * a shift expression
+   * (for example, <code>x &lt;&lt; 5</code>),
+   * a bitwise expression
+   * (for example, <code>5 &amp; 8</code>,
+   * <code>~5</code>, <code>5 | 8</code>,
+   * <code>5 ^ 8</code>)
+   * or a logical expression
+   * (for example, <code>x &amp;&amp; y</code>,
+   * <code>!x</code>, <code>x || y</code>).
    */
   private class Expression extends JavaExpression {
 
@@ -688,6 +649,19 @@ public class JavaExpression extends Visitor implements Translatable {
     }
 
     /**
+     * Creates a new bitwise or logical expression.
+     *
+     * @param n The expression node.
+     * @param operator The operator.
+     */
+    public Expression(GNode n, String operator) {
+      left = new JavaExpression(n.getGeneric(0));
+      this.operator = operator;
+      if (!operator.equals("~") && !operator.equals("!"))
+        right = new JavaExpression(n.getGeneric(1));
+    }
+
+    /**
      * Translates the expression and adds it 
      * to the output stream.
      *
@@ -696,9 +670,13 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
-      left.translate(out);
-      out.p(" ").p(operator).p(" ");
-      return right.translate(out);
+      if (right != null) {
+        left.translate(out).p(" ").p(operator).p(" ");
+        return right.translate(out);
+      } else {
+        out.p(operator);
+        return left.translate(out);
+      }
     }
 
   }

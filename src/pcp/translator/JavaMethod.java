@@ -38,9 +38,7 @@ public class JavaMethod extends Visitor implements Translatable {
 
   private JavaStatement body;
   //private ThrowsClause exception;
-  private boolean isAbstract;
-  private boolean isFinal;
-  private boolean isStatic;
+  private boolean isAbstract, isFinal, isStatic;
   private String name;
   private List<Integer> paramDimensions;
   private List<String> paramNames;

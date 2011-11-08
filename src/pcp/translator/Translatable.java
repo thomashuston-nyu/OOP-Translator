@@ -20,7 +20,8 @@ package pcp.translator;
 import xtc.tree.Printer;
 
 /**
- * A Java interface for translatable objects.
+ * An interface for classes that can be translated into
+ * C++ code using the xtc Printer.
  *
  * @author Nabil Hassein
  * @author Thomas Huston

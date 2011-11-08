@@ -40,10 +40,10 @@ import xtc.tree.Visitor;
 public class JavaPackage {
   
   private List<String> pkg;
-  private String namespace, pkgpath;
+  private String filename, namespace, path;
   
   /**
-   * Constructs the package.
+   * Constructs the package using a GNode.
    * 
    * @param n The package or import declaration node.
    */
@@ -64,6 +64,15 @@ public class JavaPackage {
   }
 
   /**
+   * Creates the package using a list.
+   *
+   * @param s The package path as a list.
+   */
+  public JavaPackage(List<String> s) {
+    pkg = s;
+  }
+
+  /**
    * Checks if the path of two packages is the same.
    *
    * @return <code>True</code> if the path is the same;
@@ -74,21 +83,24 @@ public class JavaPackage {
   }
 
   /**
+   * Gets the package as a filename.
+   *
+   * @return The filename.
+   */
+  public String getFilename() {
+    if (null == filename)
+      filename = getString("_");
+    return filename;
+  }
+
+  /**
    * Gets the package as a namespace.
    *
    * @return The namespace.
    */
   public String getNamespace() {
-    if (null != namespace)
-      return namespace;
-    StringBuilder p = new StringBuilder();
-    int size = pkg.size();
-    for (int i = 0; i < size; i++) {
-      p.append(pkg.get(i));
-      if (i < size - 1)
-        p.append("::");
-    }
-    pkgpath = p.toString();
+    if (null == namespace)
+      namespace = getString("::");
     return namespace;
   }
   
@@ -107,17 +119,9 @@ public class JavaPackage {
    * @return The package path.
    */
   public String getPath() {
-    if (null != pkgpath)
-      return pkgpath;
-    StringBuilder p = new StringBuilder();
-    int size = pkg.size();
-    for (int i = 0; i < size; i++) {
-      p.append(pkg.get(i));
-      if (i < size - 1)
-        p.append("/");
-    }
-    pkgpath = p.toString();
-    return pkgpath;
+    if (null == path)
+      path = getString("/");
+    return path;
   }
 
   /**

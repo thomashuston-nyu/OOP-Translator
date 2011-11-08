@@ -17,11 +17,15 @@
  */
 package pcp.translator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import xtc.tree.GNode;
-import xtc.tree.Visitor;
+import xtc.tree.Node;
+import xtc.tree.Printer;
 
 /**
- * A class constructor.
+ * A field declared at the class scope.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -29,16 +33,12 @@ import xtc.tree.Visitor;
  * @author Marta Wilgan
  * @version 1.0
  */
-/**
- * ("final":Word)? Modifiers Type Declarators
- */
-public class JavaField {
+public class JavaField extends JavaStatement implements Translatable {
   
-  //private Declarators declarators;
-  private boolean isAbstract;
-  private boolean isFinal;
-  private boolean isStatic;
+  private boolean isAbstract, isFinal, isStatic;
+  private List<String> names;
   private JavaType type;
+  private List<JavaExpression> values;
   private Visibility visibility;
   
   /**
@@ -47,19 +47,11 @@ public class JavaField {
    * @param n The field declaration node.
    */
   public JavaField(GNode n) {
-    // Check if the field is final
-    int i = 0;
-    if (n.getNode(1).hasName("Modifiers")) {
-      isFinal = true;
-      i++;
-    }
+    // Set the default visibility
+    visibility = Visibility.PACKAGE_PRIVATE;
 
     // Determine the modifiers
-    isAbstract = false;
-    isFinal = false;
-    isStatic = false;
-    visibility = Visibility.PACKAGE_PRIVATE;
-    for (Object o : n.getNode(i)) {
+    for (Object o : n.getNode(0)) {
       String m = ((GNode)o).getString(0);
       if (m.equals("public"))
         visibility = Visibility.PUBLIC;
@@ -71,36 +63,70 @@ public class JavaField {
         isAbstract = true;
       else if (m.equals("static"))
         isStatic = true;
+      else if (m.equals("final"))
+        isFinal = true;
     }
 
     // Get the type
-    type = new JavaType(n.getGeneric(++i));
+    type = new JavaType(n.getGeneric(1));
 
-    // Get the declarators
-
-
-  }
-  
-  public String getDeclaration() {
-    String declaration = "";//type.getType() + " " + declarators.get(0).getName();
-    if (type.isArray()) {
-      declaration += "[]";
+    // Get the variable names and initialized values
+    names = new ArrayList<String>();
+    values = new ArrayList<JavaExpression>();
+    for (Object o : n.getNode(2)) {
+      Node declarator = (Node)o;
+      names.add(declarator.getString(0));
+      if (null != declarator.get(2))
+        values.add(new JavaExpression(declarator.getGeneric(2)));
+      else
+        values.add(null);
     }
-    return declaration;
-  }
 
-  public String getName() {
-    //Declarator d = declarators.get(0);
-    //return d.getName();
-    return "";
+    // Get the dimensions if it's an array
+    if (null != n.getNode(2).getNode(0).get(1))
+      type.setDimensions(n.getNode(2).getNode(0).getNode(1).size());
   }
   
-  public String getType() {
-    return type.getType();
+  /**
+   * Gets the type of the field.
+   *
+   * @return The type.
+   */
+  public JavaType getType() {
+    return type;
   }
   
+  /**
+   * Gets the visibility of the field.
+   *
+   * @return The visibility.
+   */
   public Visibility getVisibility() {
     return visibility;
+  }
+
+  /**
+    * Translates the field and adds it 
+    * to the output stream.
+    *
+    * @param out The output stream.
+    *
+    * @return The output stream.
+    */
+  public Printer translate(Printer out) {
+    out.indent();
+    type.translate(out).p(" ");
+    int size = names.size();
+    for (int i = 0; i < size; i++) {
+      out.p(names.get(i));
+      if (null != values.get(i)) {
+        out.p(" = ");
+        values.get(i).translate(out);
+      }
+      if (i < size - 1)
+        out.p(", ");
+    }
+    return out.pln(";");
   }
 
 }
