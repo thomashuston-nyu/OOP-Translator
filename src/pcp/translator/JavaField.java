@@ -25,7 +25,8 @@ import xtc.tree.Node;
 import xtc.tree.Printer;
 
 /**
- * A field declared at the class scope.
+ * A field declaration with or without initialization;
+ * may appear at the class scope or inside a method.
  *
  * @author Nabil Hassein
  * @author Thomas Huston

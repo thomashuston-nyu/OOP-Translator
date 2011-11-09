@@ -18,10 +18,8 @@
 package pcp.translator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import xtc.tree.GNode;
@@ -65,7 +63,7 @@ public class JavaClass extends Visitor implements Translatable {
     isStatic = false;
     visibility = Visibility.PACKAGE_PRIVATE;
 
-    // Instantiate the hashes
+    // Instantiate the lists
     fields = new ArrayList<JavaField>();
     methods = new ArrayList<JavaMethod>();
 
@@ -113,7 +111,13 @@ public class JavaClass extends Visitor implements Translatable {
     return visibility;
   }
 
+  /**
+   * Gets the vtable for the class.
+   *
+   * @return The vtable.
+   */
   public LinkedHashMap<String, JavaMethod> getVTable() {
+    // Initialize the vtable if it hasn't been created yet
     if (null == vtable)
       initializeVTable();
     return vtable;
@@ -129,9 +133,15 @@ public class JavaClass extends Visitor implements Translatable {
     return extension != null;
   }
 
+  /**
+   * Initializes the vtable for the class.
+   */
   public void initializeVTable() {
+    // Don't do anything if the vtable has already been created
     if (null != vtable)
       return;
+
+    // Inherit methods from parent
     vtable = new LinkedHashMap<String, JavaMethod>();
     if (null != parent) {
       LinkedHashMap<String, JavaMethod> parentVTable = parent.getVTable();
@@ -140,6 +150,8 @@ public class JavaClass extends Visitor implements Translatable {
         vtable.put(key, parentVTable.get(key));
       }
     }
+
+    // Add/override methods
     for (JavaMethod m : methods) {
       if ((m.getVisibility() == Visibility.PUBLIC || m.getVisibility() == Visibility.PROTECTED) 
           && !m.isFinal() && !m.isStatic())
@@ -167,7 +179,7 @@ public class JavaClass extends Visitor implements Translatable {
     return isFinal;
   }
   
-  /**   
+  /**
    * Sets the superclass.
    *
    * @param parent The superclass.
@@ -248,29 +260,52 @@ public class JavaClass extends Visitor implements Translatable {
     }
   }
 
+  /**
+   * Writes the C++ header for the class to
+   * the specified output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
   public Printer translateHeader(Printer out) {
+    // Create the vtable
     initializeVTable();
+
+    // First, print the class struct
     out.indent().p("struct __").p(name).pln(" {").incr();
+
+    // Declare all the fields
     out.indent().p("__").p(name).pln("_VT* __vptr;");
     for (JavaField f : fields) {
       f.translate(out);
     }
     out.pln();
+
+    // Declare the constructor
     if (null != constructor) {
       constructor.translateHeaderDeclaration(out);
     } else {
       out.indent().p("__").p(name).pln("();");
     }
+
+    // Declare all methods
     if (methods.size() > 0)
       out.pln();
     for (JavaMethod m : methods) {
       m.translateHeaderDeclaration(out);
     }
     out.pln().indent().pln("static Class __class();").pln();
+
+    // Add the vtable
     out.indent().p("static __").p(name).pln("_VT __vtable;");
     out.decr().indent().pln("};").pln();
+
+    // Create the vtable struct
     out.indent().p("struct __").p(name).pln("_VT {").incr();
     out.indent().pln("Class __isa;");
+
+    // Declare all the methods in the vtable
     out.indent().p("int32_t (*hashCode)(").p(name).pln(");");
     out.indent().p("bool (*equals)(").p(name).pln(", Object);");
     out.indent().p("Class (*getClass)(").p(name).pln(");");
@@ -281,6 +316,8 @@ public class JavaClass extends Visitor implements Translatable {
         continue;
       vtable.get(key).translateVTableDeclaration(out, this);
     }
+
+    // Construct the vtable with pointers to the methods
     out.pln().indent().p("__").p(name).pln("_VT()");
     out.indent().p(": __isa(__").p(name).pln("::__class()),");
     if (vtable.containsKey("hashCode_int32_t")) {
@@ -313,6 +350,14 @@ public class JavaClass extends Visitor implements Translatable {
     return out;
   }
 
+  /**
+   * Translates the body of the class and
+   * writes it to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
   public Printer translate(Printer out) {
     return out;
   }

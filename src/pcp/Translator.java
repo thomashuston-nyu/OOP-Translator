@@ -65,6 +65,7 @@ public class Translator extends Tool {
    * Creates a new translator.
    */
   public Translator() {
+    // Make the runtime available globally
     Global.runtime = runtime;
   }
 
@@ -96,7 +97,7 @@ public class Translator extends Tool {
   }
   
   /**
-   * Initializes the program. Declares command line options.
+   * Initializes the program and declares command line options.
    */
   public void init() {
     super.init();
@@ -155,8 +156,11 @@ public class Translator extends Tool {
     else
       files = Global.packages.get("");
 
+    // Print the name of the current header file
     if (null != pkg)
-      runtime.console().p("### HEADER: ").p(pkg.getString("_")).pln(".h").flush();
+      runtime.console().p("### HEADER: ").p(pkg.getString("_")).pln(".h ###").pln().flush();
+    else
+      runtime.console().pln("### HEADER: main.h ###").pln().flush();
 
     // Get any imports
     Set<JavaPackage> using = new HashSet<JavaPackage>();
@@ -220,7 +224,7 @@ public class Translator extends Tool {
   }
 
   /**
-  * Recursively prints the VTables in order based
+  * Recursively prints the vtables in order based
   * on their dependencies.
   *
   * @param c The compilation unit to print.
@@ -266,10 +270,11 @@ public class Translator extends Tool {
     if (runtime.test("printJavaAST")) {
       runtime.console().format(node).pln().flush();
     }
+    
     // Translates Java to C++
     if (runtime.test("translateJava")) {
       try {
-        // Instantiate the hashes
+        // Instantiate the hash
         printed = new HashMap<JavaFile, Boolean>();
         currentPkg = "";
 
@@ -292,15 +297,14 @@ public class Translator extends Tool {
         // Resolve dependencies
         resolve(main, c);
 
-        // Print out the classes in order of dependence
-        runtime.console().pln("##### HEADER #####").pln().flush();
+        // Print the header files to the console
         Set<String> keys = Global.files.keySet();
         for (String key : keys) {
-          if (!printed.get(Global.files.get(key)))
+          if (!printed.get(Global.files.get(key))) {
             printHeader(runtime.console(), Global.files.get(key).getPackage());
+            runtime.console().pln();
+          }
         }
-
-      //  c.translate(runtime.console());
         runtime.console().flush();
       } catch (IOException i) {
         runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();

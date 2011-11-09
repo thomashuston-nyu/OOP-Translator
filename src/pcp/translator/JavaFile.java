@@ -131,6 +131,14 @@ public class JavaFile extends Visitor implements Translatable {
     pkg = new JavaPackage(n);
   }
 
+  /**
+   * Translates the classes in the file and
+   * writes them to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
   public Printer translate(Printer out) {
     JavaClass publicClass = getPublicClass();
     if (null != publicClass)

@@ -76,7 +76,6 @@ public class JavaMethod extends Visitor implements Translatable {
         dispatch((Node)o);
       }
     }
-
   }
 
   /**
@@ -235,7 +234,17 @@ public class JavaMethod extends Visitor implements Translatable {
     returnType = new JavaType(n);
   }
 
+  /**
+   * Translates the method into a declaration for
+   * the C++ header struct and writes it to the
+   * output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
   public Printer translateHeaderDeclaration(Printer out) {
+    // Create the declaration for a constructor
     if (isConstructor) {
       out.indent().p("__").p(inClass.getName()).p("(");
       int size = paramNames.size();
@@ -246,6 +255,8 @@ public class JavaMethod extends Visitor implements Translatable {
           out.p(", ");
       }
       return out.pln(");");
+
+    // Create the declaration for a method
     } else {
       out.indent().p("static ");
       returnType.translate(out).p(" ");
@@ -265,6 +276,15 @@ public class JavaMethod extends Visitor implements Translatable {
     }
   }
 
+  /**
+   * Translates the method into a declaration for
+   * the C++ vtable header struct and writes it to
+   * the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
   public Printer translateVTableDeclaration(Printer out, JavaClass caller) {
     out.indent().p(returnType.getType()).p(" (*")
       .p(name).p(")(").p(caller.getName());
@@ -275,6 +295,15 @@ public class JavaMethod extends Visitor implements Translatable {
     return out.pln(");");
   }
 
+  /**
+   * Translates the method into a constructor
+   * initialization for the C++ vtable header struct
+   * and writes it to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
   public Printer translateVTableReference(Printer out, JavaClass caller) {
     out.indent().p(name).p("(");
     if (caller != inClass) {
@@ -289,6 +318,14 @@ public class JavaMethod extends Visitor implements Translatable {
     return out.p(")");
   }
 
+  /**
+   * Translates the method into C++ and writes
+   * it to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
   public Printer translate(Printer out) {
     return body.translate(out);
   }

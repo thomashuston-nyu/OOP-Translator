@@ -40,6 +40,7 @@ import xtc.tree.Visitor;
 public class JavaType extends Visitor implements Translatable {
   
   // Map from Java primitive types to C++ primitive types
+  // Includes void for convenience
   private final static Map<String, String> primitives = new HashMap<String, String>();
   static {
     primitives.put("byte", "int8_t");

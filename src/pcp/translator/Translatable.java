@@ -21,7 +21,7 @@ import xtc.tree.Printer;
 
 /**
  * An interface for classes that can be translated into
- * C++ code using the xtc Printer.
+ * C++ code and written to xtc Printer output stream.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
