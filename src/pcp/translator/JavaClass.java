@@ -336,7 +336,7 @@ public class JavaClass extends Visitor implements Translatable {
     if (vtable.containsKey("toString_String")) {
       vtable.get("toString_String").translateVTableReference(out, this);
     } else {
-      out.indent().p("(String(*)(").p(name).p("))&__Object::toString)");
+      out.indent().p("toString(String(*)(").p(name).p("))&__Object::toString)");
     }
     for (String key : keys) {
       if (key.equals("hashCode_int32_t") || key.equals("equals_bool") || key.equals("toString_String"))
