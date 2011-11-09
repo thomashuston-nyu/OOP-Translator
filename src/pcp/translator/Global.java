@@ -38,6 +38,7 @@ import xtc.util.Runtime;
  */
 public class Global {
 
+  public static Map<JavaClass, JavaFile> classes = new HashMap<JavaClass, JavaFile>();
   public static Map<String, JavaFile> files = new HashMap<String, JavaFile>();
   public static Map<JavaFile, Set<JavaFile>> imports = new HashMap<JavaFile, Set<JavaFile>>();
   public static Map<String, Set<JavaFile>> packages = new HashMap<String, Set<JavaFile>>();

@@ -19,8 +19,10 @@ package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
@@ -40,14 +42,13 @@ public class JavaClass extends Visitor implements Translatable {
   
   private JavaMethod constructor;
   private JavaType extension;
-  private Map<Visibility, List<JavaField>> fields;
-  private boolean isAbstract;
-  private boolean isFinal;
-  private boolean isStatic;
-  private Map<Visibility, List<JavaMethod>> methods;
+  private List<JavaField> fields;
+  private boolean isAbstract, isFinal, isStatic;
+  private List<JavaMethod> methods;
   private String name;
   private JavaClass parent;
   private Visibility visibility;
+  private LinkedHashMap<String, JavaMethod> vtable;
   
   /**
    * Constructs the class.
@@ -65,12 +66,8 @@ public class JavaClass extends Visitor implements Translatable {
     visibility = Visibility.PACKAGE_PRIVATE;
 
     // Instantiate the hashes
-    fields = new HashMap<Visibility, List<JavaField>>();
-    methods = new HashMap<Visibility, List<JavaMethod>>();
-    for (Visibility v : Visibility.values()) {
-      fields.put(v, new ArrayList<JavaField>());
-      methods.put(v, new ArrayList<JavaMethod>());
-    }
+    fields = new ArrayList<JavaField>();
+    methods = new ArrayList<JavaMethod>();
 
     // Visit the nodes in the class
     for (Object o : n) {
@@ -115,6 +112,12 @@ public class JavaClass extends Visitor implements Translatable {
   public Visibility getVisibility() {
     return visibility;
   }
+
+  public LinkedHashMap<String, JavaMethod> getVTable() {
+    if (null == vtable)
+      initializeVTable();
+    return vtable;
+  }
   
   /**
    * Tests whether the class has a superclass.
@@ -122,8 +125,26 @@ public class JavaClass extends Visitor implements Translatable {
    * @return <code>True</code> if the class has a superclass;
    * <code>false</code> otherwise.
    */
-  public boolean hasExtension() {
+  public boolean hasParent() {
     return extension != null;
+  }
+
+  public void initializeVTable() {
+    if (null != vtable)
+      return;
+    vtable = new LinkedHashMap<String, JavaMethod>();
+    if (null != parent) {
+      LinkedHashMap<String, JavaMethod> parentVTable = parent.getVTable();
+      Set<String> keys = parentVTable.keySet();
+      for (String key : keys) {
+        vtable.put(key, parentVTable.get(key));
+      }
+    }
+    for (JavaMethod m : methods) {
+      if ((m.getVisibility() == Visibility.PUBLIC || m.getVisibility() == Visibility.PROTECTED) 
+          && !m.isFinal() && !m.isStatic())
+        vtable.put(m.getName() + "_" + m.getReturnType().getType(), m);
+    }
   }
   
   /**
@@ -174,7 +195,7 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitConstructorDeclaration(GNode n) {
-    constructor = new JavaMethod(n);
+    constructor = new JavaMethod(n, this);
   }
   
   /**
@@ -192,8 +213,7 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitFieldDeclaration(GNode n) {
-    JavaField f = new JavaField(n);
-    fields.get(f.getVisibility()).add(f);
+    fields.add(new JavaField(n));
   }
 
   /**
@@ -202,8 +222,7 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitMethodDeclaration(GNode n) {
-    JavaMethod m = new JavaMethod(n);
-    methods.get(m.getVisibility()).add(m);
+    methods.add(new JavaMethod(n, this));
   }
   
   /**
@@ -229,8 +248,73 @@ public class JavaClass extends Visitor implements Translatable {
     }
   }
 
+  public Printer translateHeader(Printer out) {
+    initializeVTable();
+    out.indent().p("struct __").p(name).pln(" {").incr();
+    out.indent().p("__").p(name).pln("_VT* __vptr;");
+    for (JavaField f : fields) {
+      f.translate(out);
+    }
+    out.pln();
+    if (null != constructor) {
+      constructor.translateHeaderDeclaration(out);
+    } else {
+      out.indent().p("__").p(name).pln("();");
+    }
+    if (methods.size() > 0)
+      out.pln();
+    for (JavaMethod m : methods) {
+      m.translateHeaderDeclaration(out);
+    }
+    out.pln().indent().pln("static Class __class();").pln();
+    out.indent().p("static __").p(name).pln("_VT __vtable;");
+    out.decr().indent().pln("};").pln();
+    out.indent().p("struct __").p(name).pln("_VT {").incr();
+    out.indent().pln("Class __isa;");
+    out.indent().p("int32_t (*hashCode)(").p(name).pln(");");
+    out.indent().p("bool (*equals)(").p(name).pln(", Object);");
+    out.indent().p("Class (*getClass)(").p(name).pln(");");
+    out.indent().p("String (*toString)(").p(name).pln(");");
+    Set<String> keys = vtable.keySet();
+    for (String key : keys) {
+      if (key.equals("hashCode_int32_t") || key.equals("equals_bool") || key.equals("toString_String"))
+        continue;
+      vtable.get(key).translateVTableDeclaration(out, this);
+    }
+    out.pln().indent().p("__").p(name).pln("_VT()");
+    out.indent().p(": __isa(__").p(name).pln("::__class()),");
+    if (vtable.containsKey("hashCode_int32_t")) {
+      vtable.get("hashCode_int32_t").translateVTableReference(out, this);
+      out.pln(",");
+    } else {
+      out.indent().p("hashCode((int32_t(*)(").p(name).pln("))&__Object::hashCode),");
+    }   
+    if (vtable.containsKey("equals_bool")) {
+      vtable.get("equals_bool").translateVTableReference(out, this);
+      out.pln(",");
+    } else {
+      out.indent().p("equals((bool(*)(").p(name).pln(",Object))&__Object::equals),");
+    }
+    out.indent().p("getClass((Class(*)(").p(name).pln("))&__Object::getClass),");
+    if (vtable.containsKey("toString_String")) {
+      vtable.get("toString_String").translateVTableReference(out, this);
+    } else {
+      out.indent().p("(String(*)(").p(name).p("))&__Object::toString)");
+    }
+    for (String key : keys) {
+      if (key.equals("hashCode_int32_t") || key.equals("equals_bool") || key.equals("toString_String"))
+        continue;
+      out.pln(",");
+      vtable.get(key).translateVTableReference(out, this);
+    }
+    out.pln(" {}");
+    out.decr().indent().pln("};");
+
+    return out;
+  }
+
   public Printer translate(Printer out) {
-    return methods.get(Visibility.PUBLIC).get(0).translate(out);
+    return out;
   }
 
 }

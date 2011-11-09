@@ -21,7 +21,8 @@
 		<!-- Create the classes directory -->
     <mkdir dir="${classes}"/>
     <!-- Compile the source code -->
-		<javac srcdir="${src}" destdir="${classes}" classpathref="classpath" includeantruntime="false"/>
+		<javac srcdir="${src}" destdir="${classes}" classpathref="classpath" includeantruntime="false">
+		</javac>
 	</target>
 	
 	<!-- Generate the distribution jar -->

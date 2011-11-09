@@ -106,6 +106,7 @@ public class JavaFile extends Visitor implements Translatable {
    */
   public void visitClassDeclaration(GNode n) {
     JavaClass c = new JavaClass(n);
+    Global.classes.put(c, this);
     Visibility v = c.getVisibility();
     classes.get(v).add(c);
   }

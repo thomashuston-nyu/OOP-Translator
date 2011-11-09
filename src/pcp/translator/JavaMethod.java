@@ -37,10 +37,10 @@ import xtc.tree.Visitor;
 public class JavaMethod extends Visitor implements Translatable {
 
   private JavaStatement body;
+  private JavaClass inClass;
   //private ThrowsClause exception;
-  private boolean isAbstract, isFinal, isStatic;
+  private boolean isAbstract, isConstructor, isFinal, isStatic;
   private String name;
-  private List<Integer> paramDimensions;
   private List<String> paramNames;
   private List<JavaType> paramTypes;
   private JavaType returnType;
@@ -51,21 +51,24 @@ public class JavaMethod extends Visitor implements Translatable {
    *
    * @param n The method declaration node.
    */
-  public JavaMethod(GNode n) {
+  public JavaMethod(GNode n, JavaClass inClass) {
+    // Set the class
+    this.inClass = inClass;
     
     // Set the default visibility
     visibility = Visibility.PACKAGE_PRIVATE;
 
     // Initialize the parameter lists
-    paramDimensions = new ArrayList<Integer>();
     paramNames = new ArrayList<String>();
     paramTypes = new ArrayList<JavaType>();
 
     // Get the name
-    if (n.hasName("MethodDeclaration"))
+    if (n.hasName("MethodDeclaration")) {
       name = n.getString(3);
-    else
+    } else {
       name= n.getString(2);
+      isConstructor = true;
+    }
 
     // Dispatch over the child nodes
     for (Object o : n) {
@@ -74,6 +77,24 @@ public class JavaMethod extends Visitor implements Translatable {
       }
     }
 
+  }
+
+  /**
+   * Gets the class the method is in.
+   *
+   * @return The class.
+   */
+  public JavaClass getClassFrom() {
+    return inClass;
+  }
+
+  /**
+   * Gets the name of the method.
+   *
+   * @return The name.
+   */
+  public String getName() {
+    return name;
   }
 
   /**
@@ -159,9 +180,7 @@ public class JavaMethod extends Visitor implements Translatable {
       paramTypes.add(new JavaType(param.getGeneric(j++)));
       paramNames.add(param.getString(++j));
       if (++j < param.size() - 1)
-        paramDimensions.add(param.getNode(j).size());
-      else
-        paramDimensions.add(0);
+        paramTypes.get(paramTypes.size() - 1).setDimensions(param.getNode(j).size());
     }
   }
 
@@ -214,6 +233,60 @@ public class JavaMethod extends Visitor implements Translatable {
    */
   public void visitVoidType(GNode n) {
     returnType = new JavaType(n);
+  }
+
+  public Printer translateHeaderDeclaration(Printer out) {
+    if (isConstructor) {
+      out.indent().p("__").p(inClass.getName()).p("(");
+      int size = paramNames.size();
+      for (int i = 0; i < size; i++) {
+        paramTypes.get(i).translate(out).p(" ");
+        out.p(paramNames.get(i));
+        if (i < size - 1)
+          out.p(", ");
+      }
+      return out.pln(");");
+    } else {
+      out.indent().p("static ");
+      returnType.translate(out).p(" ");
+      out.p(name).p("(");
+      if ((visibility == Visibility.PUBLIC || visibility == Visibility.PROTECTED) && !isStatic) {
+        out.p(inClass.getName());
+        if (paramNames.size() > 0)
+          out.p(", ");
+      }
+      int size = paramNames.size();
+      for (int i = 0; i < size; i++) {
+        paramTypes.get(i).translate(out);
+        if (i < size - 1)
+          out.p(", ");
+      }
+      return out.pln(");");
+    }
+  }
+
+  public Printer translateVTableDeclaration(Printer out, JavaClass caller) {
+    out.indent().p(returnType.getType()).p(" (*")
+      .p(name).p(")(").p(caller.getName());
+    for (JavaType param : paramTypes) {
+      out.p(", ");
+      param.translate(out);
+    }
+    return out.pln(");");
+  }
+
+  public Printer translateVTableReference(Printer out, JavaClass caller) {
+    out.indent().p(name).p("(");
+    if (caller != inClass) {
+      out.p("(").p(returnType.getType()).p("(*)(").p(caller.getName());
+      for (JavaType param : paramTypes) {
+        out.p(",");
+        param.translate(out);
+      }
+      out.p("))");
+    }
+    out.p("&__").p(inClass.getName()).p("::").p(name);
+    return out.p(")");
   }
 
   public Printer translate(Printer out) {

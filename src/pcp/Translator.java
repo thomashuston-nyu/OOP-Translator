@@ -57,7 +57,6 @@ import xtc.util.Tool;
 public class Translator extends Tool {
   
   private Map<JavaFile, Boolean> printed;
-  private Map<JavaFile, JavaFile> requires;
   private String classpath;
   private File main;
   private String currentPkg;
@@ -93,7 +92,7 @@ public class Translator extends Tool {
    * @return The version.
    */
   public String getVersion() {
-    return "1.0";
+    return "1.1";
   }
   
   /**
@@ -199,11 +198,12 @@ public class Translator extends Tool {
       out.indent().p("struct __").p(className).pln(";");
       out.indent().p("struct __").p(className).pln("_VT;");
       out.pln().indent().p("typedef __").p(className).p("* ")
-        .p(className).pln(";").pln();
+        .p(className).pln(";");
     }
 
     // Print header structs
     for (JavaFile file : files) {
+      out.pln();
       printHeaderVTable(out, file);
     } 
 
@@ -231,8 +231,8 @@ public class Translator extends Tool {
       return;
 
     // Make sure that all dependencies have been printed first
-    JavaFile d = requires.get(c);
-    if (null != d) {
+    if (c.getPublicClass().hasParent()) {
+      JavaFile d = Global.classes.get(c.getPublicClass().getParent());
     	if (null != c.getPackage() && null != d.getPackage()) {
     		if (!c.getPackage().equals(d.getPackage()))
     			return;
@@ -250,20 +250,7 @@ public class Translator extends Tool {
     String className = c.getPublicClass().getName();
 
     // Class struct
-    out.indent().p("struct __").p(className).pln(" {").incr();
-    out.indent().p("__").p(className).pln("_VT* __vptr;").pln();
-    out.indent().p("__").p(className).pln("();").pln();
-    out.indent().pln("static Class __class();").pln();
-    out.indent().p("static __").p(className).pln("_VT __vtable;").decr();
-    out.indent().pln("};").pln();
-    
-    // VTable struct
-    out.indent().p("struct __").p(className).pln("_VT {").incr();
-    out.indent().pln("Class __isa;").pln();
-    out.indent().p("__").p(className).pln("_VT()");
-    out.indent().p(": __isa(__").p(className).pln("::__class())").decr();
-    out.indent().pln("};");
-    out.pln();
+    c.getPublicClass().translateHeader(out);
 
     // Mark this class as printed
     printed.put(c, true);
@@ -283,7 +270,6 @@ public class Translator extends Tool {
     if (runtime.test("translateJava")) {
       try {
         // Instantiate the hashes
-        requires = new HashMap<JavaFile, JavaFile>();
         printed = new HashMap<JavaFile, Boolean>();
         currentPkg = "";
 
@@ -314,7 +300,7 @@ public class Translator extends Tool {
             printHeader(runtime.console(), Global.files.get(key).getPackage());
         }
 
-        c.translate(runtime.console());
+      //  c.translate(runtime.console());
         runtime.console().flush();
       } catch (IOException i) {
         runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();
@@ -401,7 +387,7 @@ public class Translator extends Tool {
 
     // Set the superclass
     JavaClass cd = c.getPublicClass();
-    if (cd.hasExtension()) {
+    if (cd.hasParent()) {
       String ext = cd.getExtension().getPath();
       String extpath;
       boolean found = false;
@@ -411,7 +397,6 @@ public class Translator extends Tool {
         extpath = classpath + ext;
         if (Global.files.containsKey(extpath)) {
           cd.setParent(Global.files.get(extpath).getPublicClass());
-          requires.put(c, Global.files.get(extpath));
           found = true;
         }
       } else {
@@ -420,7 +405,6 @@ public class Translator extends Tool {
           extpath = classpath + pkg.getPath() + "/" + ext;
           if (Global.files.containsKey(extpath)) {
             cd.setParent(Global.files.get(extpath).getPublicClass());
-            requires.put(c, Global.files.get(extpath));
             found = true;
           }
         }
@@ -432,7 +416,6 @@ public class Translator extends Tool {
               extpath = classpath + importpath;
               if (Global.files.containsKey(extpath)) {
                 cd.setParent(Global.files.get(extpath).getPublicClass());
-                requires.put(c, Global.files.get(extpath));
                 found = true;
                 break;
               }
@@ -440,7 +423,6 @@ public class Translator extends Tool {
               extpath = classpath + importpath + "/" + ext;
               if (Global.files.containsKey(extpath)) {
                 cd.setParent(Global.files.get(extpath).getPublicClass());
-                requires.put(c, Global.files.get(extpath));
                 found = true;
                 break;
               }
@@ -450,8 +432,6 @@ public class Translator extends Tool {
       }                                         
       if (!found)
         runtime.errConsole().p("Superclass not found: ").p(ext).pln().flush();
-    } else {
-      requires.put(c, null);
     }
 
     // Initialize printed to false for this compilation unit
