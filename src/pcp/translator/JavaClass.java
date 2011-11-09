@@ -34,7 +34,8 @@ import xtc.tree.Visitor;
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
- * @version 1.0
+ *
+ * @version 1.1
  */
 public class JavaClass extends Visitor implements Translatable {
   
@@ -74,6 +75,9 @@ public class JavaClass extends Visitor implements Translatable {
       }
     }
   }
+
+
+  // ============================ Get Methods =======================
   
   /**
    * Gets the reference to the superclass.
@@ -134,32 +138,6 @@ public class JavaClass extends Visitor implements Translatable {
   }
 
   /**
-   * Initializes the vtable for the class.
-   */
-  public void initializeVTable() {
-    // Don't do anything if the vtable has already been created
-    if (null != vtable)
-      return;
-
-    // Inherit methods from parent
-    vtable = new LinkedHashMap<String, JavaMethod>();
-    if (null != parent) {
-      LinkedHashMap<String, JavaMethod> parentVTable = parent.getVTable();
-      Set<String> keys = parentVTable.keySet();
-      for (String key : keys) {
-        vtable.put(key, parentVTable.get(key));
-      }
-    }
-
-    // Add/override methods
-    for (JavaMethod m : methods) {
-      if ((m.getVisibility() == Visibility.PUBLIC || m.getVisibility() == Visibility.PROTECTED) 
-          && !m.isFinal() && !m.isStatic())
-        vtable.put(m.getName() + "_" + m.getReturnType().getType(), m);
-    }
-  }
-  
-  /**
    * Tests whether the class is abstract.
    *
    * @return <code>True</code> if the class is abstract;
@@ -179,6 +157,9 @@ public class JavaClass extends Visitor implements Translatable {
     return isFinal;
   }
   
+
+  // ============================ Set Methods =======================
+  
   /**
    * Sets the superclass.
    *
@@ -188,6 +169,9 @@ public class JavaClass extends Visitor implements Translatable {
     this.parent = parent;
   }
   
+
+  // =========================== Visit Methods ======================
+
   /**
    * Visits the class body.
    *
@@ -257,6 +241,35 @@ public class JavaClass extends Visitor implements Translatable {
         isAbstract = true;
       else if (m.equals("static"))
         isStatic = true;
+    }
+  }
+
+
+  // ======================== Translation Methods ===================
+
+  /**
+   * Initializes the vtable for the class.
+   */
+  public void initializeVTable() {
+    // Don't do anything if the vtable has already been created
+    if (null != vtable)
+      return;
+
+    // Inherit methods from parent
+    vtable = new LinkedHashMap<String, JavaMethod>();
+    if (null != parent) {
+      LinkedHashMap<String, JavaMethod> parentVTable = parent.getVTable();
+      Set<String> keys = parentVTable.keySet();
+      for (String key : keys) {
+        vtable.put(key, parentVTable.get(key));
+      }
+    }
+
+    // Add/override methods
+    for (JavaMethod m : methods) {
+      if ((m.getVisibility() == Visibility.PUBLIC || m.getVisibility() == Visibility.PROTECTED) 
+          && !m.isFinal() && !m.isStatic())
+        vtable.put(m.getName() + "_" + m.getReturnType().getType(), m);
     }
   }
 

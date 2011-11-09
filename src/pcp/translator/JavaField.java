@@ -32,7 +32,8 @@ import xtc.tree.Printer;
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
- * @version 1.0
+ *
+ * @version 1.1
  */
 public class JavaField extends JavaStatement implements Translatable {
   
@@ -87,6 +88,9 @@ public class JavaField extends JavaStatement implements Translatable {
     if (null != n.getNode(2).getNode(0).get(1))
       type.setDimensions(n.getNode(2).getNode(0).getNode(1).size());
   }
+
+
+  // ============================ Get Methods =======================
   
   /**
    * Gets the type of the field.
@@ -105,6 +109,9 @@ public class JavaField extends JavaStatement implements Translatable {
   public Visibility getVisibility() {
     return visibility;
   }
+
+
+  // ======================== Translation Methods ===================
 
   /**
     * Translates the field and adds it 

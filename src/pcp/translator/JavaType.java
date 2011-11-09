@@ -35,7 +35,8 @@ import xtc.tree.Visitor;
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
- * @version 1.0
+ *
+ * @version 1.1
  */
 public class JavaType extends Visitor implements Translatable {
   
@@ -66,6 +67,9 @@ public class JavaType extends Visitor implements Translatable {
   public JavaType(GNode n) {
     dispatch(n);
   }
+
+
+  // ============================ Get Methods =======================
 
   /**
    * Gets the dimensions if it's an array.
@@ -138,6 +142,9 @@ public class JavaType extends Visitor implements Translatable {
     return 0 < dimensions;
   }
 
+
+  // ============================ Set Methods =======================
+
   /**
    * Set the package of the class.
    *
@@ -158,6 +165,9 @@ public class JavaType extends Visitor implements Translatable {
     else
       Global.runtime.errConsole().p("Invalid array dimensions: ").pln(dim).flush();
   }
+
+
+  // =========================== Visit Methods ======================
 
   /**
    * Sets the primitive type.
@@ -205,6 +215,9 @@ public class JavaType extends Visitor implements Translatable {
   public void visitVoidType(GNode n) {
     primitiveType = "void"; 
   }
+
+
+  // ======================== Translation Methods ===================
 
   /**
     * Translates the type and adds it 

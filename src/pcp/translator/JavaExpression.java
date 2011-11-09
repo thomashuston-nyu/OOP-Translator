@@ -33,7 +33,8 @@ import xtc.tree.Visitor;
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
- * @version 1.0
+ *
+ * @version 1.1
  */
 public class JavaExpression extends Visitor implements Translatable {
 
@@ -52,6 +53,9 @@ public class JavaExpression extends Visitor implements Translatable {
   public JavaExpression(GNode n) {
     dispatch(n);
   }
+
+
+  // =========================== Visit Methods ======================
 
   /**
    * Creates a new additive expression.
@@ -349,6 +353,9 @@ public class JavaExpression extends Visitor implements Translatable {
   public void visitVariableInitializer(GNode n) {
     e = new VariableInitializer(n);
   }
+
+
+  // ========================== Nested Classes ======================
 
   /**
    * An additive expression 
@@ -1002,6 +1009,8 @@ public class JavaExpression extends Visitor implements Translatable {
 
   }
 
+
+  // ======================== Translation Methods ===================
 
   /**
     * Translates the expression and adds it 

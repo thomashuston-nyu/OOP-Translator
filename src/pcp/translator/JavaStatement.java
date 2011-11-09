@@ -26,14 +26,15 @@ import xtc.tree.Printer;
 import xtc.tree.Visitor;
 
 /**
- * A wrapper around the variouse types of Java statements;
+ * A wrapper around the various types of Java statements;
  * used to avoid repetitive visit methods.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
- * @version 1.0
+ *
+ * @version 1.1
  */
 public class JavaStatement extends Visitor implements Translatable {
 
@@ -50,6 +51,9 @@ public class JavaStatement extends Visitor implements Translatable {
   public JavaStatement(GNode n) {
     dispatch(n);
   }
+
+
+  // =========================== Visit Methods ======================
   
   /**
    * Creates a new block.
@@ -185,6 +189,9 @@ public class JavaStatement extends Visitor implements Translatable {
   public void visitWhileStatement(GNode n) {
     s = new WhileStatement(n);
   }
+
+
+  // ========================== Nested Classes ======================
 
   /**
    * A block.
@@ -756,6 +763,9 @@ public class JavaStatement extends Visitor implements Translatable {
     }
 
   }
+
+
+  // ======================== Translation Methods ===================
 
   /**
    * Translates the statement and adds it 

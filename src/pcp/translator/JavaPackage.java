@@ -35,7 +35,8 @@ import xtc.tree.Visitor;
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
- * @version 1.0
+ *
+ * @version 1.1
  */
 public class JavaPackage {
   
@@ -72,15 +73,8 @@ public class JavaPackage {
     pkg = s;
   }
 
-  /**
-   * Checks if the path of two packages is the same.
-   *
-   * @return <code>True</code> if the path is the same;
-   * <code>false</code> otherwise.
-   */
-  public boolean equals(JavaPackage o) {
-    return o.getPath().equals(getPath());
-  }
+
+  // ============================ Get Methods =======================
 
   /**
    * Gets the package as a filename.
@@ -141,5 +135,18 @@ public class JavaPackage {
     }
     return p.toString();
   }
-  
+
+
+  // =========================== Other Methods ======================
+
+  /**
+   * Checks if the path of two packages is the same.
+   *
+   * @return <code>True</code> if the path is the same;
+   * <code>false</code> otherwise.
+   */
+  public boolean equals(JavaPackage o) {
+    return o.getPath().equals(getPath());
+  }
+
 }

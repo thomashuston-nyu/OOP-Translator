@@ -52,7 +52,8 @@ import xtc.util.Tool;
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
- * @version 1.0
+ *
+ * @version 1.1
  */
 public class Translator extends Tool {
   
@@ -68,6 +69,9 @@ public class Translator extends Tool {
     // Make the runtime available globally
     Global.runtime = runtime;
   }
+
+
+  // ============================ Get Methods =======================
 
   /**
    * Gets the program name.
@@ -95,6 +99,9 @@ public class Translator extends Tool {
   public String getVersion() {
     return "1.1";
   }
+
+
+  // ====================== Initialization Methods ==================
   
   /**
    * Initializes the program and declares command line options.
@@ -105,161 +112,7 @@ public class Translator extends Tool {
     bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
     bool("translateJava", "translateJava", false, "Translate Java to C++.");
   }
-  
-  /**
-   * Parses the specified file.
-   *
-   * @param file The corresponding file.
-   *
-   * @return The AST corresponding to the file's contents, 
-   * or null if no tree has been generated.
-   *
-   * @throws IOException Signals an I/O error.
-   * @throws ParseException Signals a parse error.
-   */
-  public Node parse(File file) throws IOException, ParseException {
-    Reader in = new FileReader(file);
-    return parse(in, file);
-  }
 
-  /**
-   * Parses the specified file.
-   *
-   * @param in The input stream for the file.
-   * @param file The corresponding file.
-   *
-   * @return The AST corresponding to the file's contents, 
-   * or null if no tree has been generated.
-   *
-   * @throws IOException Signals an I/O error.
-   * @throws ParseException Signals a parse error.
-   */
-  public Node parse(Reader in, File file) throws IOException, ParseException {
-    if (main == null)
-      main = file;
-    JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
-    Result result = parser.pCompilationUnit(0);
-    return (Node)parser.value(result);
-  }
-
-  /**
-   * Constructs the C++ header file for the specific package.
-   *
-   * @param out The output stream.
-   * @param pkg The package.
-   */
-  public void printHeader(Printer out, JavaPackage pkg) {
-    // Get the files in the package
-    Set<JavaFile> files;
-    if (null != pkg)
-      files = Global.packages.get(pkg.getPath());
-    else
-      files = Global.packages.get("");
-
-    // Print the name of the current header file
-    if (null != pkg)
-      runtime.console().p("### HEADER: ").p(pkg.getString("_")).pln(".h ###").pln().flush();
-    else
-      runtime.console().pln("### HEADER: main.h ###").pln().flush();
-
-    // Get any imports
-    Set<JavaPackage> using = new HashSet<JavaPackage>();
-    for (JavaFile file : files) {
-      List<JavaPackage> imports = file.getImports();
-      for (JavaPackage i : imports) {
-        if (null == pkg || !i.getPath().equals(pkg.getPath()))
-          using.add(i);
-      }
-    }
-
-    // Include any imported headers
-    out.pln("#pragma once").pln();
-    out.pln("#include <iostream>");
-    out.pln("#include <sstream>").pln();
-    out.pln("#include \"java_lang.h\"");
-    for (JavaPackage i : using) {
-      out.p("#include \"").p(i.getString("_")).pln(".h\"");
-    }
-
-    // Declare namespaces being used
-    out.pln().pln("using namespace java::lang;");
-    for (JavaPackage i : using) {
-      out.p("using namespace ").p(i.getString("::")).pln(";");
-    }
-    out.pln();
-
-    // Add the namespace
-    if (null != pkg) {
-      List<String> pkgparts = pkg.getPackage();
-      for (String part : pkgparts) {
-        out.indent().p("namespace ").p(part).pln(" {").incr();
-      }
-    }
-
-    // Declare the class structs
-    for (JavaFile file : files) {
-      String className = file.getPublicClass().getName();
-      out.indent().p("struct __").p(className).pln(";");
-      out.indent().p("struct __").p(className).pln("_VT;");
-      out.pln().indent().p("typedef __").p(className).p("* ")
-        .p(className).pln(";");
-    }
-
-    // Print header structs
-    for (JavaFile file : files) {
-      out.pln();
-      printHeaderVTable(out, file);
-    } 
-
-    // Close the namespace
-    if (null != pkg) {
-      List<String> pkgparts = pkg.getPackage();
-      for (int i = 0; i < pkgparts.size(); i++) {
-        out.decr().indent().pln("}");
-      }
-    }
-
-    // Flush the output
-    out.flush();
-  }
-
-  /**
-  * Recursively prints the vtables in order based
-  * on their dependencies.
-  *
-  * @param c The compilation unit to print.
-  */
-  public void printHeaderVTable(Printer out, JavaFile c) {
-    // Don't print out the structs twice
-    if (printed.get(c))
-      return;
-
-    // Make sure that all dependencies have been printed first
-    if (c.getPublicClass().hasParent()) {
-      JavaFile d = Global.classes.get(c.getPublicClass().getParent());
-    	if (null != c.getPackage() && null != d.getPackage()) {
-    		if (!c.getPackage().equals(d.getPackage()))
-    			return;
-    		if (!printed.get(d))
-    			printHeaderVTable(out, d);
-    	} else if (null != c.getPackage() || null != d.getPackage()) {
-    		return;
-    	} else {
-    		if (!printed.get(d))
-    			printHeaderVTable(out, d);
-    	}
-    }
-
-    // Print the structs
-    String className = c.getPublicClass().getName();
-
-    // Class struct
-    c.getPublicClass().translateHeader(out);
-
-    // Mark this class as printed
-    printed.put(c, true);
-  }
-  
   /**
    * Processes the specified AST node.
    *
@@ -314,6 +167,48 @@ public class Translator extends Tool {
     }
   }
 
+
+  // ========================== Parsing Methods =====================
+  
+  /**
+   * Parses the specified file.
+   *
+   * @param file The corresponding file.
+   *
+   * @return The AST corresponding to the file's contents, 
+   * or null if no tree has been generated.
+   *
+   * @throws IOException Signals an I/O error.
+   * @throws ParseException Signals a parse error.
+   */
+  public Node parse(File file) throws IOException, ParseException {
+    Reader in = new FileReader(file);
+    return parse(in, file);
+  }
+
+  /**
+   * Parses the specified file.
+   *
+   * @param in The input stream for the file.
+   * @param file The corresponding file.
+   *
+   * @return The AST corresponding to the file's contents, 
+   * or null if no tree has been generated.
+   *
+   * @throws IOException Signals an I/O error.
+   * @throws ParseException Signals a parse error.
+   */
+  public Node parse(Reader in, File file) throws IOException, ParseException {
+    if (main == null)
+      main = file;
+    JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
+    Result result = parser.pCompilationUnit(0);
+    return (Node)parser.value(result);
+  }
+
+
+  // =================== Dependency Resolution Methods ==============
+  
   /**
   * First parses the specified file and creates its
   * compilation unit, then resolves dependencies.
@@ -442,6 +337,9 @@ public class Translator extends Tool {
     printed.put(c, false); 
   }
 
+
+  // ========================== Nested Classes ======================
+
   /**
   * A filter for Java files.
   */                
@@ -460,6 +358,130 @@ public class Translator extends Tool {
     }
 
   }
+
+
+  // ======================= Translation Methods ====================
+
+  /**
+   * Constructs the C++ header file for the specific package.
+   *
+   * @param out The output stream.
+   * @param pkg The package.
+   */
+  public void printHeader(Printer out, JavaPackage pkg) {
+    // Get the files in the package
+    Set<JavaFile> files;
+    if (null != pkg)
+      files = Global.packages.get(pkg.getPath());
+    else
+      files = Global.packages.get("");
+
+    // Print the name of the current header file
+    if (null != pkg)
+      runtime.console().p("### HEADER: ").p(pkg.getString("_")).pln(".h ###").pln().flush();
+    else
+      runtime.console().pln("### HEADER: main.h ###").pln().flush();
+
+    // Get any imports
+    Set<JavaPackage> using = new HashSet<JavaPackage>();
+    for (JavaFile file : files) {
+      List<JavaPackage> imports = file.getImports();
+      for (JavaPackage i : imports) {
+        if (null == pkg || !i.getPath().equals(pkg.getPath()))
+          using.add(i);
+      }
+    }
+
+    // Include any imported headers
+    out.pln("#pragma once").pln();
+    out.pln("#include <iostream>");
+    out.pln("#include <sstream>").pln();
+    out.pln("#include \"java_lang.h\"");
+    for (JavaPackage i : using) {
+      out.p("#include \"").p(i.getString("_")).pln(".h\"");
+    }
+
+    // Declare namespaces being used
+    out.pln().pln("using namespace java::lang;");
+    for (JavaPackage i : using) {
+      out.p("using namespace ").p(i.getString("::")).pln(";");
+    }
+    out.pln();
+
+    // Add the namespace
+    if (null != pkg) {
+      List<String> pkgparts = pkg.getPackage();
+      for (String part : pkgparts) {
+        out.indent().p("namespace ").p(part).pln(" {").incr();
+      }
+    }
+
+    // Declare the class structs
+    for (JavaFile file : files) {
+      String className = file.getPublicClass().getName();
+      out.indent().p("struct __").p(className).pln(";");
+      out.indent().p("struct __").p(className).pln("_VT;");
+      out.pln().indent().p("typedef __").p(className).p("* ")
+        .p(className).pln(";");
+    }
+
+    // Print header structs
+    for (JavaFile file : files) {
+      out.pln();
+      printHeaderVTable(out, file);
+    } 
+
+    // Close the namespace
+    if (null != pkg) {
+      List<String> pkgparts = pkg.getPackage();
+      for (int i = 0; i < pkgparts.size(); i++) {
+        out.decr().indent().pln("}");
+      }
+    }
+
+    // Flush the output
+    out.flush();
+  }
+
+  /**
+  * Recursively prints the vtables in order based
+  * on their dependencies.
+  *
+  * @param c The compilation unit to print.
+  */
+  public void printHeaderVTable(Printer out, JavaFile c) {
+    // Don't print out the structs twice
+    if (printed.get(c))
+      return;
+
+    // Make sure that all dependencies have been printed first
+    if (c.getPublicClass().hasParent()) {
+      JavaFile d = Global.classes.get(c.getPublicClass().getParent());
+    	if (null != c.getPackage() && null != d.getPackage()) {
+    		if (!c.getPackage().equals(d.getPackage()))
+    			return;
+    		if (!printed.get(d))
+    			printHeaderVTable(out, d);
+    	} else if (null != c.getPackage() || null != d.getPackage()) {
+    		return;
+    	} else {
+    		if (!printed.get(d))
+    			printHeaderVTable(out, d);
+    	}
+    }
+
+    // Print the structs
+    String className = c.getPublicClass().getName();
+
+    // Class struct
+    c.getPublicClass().translateHeader(out);
+
+    // Mark this class as printed
+    printed.put(c, true);
+  }
+
+
+  // ========================== Main Methods ========================
 
   /**
    * Runs the translator with the specified command line arguments.

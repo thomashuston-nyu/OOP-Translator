@@ -32,7 +32,8 @@ import xtc.tree.Visitor;
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
- * @version 1.0
+ *
+ * @version 1.1
  */
 public class JavaMethod extends Visitor implements Translatable {
 
@@ -77,6 +78,9 @@ public class JavaMethod extends Visitor implements Translatable {
       }
     }
   }
+
+
+  // ============================ Get Methods =======================
 
   /**
    * Gets the class the method is in.
@@ -144,6 +148,9 @@ public class JavaMethod extends Visitor implements Translatable {
   public boolean isStatic() {
     return isStatic;
   }
+
+
+  // =========================== Visit Methods ======================
 
   /**
    * Parses the body of the method.
@@ -233,6 +240,9 @@ public class JavaMethod extends Visitor implements Translatable {
   public void visitVoidType(GNode n) {
     returnType = new JavaType(n);
   }
+
+
+  // ======================== Translation Methods ===================
 
   /**
    * Translates the method into a declaration for

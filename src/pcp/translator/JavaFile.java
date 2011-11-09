@@ -34,7 +34,8 @@ import xtc.tree.Visitor;
  * @author Thomas Huston
  * @author Mike Morreale
  * @author Marta Wilgan
- * @version 1.0
+ *
+ * @version 1.1
  */
 public class JavaFile extends Visitor implements Translatable {
   
@@ -57,6 +58,9 @@ public class JavaFile extends Visitor implements Translatable {
       if (o instanceof Node)
         dispatch((Node) o);
   }
+
+
+  // ============================ Get Methods =======================
   
   /**
    * Gets a list of the classes of a specific visibility.
@@ -97,6 +101,9 @@ public class JavaFile extends Visitor implements Translatable {
       return null;
     return classes.get(Visibility.PUBLIC).get(0);
   }
+
+
+  // ======================== Visit Methods =========================
   
   /**
    * Visits a ClassDeclaration node and adds it to the
@@ -130,6 +137,9 @@ public class JavaFile extends Visitor implements Translatable {
   public void visitPackageDeclaration(GNode n) {
     pkg = new JavaPackage(n);
   }
+
+
+  // ===================== Translation Methods ======================
 
   /**
    * Translates the classes in the file and
