@@ -42,6 +42,9 @@ public class JavaPackage {
   
   private List<String> pkg;
   private String filename, namespace, path;
+
+
+  // =========================== Constructors =======================
   
   /**
    * Constructs the package using a GNode.

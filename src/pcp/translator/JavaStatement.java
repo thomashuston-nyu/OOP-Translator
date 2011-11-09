@@ -40,6 +40,9 @@ public class JavaStatement extends Visitor implements Translatable {
 
   private JavaStatement s;
 
+
+  // =========================== Constructors =======================
+
   /**
    * Empty constructor for subclass use only.
    */

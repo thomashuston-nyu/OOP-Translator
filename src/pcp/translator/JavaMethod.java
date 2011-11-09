@@ -45,7 +45,10 @@ public class JavaMethod extends Visitor implements Translatable {
   private List<String> paramNames;
   private List<JavaType> paramTypes;
   private JavaType returnType;
-  private Visibility visibility;
+  private JavaVisibility visibility;
+
+
+  // =========================== Constructors =======================
   
   /**
    * Creates the method.
@@ -57,7 +60,7 @@ public class JavaMethod extends Visitor implements Translatable {
     this.inClass = inClass;
     
     // Set the default visibility
-    visibility = Visibility.PACKAGE_PRIVATE;
+    visibility = JavaVisibility.PACKAGE_PRIVATE;
 
     // Initialize the parameter lists
     paramNames = new ArrayList<String>();
@@ -114,7 +117,7 @@ public class JavaMethod extends Visitor implements Translatable {
    *
    * @return The visibility.
    */
-  public Visibility getVisibility() {
+  public JavaVisibility getJavaVisibility() {
     return visibility;
   }
 
@@ -199,11 +202,11 @@ public class JavaMethod extends Visitor implements Translatable {
     for (Object o : n) {
       String m = ((GNode)o).getString(0);
       if (m.equals("public"))
-        visibility = Visibility.PUBLIC;
+        visibility = JavaVisibility.PUBLIC;
       else if (m.equals("private"))
-        visibility = Visibility.PRIVATE;
+        visibility = JavaVisibility.PRIVATE;
       else if (m.equals("protected"))
-        visibility = Visibility.PROTECTED;
+        visibility = JavaVisibility.PROTECTED;
       else if (m.equals("abstract"))
         isAbstract = true;
       else if (m.equals("final"))
@@ -271,7 +274,7 @@ public class JavaMethod extends Visitor implements Translatable {
       out.indent().p("static ");
       returnType.translate(out).p(" ");
       out.p(name).p("(");
-      if ((visibility == Visibility.PUBLIC || visibility == Visibility.PROTECTED) && !isStatic) {
+      if ((visibility == JavaVisibility.PUBLIC || visibility == JavaVisibility.PROTECTED) && !isStatic) {
         out.p(inClass.getName());
         if (paramNames.size() > 0)
           out.p(", ");

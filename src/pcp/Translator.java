@@ -62,6 +62,9 @@ public class Translator extends Tool {
   private File main;
   private String currentPkg;
 
+
+  // =========================== Constructors =======================
+
   /**
    * Creates a new translator.
    */
@@ -481,7 +484,7 @@ public class Translator extends Tool {
   }
 
 
-  // ========================== Main Methods ========================
+  // ========================== Main Method =========================
 
   /**
    * Runs the translator with the specified command line arguments.

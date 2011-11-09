@@ -59,6 +59,9 @@ public class JavaType extends Visitor implements Translatable {
   private JavaPackage pkg;
   private String classType, primitiveType;
   
+
+  // =========================== Constructors =======================
+  
   /**
    * Creates the type from a GNode.
    *

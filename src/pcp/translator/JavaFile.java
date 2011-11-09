@@ -39,9 +39,12 @@ import xtc.tree.Visitor;
  */
 public class JavaFile extends Visitor implements Translatable {
   
-  private Map<Visibility, List<JavaClass>> classes;
+  private Map<JavaVisibility, List<JavaClass>> classes;
   private List<JavaPackage> imports;
   private JavaPackage pkg;
+
+
+  // =========================== Constructors =======================
   
   /**
    * Create a new Java file.
@@ -49,8 +52,8 @@ public class JavaFile extends Visitor implements Translatable {
    * @param n The AST node.
    */
   public JavaFile(GNode n) {
-    classes = new HashMap<Visibility, List<JavaClass>>();
-    for (Visibility v : Visibility.values()) {
+    classes = new HashMap<JavaVisibility, List<JavaClass>>();
+    for (JavaVisibility v : JavaVisibility.values()) {
       classes.put(v, new ArrayList<JavaClass>());
     }
     imports = new ArrayList<JavaPackage>();
@@ -69,7 +72,7 @@ public class JavaFile extends Visitor implements Translatable {
    *
    * @return The classes of the specified visibility.
    */
-  public List<JavaClass> getClasses(Visibility v) {
+  public List<JavaClass> getClasses(JavaVisibility v) {
     return classes.get(v);
   }
   
@@ -97,9 +100,9 @@ public class JavaFile extends Visitor implements Translatable {
    * @return The main class.
    */
   public JavaClass getPublicClass() {
-    if (classes.get(Visibility.PUBLIC).size() == 0)
+    if (classes.get(JavaVisibility.PUBLIC).size() == 0)
       return null;
-    return classes.get(Visibility.PUBLIC).get(0);
+    return classes.get(JavaVisibility.PUBLIC).get(0);
   }
 
 
@@ -114,7 +117,7 @@ public class JavaFile extends Visitor implements Translatable {
   public void visitClassDeclaration(GNode n) {
     JavaClass c = new JavaClass(n);
     Global.classes.put(c, this);
-    Visibility v = c.getVisibility();
+    JavaVisibility v = c.getJavaVisibility();
     classes.get(v).add(c);
   }
   

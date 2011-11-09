@@ -40,6 +40,9 @@ public class JavaExpression extends Visitor implements Translatable {
 
   private JavaExpression e;
 
+
+  // =========================== Constructors =======================
+
   /**
    * Empty constructor for subclass use only.
    */

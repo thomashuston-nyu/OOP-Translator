@@ -41,7 +41,10 @@ public class JavaField extends JavaStatement implements Translatable {
   private List<String> names;
   private JavaType type;
   private List<JavaExpression> values;
-  private Visibility visibility;
+  private JavaVisibility visibility;
+
+
+  // =========================== Constructors =======================
   
   /**
    * Creates the field.
@@ -50,17 +53,17 @@ public class JavaField extends JavaStatement implements Translatable {
    */
   public JavaField(GNode n) {
     // Set the default visibility
-    visibility = Visibility.PACKAGE_PRIVATE;
+    visibility = JavaVisibility.PACKAGE_PRIVATE;
 
     // Determine the modifiers
     for (Object o : n.getNode(0)) {
       String m = ((GNode)o).getString(0);
       if (m.equals("public"))
-        visibility = Visibility.PUBLIC;
+        visibility = JavaVisibility.PUBLIC;
       else if (m.equals("private"))
-        visibility = Visibility.PRIVATE;
+        visibility = JavaVisibility.PRIVATE;
       else if (m.equals("protected"))
-        visibility = Visibility.PROTECTED;
+        visibility = JavaVisibility.PROTECTED;
       else if (m.equals("abstract"))
         isAbstract = true;
       else if (m.equals("static"))
@@ -106,7 +109,7 @@ public class JavaField extends JavaStatement implements Translatable {
    *
    * @return The visibility.
    */
-  public Visibility getVisibility() {
+  public JavaVisibility getJavaVisibility() {
     return visibility;
   }
 

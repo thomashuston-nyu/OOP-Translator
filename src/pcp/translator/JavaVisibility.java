@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @version 1.1
  */
-public enum Visibility {
+public enum JavaVisibility {
 
   PUBLIC, PRIVATE, PROTECTED, PACKAGE_PRIVATE;
 

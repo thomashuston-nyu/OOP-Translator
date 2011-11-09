@@ -46,8 +46,11 @@ public class JavaClass extends Visitor implements Translatable {
   private List<JavaMethod> methods;
   private String name;
   private JavaClass parent;
-  private Visibility visibility;
+  private JavaVisibility visibility;
   private LinkedHashMap<String, JavaMethod> vtable;
+
+
+  // =========================== Constructors =======================
   
   /**
    * Constructs the class.
@@ -62,7 +65,7 @@ public class JavaClass extends Visitor implements Translatable {
     isAbstract = false;
     isFinal = false;
     isStatic = false;
-    visibility = Visibility.PACKAGE_PRIVATE;
+    visibility = JavaVisibility.PACKAGE_PRIVATE;
 
     // Instantiate the lists
     fields = new ArrayList<JavaField>();
@@ -111,7 +114,7 @@ public class JavaClass extends Visitor implements Translatable {
    *
    * @return The visibility.
    */
-  public Visibility getVisibility() {
+  public JavaVisibility getJavaVisibility() {
     return visibility;
   }
 
@@ -230,11 +233,11 @@ public class JavaClass extends Visitor implements Translatable {
     for (Object o : n) {
       String m = ((GNode)o).getString(0);
       if (m.equals("public"))
-        visibility = Visibility.PUBLIC;
+        visibility = JavaVisibility.PUBLIC;
       else if (m.equals("private"))
-        visibility = Visibility.PRIVATE;
+        visibility = JavaVisibility.PRIVATE;
       else if (m.equals("protected"))
-        visibility = Visibility.PROTECTED;
+        visibility = JavaVisibility.PROTECTED;
       else if (m.equals("final"))
         isFinal = true;
       else if (m.equals("abstract"))
@@ -267,7 +270,7 @@ public class JavaClass extends Visitor implements Translatable {
 
     // Add/override methods
     for (JavaMethod m : methods) {
-      if ((m.getVisibility() == Visibility.PUBLIC || m.getVisibility() == Visibility.PROTECTED) 
+      if ((m.getJavaVisibility() == JavaVisibility.PUBLIC || m.getJavaVisibility() == JavaVisibility.PROTECTED) 
           && !m.isFinal() && !m.isStatic())
         vtable.put(m.getName() + "_" + m.getReturnType().getType(), m);
     }
