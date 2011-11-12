@@ -43,6 +43,7 @@ public class Global {
   public static Map<String, JavaFile> files = new HashMap<String, JavaFile>();
   public static Map<JavaFile, Set<JavaFile>> imports = new HashMap<JavaFile, Set<JavaFile>>();
   public static Map<String, Set<JavaFile>> packages = new HashMap<String, Set<JavaFile>>();
+  public static Map<JavaStatement, Set<String>> objects = new HashMap<JavaStatement, Set<String>>();
   public static Runtime runtime;
 
 }
