@@ -946,17 +946,26 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class SubscriptExpression extends JavaExpression {
 
-    private String variable;
-    private int index;
+    private JavaExpression variable;
+    private List<Integer> indices;
 
     public SubscriptExpression(GNode n, JavaStatement parent) {
-      variable = n.getNode(0).getString(0);
-      index = Integer.parseInt(n.getNode(1).getString(0));
-      Global.objects.get(parent).add(variable);
+      variable = new JavaExpression(n.getGeneric(0), parent);
+      indices = new ArrayList<Integer>();
+      for (int i = 1; i < n.size(); i++) {
+        indices.add(Integer.parseInt(n.getNode(i).getString(0)));
+      }
+      if (n.getNode(0).hasName("PrimaryIdentifier"))
+        Global.objects.get(parent).add(n.getNode(0).getString(0));
     }
 
     public Printer translate(Printer out) {
-      return out.p("(*").p(variable).p(")[").p(index).p("]");
+      for (Integer i : indices)
+        out.p("(*");
+      variable.translate(out);
+      for (Integer i : indices)
+        out.p(")[").p(i).p("]");
+      return out;
     }
 
   }
