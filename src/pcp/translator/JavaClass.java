@@ -375,6 +375,8 @@ public class JavaClass extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
+    for (JavaMethod m : methods)
+      m.translate(out);
     return out;
   }
 

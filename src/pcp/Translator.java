@@ -161,6 +161,7 @@ public class Translator extends Tool {
             runtime.console().pln();
           }
         }
+        c.getPublicClass().translate(runtime.console());
         runtime.console().flush();
       } catch (IOException i) {
         runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();

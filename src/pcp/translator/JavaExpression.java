@@ -39,6 +39,7 @@ import xtc.tree.Visitor;
 public class JavaExpression extends Visitor implements Translatable {
 
   private JavaExpression e;
+  private JavaStatement s;
 
 
   // =========================== Constructors =======================
@@ -53,7 +54,8 @@ public class JavaExpression extends Visitor implements Translatable {
    *
    * @param n The expression node.
    */
-  public JavaExpression(GNode n) {
+  public JavaExpression(GNode n, JavaStatement s) {
+    this.s = s;
     dispatch(n);
   }
 
@@ -66,7 +68,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The additive expression node.
    */
   public void visitAdditiveExpression(GNode n) {
-    e = new ArithmeticExpression(n);
+    e = new ArithmeticExpression(n, this.s);
   }
 
   /**
@@ -75,7 +77,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The array initializer node.
    */
   public void visitArrayInitializer(GNode n) {
-    e = new ArrayInitializer(n);
+    e = new ArrayInitializer(n, this.s);
   }
 
   /**
@@ -84,7 +86,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The basic cast expression node.
    */
   public void visitBasicCastExpression(GNode n) {
-    e = new BasicCastExpression(n);
+    e = new BasicCastExpression(n,this.s);
   }
   
   /**
@@ -93,7 +95,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise and expression node.
    */
   public void visitBitwiseAndExpression(GNode n) {
-    e = new Expression(n,"&");
+    e = new Expression(n,"&", this.s);
   }
 
   /**
@@ -102,7 +104,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise negation expression node.
    */
   public void visitBitwiseNegationExpression(GNode n) {
-    e = new Expression(n,"~");
+    e = new Expression(n,"~",this.s);
   }
 
   /**
@@ -111,7 +113,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise or expression node.
    */
   public void visitBitwiseOrExpression(GNode n) {
-    e = new Expression(n,"|");
+    e = new Expression(n,"|",this.s);
   }
 
   /**
@@ -120,7 +122,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise xor expression node.
    */
   public void visitBitwiseXorExpression(GNode n) {
-    e = new Expression(n,"^");
+    e = new Expression(n,"^",this.s);
   }
 
   /**
@@ -129,7 +131,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The boolean literal node.
    */
   public void visitBooleanLiteral(GNode n) {
-    e = new Literal(n);
+    e = new Literal(n, this.s);
   }
   
   /**
@@ -138,7 +140,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The call expression node.
    */
   public void visitCallExpression(GNode n) {
-    e = new CallExpression(n);
+    e = new CallExpression(n, this.s);
   }
 
   /**
@@ -147,7 +149,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The cast expression node.
    */
   public void visitCastExpression(GNode n) {
-    e = new CastExpression(n);
+    e = new CastExpression(n, this.s);
   }
 
   /**
@@ -156,7 +158,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The character literal node.
    */
   public void visitCharacterLiteral(GNode n) {
-    e = new Literal(n);
+    e = new Literal(n, this.s);
   }
 
   /**
@@ -165,7 +167,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The class literal expression node.
    */
   public void visitClassLiteralExpression(GNode n) {
-    e = new ClassLiteralExpression(n);
+    e = new ClassLiteralExpression(n, this.s);
   }
 
   /**
@@ -174,7 +176,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The conditional expression node.
    */
   public void visitConditionalExpression(GNode n) {
-    e = new ConditionalExpression(n);
+    e = new ConditionalExpression(n, this.s);
   }
   
   /**
@@ -183,7 +185,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The equality expression node.
    */
   public void visitEqualityExpression(GNode n) {
-    e = new Expression(n);
+    e = new Expression(n, this.s);
   }
 
   /**
@@ -192,7 +194,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The expression node.
    */
   public void visitExpression(GNode n) {
-    e = new Expression(n);
+    e = new Expression(n, this.s);
   }
 
   /**
@@ -201,7 +203,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The floating point literal node.
    */
   public void visitFloatingPointLiteral(GNode n) {
-    e = new Literal(n);
+    e = new Literal(n, this.s);
   }
 
   /**
@@ -210,7 +212,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The instance of expression node.
    */
   public void visitInstanceOfExpression(GNode n) {
-    e = new InstanceOfExpression(n);
+    e = new InstanceOfExpression(n, this.s);
   }
 
   /**
@@ -219,7 +221,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The integer literal node.
    */
   public void visitIntegerLiteral(GNode n) {
-    e = new Literal(n);
+    e = new Literal(n, this.s);
   }
 
   /**
@@ -228,7 +230,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The logical and expression node.
    */
   public void visitLogicalAndExpression(GNode n) {
-    e = new Expression(n,"&&");
+    e = new Expression(n,"&&",this.s);
   }
 
   /**
@@ -237,7 +239,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The logical negation expression node.
    */
   public void visitLogicalNegationExpression(GNode n) {
-    e = new Expression(n,"!");
+    e = new Expression(n,"!",this.s);
   }
 
   /**
@@ -246,7 +248,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The logical or expression node.
    */
   public void visitLogicalOrExpression(GNode n) {
-    e = new Expression(n,"||");
+    e = new Expression(n,"||",this.s);
   }
 
   /**
@@ -255,7 +257,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The multiplicative expression node.
    */
   public void visitMultiplicativeExpression(GNode n) {
-    e = new ArithmeticExpression(n);
+    e = new ArithmeticExpression(n, this.s);
   }
   
   /**
@@ -264,7 +266,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The new array expression node.
    */
   public void visitNewArrayExpression(GNode n) {
-    e = new NewArrayExpression(n);
+    e = new NewArrayExpression(n, this.s);
   }
   
   /**
@@ -273,7 +275,11 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The new class expression node.
    */
   public void visitNewClassExpression(GNode n) {
-    e = new NewClassExpression(n);
+    e = new NewClassExpression(n, this.s);
+  }
+
+  public void visitNullLiteral(GNode n) {
+    e = new Literal(n, this.s);
   }
   
   /**
@@ -282,7 +288,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The postfix expression node.
    */
   public void visitPostfixExpression(GNode n) {
-    e = new UnaryExpression(n);
+    e = new UnaryExpression(n, this.s);
   }
 
   /**
@@ -291,7 +297,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The primary identifier node.
    */
   public void visitPrimaryIdentifier(GNode n) {
-    e = new PrimaryIdentifier(n);
+    e = new PrimaryIdentifier(n, this.s);
   }
 
   /**
@@ -300,7 +306,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The relational expression node.
    */
   public void visitRelationalExpression(GNode n) {
-    e = new Expression(n);
+    e = new Expression(n, this.s);
   }
 
   /**
@@ -309,7 +315,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The selection expression node.
    */
   public void visitSelectionExpression(GNode n) {
-    e = new SelectionExpression(n);
+    e = new SelectionExpression(n, this.s);
   }
 
   /**
@@ -318,7 +324,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The shift expression node.
    */
   public void visitShiftExpression(GNode n) {
-    e = new Expression(n);
+    e = new Expression(n, this.s);
   }
 
   /**
@@ -327,7 +333,16 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The string literal node.
    */
   public void visitStringLiteral(GNode n) {
-    e = new Literal(n);
+    e = new Literal(n, this.s);
+  }
+
+  /**
+   * Creates a new subscript expression.
+   *
+   * @param n The subscript expression node.
+   */
+  public void visitSubscriptExpression(GNode n) {
+    e = new SubscriptExpression(n, this.s);
   }
 
   /**
@@ -345,7 +360,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The unary expression node.
    */
   public void visitUnaryExpression(GNode n) {
-    e = new UnaryExpression(n);
+    e = new UnaryExpression(n, this.s);
   }
 
   /**
@@ -354,7 +369,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The variable initializer.
    */
   public void visitVariableInitializer(GNode n) {
-    e = new VariableInitializer(n);
+    e = new VariableInitializer(n, this.s);
   }
 
 
@@ -376,9 +391,9 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The additive or multiplicative expression node.
      */
-    public ArithmeticExpression(GNode n) {
-      left = new JavaExpression(n.getGeneric(0));
-      right = new JavaExpression(n.getGeneric(2));
+    public ArithmeticExpression(GNode n, JavaStatement parent) {
+      left = new JavaExpression(n.getGeneric(0), parent);
+      right = new JavaExpression(n.getGeneric(2), parent);
       operator = n.getString(1);
     }
 
@@ -412,12 +427,12 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The array initializer node.
      */
-    public ArrayInitializer(GNode n) {
+    public ArrayInitializer(GNode n, JavaStatement parent) {
       variables = new ArrayList<JavaExpression>();
       for (Object o : n) {
         if (null == n)
           continue;
-        variables.add(new JavaExpression((GNode)o));
+        variables.add(new JavaExpression((GNode)o, parent));
       }
     }
 
@@ -451,14 +466,14 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The basic cast expression node.
      */
-    public BasicCastExpression(GNode n) {
+    public BasicCastExpression(GNode n, JavaStatement parent) {
       type = new JavaType(n.getGeneric(0));
       if (n.getNode(1).hasName("Dimensions")) {
         dimensions = n.getNode(1).size();
-        e = new JavaExpression(n.getGeneric(2));
+        e = new JavaExpression(n.getGeneric(2), parent);
       } else {
         dimensions = 0;                       
-        e = new JavaExpression(n.getGeneric(1));
+        e = new JavaExpression(n.getGeneric(1), parent);
       }
     }
 
@@ -492,15 +507,15 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The call expression node.
      */
-    public CallExpression(GNode n) {
+    public CallExpression(GNode n, JavaStatement parent) {
       if (null != n.get(0))
-        ref = new JavaExpression(n.getGeneric(0));
+        ref = new JavaExpression(n.getGeneric(0), parent);
       name = n.getString(2);
       args = new ArrayList<JavaExpression>();
       for (Object o : n.getNode(3)) {
         if (null == o)
           continue;
-        args.add(new JavaExpression((GNode)o));
+        args.add(new JavaExpression((GNode)o, parent));
       }
     }
 
@@ -540,7 +555,7 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The cast expression node.
      */
-    public CastExpression(GNode n) {
+    public CastExpression(GNode n, JavaStatement parent) {
       type = new JavaType(n.getGeneric(0));
     }
 
@@ -571,7 +586,7 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The class literal expression node.
      */
-    public ClassLiteralExpression(GNode n) {
+    public ClassLiteralExpression(GNode n, JavaStatement parent) {
       type = new JavaType(n.getGeneric(0));
     }
 
@@ -603,10 +618,10 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The conditional expression node.
      */
-    public ConditionalExpression(GNode n) {
-      test = new JavaExpression(n.getGeneric(0));
-      ifTrue = new JavaExpression(n.getGeneric(1));
-      ifFalse = new JavaExpression(n.getGeneric(2));
+    public ConditionalExpression(GNode n, JavaStatement parent) {
+      test = new JavaExpression(n.getGeneric(0), parent);
+      ifTrue = new JavaExpression(n.getGeneric(1), parent);
+      ifFalse = new JavaExpression(n.getGeneric(2), parent);
     }
 
     /**
@@ -652,10 +667,10 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The expression node.
      */
-    public Expression(GNode n) {
-      left = new JavaExpression(n.getGeneric(0));
+    public Expression(GNode n, JavaStatement parent) {
+      left = new JavaExpression(n.getGeneric(0), parent);
       operator = n.getString(1);
-      right = new JavaExpression(n.getGeneric(2));
+      right = new JavaExpression(n.getGeneric(2), parent);
     }
 
     /**
@@ -664,11 +679,11 @@ public class JavaExpression extends Visitor implements Translatable {
      * @param n The expression node.
      * @param operator The operator.
      */
-    public Expression(GNode n, String operator) {
-      left = new JavaExpression(n.getGeneric(0));
+    public Expression(GNode n, String operator, JavaStatement parent) {
+      left = new JavaExpression(n.getGeneric(0), parent);
       this.operator = operator;
       if (!operator.equals("~") && !operator.equals("!"))
-        right = new JavaExpression(n.getGeneric(1));
+        right = new JavaExpression(n.getGeneric(1), parent);
     }
 
     /**
@@ -705,8 +720,8 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The instance of expression node.
      */
-    public InstanceOfExpression(GNode n) {
-      object = new JavaExpression(n.getGeneric(0));
+    public InstanceOfExpression(GNode n, JavaStatement parent) {
+      object = new JavaExpression(n.getGeneric(0), parent);
       type = new JavaType(n.getGeneric(1));
     }
 
@@ -734,15 +749,22 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class Literal extends JavaExpression {
 
-    String value;
-    
+    private String value;
+    private boolean isString;
+    private boolean isNull;
+
     /**
      * Creates a new literal.
      *
      * @param n The literal node.
      */
-    public Literal(GNode n) {
-      value = n.getString(0);
+    public Literal(GNode n, JavaStatement parent) {
+      if (n.size() == 0)
+        isNull = true;
+      else
+        value = n.getString(0);
+      if (n.hasName("StringLiteral"))
+        isString = true;
     }
 
     /**
@@ -754,7 +776,12 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
-      return out.p(value);
+      if (isNull)
+        return out.p("__rt::null()");
+      else if (isString)
+        return out.p("__rt::literal(").p(value).p(")");
+      else
+        return out.p(value);
     }
 
   }
@@ -773,13 +800,13 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The new array expression node.
      */
-    public NewArrayExpression(GNode n) {
+    public NewArrayExpression(GNode n, JavaStatement parent) {
       type = new JavaType(n.getGeneric(0));
       dimensions = new ArrayList<JavaExpression>();
       for (Object o : n.getNode(1)) {
         if (null == o)
           continue;
-        dimensions.add(new JavaExpression((GNode)o));
+        dimensions.add(new JavaExpression((GNode)o, parent));
       }
     }
 
@@ -818,13 +845,13 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The new class expression node.
      */
-    public NewClassExpression(GNode n) {
+    public NewClassExpression(GNode n, JavaStatement parent) {
       type = new JavaType(n.getGeneric(2));
       arguments = new ArrayList<JavaExpression>();
       for (Object o : n.getNode(3)) {
         if (null == o)
           continue;
-        arguments.add(new JavaExpression((GNode)o));
+        arguments.add(new JavaExpression((GNode)o, parent));
       }
     }
 
@@ -859,7 +886,7 @@ public class JavaExpression extends Visitor implements Translatable {
 
     String name;
 
-    public PrimaryIdentifier(GNode n) {
+    public PrimaryIdentifier(GNode n, JavaStatement parent) {
       name = n.getString(0);
     }
 
@@ -891,8 +918,8 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The selection expression node.
      */
-    public SelectionExpression(GNode n) {
-      identifier = new JavaExpression(n.getGeneric(0));
+    public SelectionExpression(GNode n, JavaStatement parent) {
+      identifier = new JavaExpression(n.getGeneric(0), parent);
       selection = n.getString(1);
     }
 
@@ -909,6 +936,27 @@ public class JavaExpression extends Visitor implements Translatable {
         return identifier.translate(out).p("->").p(selection);
       else
         return identifier.translate(out).p("::").p(selection);
+    }
+
+  }
+
+  /**
+   * A subscript expression
+   * (for example, a[1])
+   */
+  private class SubscriptExpression extends JavaExpression {
+
+    private String variable;
+    private int index;
+
+    public SubscriptExpression(GNode n, JavaStatement parent) {
+      variable = n.getNode(0).getString(0);
+      index = Integer.parseInt(n.getNode(1).getString(0));
+      Global.objects.get(parent).add(variable);
+    }
+
+    public Printer translate(Printer out) {
+      return out.p("(*").p(variable).p(")[").p(index).p("]");
     }
 
   }
@@ -954,12 +1002,12 @@ public class JavaExpression extends Visitor implements Translatable {
      *
      * @param n The postfix or unary expression node.
      */
-    public UnaryExpression(GNode n) {
+    public UnaryExpression(GNode n, JavaStatement parent) {
       if (n.get(0) instanceof String) {
         pre = n.getString(0);
-        identifier = new JavaExpression(n.getGeneric(1));
+        identifier = new JavaExpression(n.getGeneric(1), parent);
       } else {
-        identifier = new JavaExpression(n.getGeneric(0));
+        identifier = new JavaExpression(n.getGeneric(0), parent);
         post = n.getString(1);
       }
     }
@@ -994,7 +1042,7 @@ public class JavaExpression extends Visitor implements Translatable {
     *
     * @param n The variable initializer.
     */
-    public VariableInitializer(GNode n) {
+    public VariableInitializer(GNode n, JavaStatement parent) {
       
     }
 

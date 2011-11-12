@@ -18,6 +18,7 @@
 package pcp.translator;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import xtc.tree.GNode;
@@ -41,6 +42,7 @@ public class JavaField extends JavaStatement implements Translatable {
   private List<String> names;
   private JavaType type;
   private List<JavaExpression> values;
+  private List<GNode> isArrayInitializer;
   private JavaVisibility visibility;
 
 
@@ -52,6 +54,9 @@ public class JavaField extends JavaStatement implements Translatable {
    * @param n The field declaration node.
    */
   public JavaField(GNode n) {
+
+    Global.objects.put(this, new HashSet<String>());
+
     // Set the default visibility
     visibility = JavaVisibility.PACKAGE_PRIVATE;
 
@@ -78,11 +83,17 @@ public class JavaField extends JavaStatement implements Translatable {
     // Get the variable names and initialized values
     names = new ArrayList<String>();
     values = new ArrayList<JavaExpression>();
+    isArrayInitializer = new ArrayList<GNode>();
     for (Object o : n.getNode(2)) {
       Node declarator = (Node)o;
       names.add(declarator.getString(0));
-      if (null != declarator.get(2))
-        values.add(new JavaExpression(declarator.getGeneric(2)));
+      if (null != declarator.get(2)) {
+        if (declarator.getNode(2).hasName("ArrayInitializer"))
+          isArrayInitializer.add(declarator.getGeneric(2));
+        else
+          isArrayInitializer.add(null);
+        values.add(new JavaExpression(declarator.getGeneric(2), this));
+      }
       else
         values.add(null);
     }
@@ -125,19 +136,31 @@ public class JavaField extends JavaStatement implements Translatable {
     * @return The output stream.
     */
   public Printer translate(Printer out) {
-    out.indent();
-    type.translate(out).p(" ");
     int size = names.size();
     for (int i = 0; i < size; i++) {
-      out.p(names.get(i));
+      out.indent();
+      type.translate(out);
+      if (type.isArray())
+        out.p("*");
+      out.p(" ").p(names.get(i));
       if (null != values.get(i)) {
         out.p(" = ");
-        values.get(i).translate(out);
+        if (null != isArrayInitializer.get(i)) {
+          List<JavaExpression> data = new ArrayList<JavaExpression>();
+          for (Object o : isArrayInitializer.get(i))
+            data.add(new JavaExpression((GNode)o, this));
+          out.p("new ");
+          type.translate(out);
+          out.p("(").p(data.size()).pln(");");
+          for (int j = 0; j < data.size(); j++) {
+            out.indent().p("(*").p(names.get(i)).p(")[").p(j).p("] = ");
+            data.get(j).translate(out).pln(";");
+          }
+        } else
+          values.get(i).translate(out).pln(";");
       }
-      if (i < size - 1)
-        out.p(", ");
     }
-    return out.pln(";");
+    return out;
   }
 
 }
