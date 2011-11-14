@@ -1,5 +1,8 @@
 public class Statements {
 
+  private int x;
+  public String[] s;
+
   public static void main(String[] args) {
     int[] a = new int[5];
     a[0] = 1;

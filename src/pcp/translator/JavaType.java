@@ -121,7 +121,7 @@ public class JavaType extends Visitor implements Translatable {
    */
   public String getType() {
     StringBuilder type = new StringBuilder();
-    if (0 < dimensions)
+    for (int i = 0; i < dimensions; i++)
       type.append("__rt::Array<");
     if (null != primitiveType) {
       type.append(primitives.get(primitiveType));
@@ -130,8 +130,11 @@ public class JavaType extends Visitor implements Translatable {
         type.append(pkg.getNamespace()).append("::");
       type.append(classType);
     }
-    if (0 < dimensions)
+    for (int i = 0; i < dimensions; i++) {
       type.append(">");
+      if (i < dimensions - 1)
+        type.append("*");
+    }
     return type.toString();
   }
 

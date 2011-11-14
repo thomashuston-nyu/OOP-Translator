@@ -86,7 +86,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The basic cast expression node.
    */
   public void visitBasicCastExpression(GNode n) {
-    e = new BasicCastExpression(n,this.s);
+    e = new BasicCastExpression(n, this.s);
   }
   
   /**
@@ -95,7 +95,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise and expression node.
    */
   public void visitBitwiseAndExpression(GNode n) {
-    e = new Expression(n,"&", this.s);
+    e = new Expression(n, "&", this.s);
   }
 
   /**
@@ -104,7 +104,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise negation expression node.
    */
   public void visitBitwiseNegationExpression(GNode n) {
-    e = new Expression(n,"~",this.s);
+    e = new Expression(n, "~", this.s);
   }
 
   /**
@@ -113,7 +113,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise or expression node.
    */
   public void visitBitwiseOrExpression(GNode n) {
-    e = new Expression(n,"|",this.s);
+    e = new Expression(n, "|", this.s);
   }
 
   /**
@@ -122,11 +122,11 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The bitwise xor expression node.
    */
   public void visitBitwiseXorExpression(GNode n) {
-    e = new Expression(n,"^",this.s);
+    e = new Expression(n, "^", this.s);
   }
 
   /**
-   * Creates a new boolean literal
+   * Creates a new boolean literal.
    * 
    * @param n The boolean literal node.
    */
@@ -230,7 +230,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The logical and expression node.
    */
   public void visitLogicalAndExpression(GNode n) {
-    e = new Expression(n,"&&",this.s);
+    e = new Expression(n, "&&", this.s);
   }
 
   /**
@@ -239,7 +239,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The logical negation expression node.
    */
   public void visitLogicalNegationExpression(GNode n) {
-    e = new Expression(n,"!",this.s);
+    e = new Expression(n, "!", this.s);
   }
 
   /**
@@ -248,7 +248,7 @@ public class JavaExpression extends Visitor implements Translatable {
    * @param n The logical or expression node.
    */
   public void visitLogicalOrExpression(GNode n) {
-    e = new Expression(n,"||",this.s);
+    e = new Expression(n, "||", this.s);
   }
 
   /**
@@ -278,6 +278,11 @@ public class JavaExpression extends Visitor implements Translatable {
     e = new NewClassExpression(n, this.s);
   }
 
+  /**
+   * Creats a new null literal.
+   *
+   * @param n The new null literal node.
+   */
   public void visitNullLiteral(GNode n) {
     e = new Literal(n, this.s);
   }
@@ -794,6 +799,7 @@ public class JavaExpression extends Visitor implements Translatable {
 
     private List<JavaExpression> dimensions;
     private JavaType type;
+    private JavaStatement parent;
 
     /**
      * Creates a new new array expression.
@@ -801,6 +807,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @param n The new array expression node.
      */
     public NewArrayExpression(GNode n, JavaStatement parent) {
+      this.parent = parent;
       type = new JavaType(n.getGeneric(0));
       dimensions = new ArrayList<JavaExpression>();
       for (Object o : n.getNode(1)) {
@@ -819,14 +826,20 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
-      if (dimensions.size() == 1) {
+      // TODO: multi-dimensional arrays don't quite work
+      // we need the variable name 
+      //Set<String> vars = 
+      for (int i = 0; i < 1; i++) {
         out.p("new __rt::Array<");
+        type.setDimensions(dimensions.size() - 1 - i);
         type.translate(out).p(">(");
-        return dimensions.get(0).translate(out).p(")");
-      } else {
-        // TODO: handle multi-dimensional arrays
-        return out;
+        dimensions.get(i).translate(out).p(")");
+        //for (int j = 0; j < )
+        //if (dimensions.size() > 1 && i < dimensions.size() - 1) {
+        //  out.pln(";").indent().p(variable).p(" ");
+        //}
       }
+      return out;
     }
 
   }
@@ -956,7 +969,7 @@ public class JavaExpression extends Visitor implements Translatable {
         indices.add(Integer.parseInt(n.getNode(i).getString(0)));
       }
       if (n.getNode(0).hasName("PrimaryIdentifier"))
-        Global.objects.get(parent).add(n.getNode(0).getString(0));
+        parent.addObject(n.getNode(0).getString(0));
     }
 
     public Printer translate(Printer out) {

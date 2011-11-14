@@ -39,11 +39,13 @@ import xtc.util.Runtime;
  */
 public class Global {
 
-  public static Map<JavaClass, JavaFile> classes = new HashMap<JavaClass, JavaFile>();
+  // Maps file paths to the corresponding JavaFile objects
   public static Map<String, JavaFile> files = new HashMap<String, JavaFile>();
-  public static Map<JavaFile, Set<JavaFile>> imports = new HashMap<JavaFile, Set<JavaFile>>();
-  public static Map<String, Set<JavaFile>> packages = new HashMap<String, Set<JavaFile>>();
-  public static Map<JavaStatement, Set<String>> objects = new HashMap<JavaStatement, Set<String>>();
+
+  // Maps package paths to the corresponding JavaPackage objects
+  public static Map<String, JavaPackage> packages = new HashMap<String, JavaPackage>();
+
+  // The runtime
   public static Runtime runtime;
 
 }

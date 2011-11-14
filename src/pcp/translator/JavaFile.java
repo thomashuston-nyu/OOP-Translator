@@ -19,8 +19,10 @@ package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
@@ -39,9 +41,10 @@ import xtc.tree.Visitor;
  */
 public class JavaFile extends Visitor implements Translatable {
   
-  private Map<JavaVisibility, List<JavaClass>> classes;
-  private List<JavaPackage> imports;
+  private List<JavaClass> allClasses;
+  private Set<JavaPackage> imports;
   private JavaPackage pkg;
+  private JavaClass publicClass;
 
 
   // =========================== Constructors =======================
@@ -52,36 +55,49 @@ public class JavaFile extends Visitor implements Translatable {
    * @param n The AST node.
    */
   public JavaFile(GNode n) {
-    classes = new HashMap<JavaVisibility, List<JavaClass>>();
-    for (JavaVisibility v : JavaVisibility.values()) {
-      classes.put(v, new ArrayList<JavaClass>());
-    }
-    imports = new ArrayList<JavaPackage>();
-    for (Object o : n)
-      if (o instanceof Node)
+    // Initialize the classes list
+    allClasses = new ArrayList<JavaClass>();
+
+    // Initialize the imports set
+    imports = new HashSet<JavaPackage>();
+
+    // Dispatch over the nodes in the file
+    for (Object o : n) {
+      if (o instanceof Node) {
         dispatch((Node) o);
+      }
+    }
+
+    // If the file has no package, set it to the default package
+    if (null == pkg) {
+      if (Global.packages.containsKey(""))
+        pkg = Global.packages.get("");
+      else
+        Global.packages.put("", pkg = new JavaPackage());
+    }
+
+    // Add this file to its package
+    pkg.addFile(this);
   }
 
 
   // ============================ Get Methods =======================
   
   /**
-   * Gets a list of the classes of a specific visibility.
+   * Gets a list of all the classes in the file.
    *
-   * @param v The visibility of the classes to return.
-   *
-   * @return The classes of the specified visibility.
+   * @return The classes.
    */
-  public List<JavaClass> getClasses(JavaVisibility v) {
-    return classes.get(v);
+  public List<JavaClass> getClasses() {
+    return allClasses;
   }
-  
+
   /**
    * Gets a list of the import declarations.
    *
    * @return The imports.
    */
-  public List<JavaPackage> getImports() {
+  public Set<JavaPackage> getImports() {
     return imports;
   }
 
@@ -100,9 +116,7 @@ public class JavaFile extends Visitor implements Translatable {
    * @return The main class.
    */
   public JavaClass getPublicClass() {
-    if (classes.get(JavaVisibility.PUBLIC).size() == 0)
-      return null;
-    return classes.get(JavaVisibility.PUBLIC).get(0);
+    return publicClass;
   }
 
 
@@ -115,10 +129,20 @@ public class JavaFile extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitClassDeclaration(GNode n) {
-    JavaClass c = new JavaClass(n);
-    Global.classes.put(c, this);
+    // Create the class
+    JavaClass c = new JavaClass(n, this);
+
+    // Add the class to the list
+    allClasses.add(c);
+
+    // Check if this is the public class
     JavaVisibility v = c.getJavaVisibility();
-    classes.get(v).add(c);
+    if (v == JavaVisibility.PUBLIC) {
+      if (null == publicClass)
+        publicClass = c;
+      else
+        Global.runtime.errConsole().pln("Multiple public classes in one file").flush();
+    }
   }
   
   /**
@@ -128,7 +152,20 @@ public class JavaFile extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitImportDeclaration(GNode n) {
-    imports.add(new JavaPackage(n));
+    // Parse the import declaration
+    JavaPackage imp = new JavaPackage(n);
+    String pkgpath = imp.getPath();
+
+    // If the package has already been created, use the existing one
+    if (Global.packages.containsKey(pkgpath))
+      imp = Global.packages.get(pkgpath);
+
+    // Otherwise add the package to the packages hash
+    else
+      Global.packages.put(pkgpath, imp);
+
+    // Add the package to the imports set
+    imports.add(imp);
   }
   
   /**
@@ -138,7 +175,17 @@ public class JavaFile extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitPackageDeclaration(GNode n) {
+    // Parse the package
     pkg = new JavaPackage(n);
+    String pkgpath = pkg.getPath();
+
+    // If the package has already been created, use the existing one instead
+    if (Global.packages.containsKey(pkgpath))
+      pkg = Global.packages.get(pkgpath);
+
+    // Otherwise add the package to the hash
+    else
+      Global.packages.put(pkgpath, pkg);
   }
 
 
@@ -153,11 +200,10 @@ public class JavaFile extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
-    JavaClass publicClass = getPublicClass();
-    if (null != publicClass)
-      return publicClass.translate(out);
-    else
-      return out;
+    for (JavaClass cls : allClasses) {
+      cls.translate(out);
+    }
+    return out;
   }
   
 }

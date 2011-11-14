@@ -1,6 +1,6 @@
 /*
  * pcp - The Producer of C++ Programs
- * Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan
+ * Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, parent.getMethod()arta Wilgan
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ package pcp.translator;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
@@ -39,7 +40,10 @@ import xtc.tree.Visitor;
  */
 public class JavaStatement extends Visitor implements Translatable {
 
+  private JavaClass c;
+  private JavaMethod m;
   private JavaStatement s;
+  private Set<String> objects;
 
 
   // =========================== Constructors =======================
@@ -51,10 +55,71 @@ public class JavaStatement extends Visitor implements Translatable {
 
   /**
    * Dispatches on the specified statement node.
+   *
+   * @param n The statement node.
    */
   public JavaStatement(GNode n) {
-    Global.objects.put(this, new HashSet<String>());
+    objects = new HashSet<String>();
     dispatch(n);
+  }
+
+  /**
+   * Dispatches on the specified statement node
+   * and sets the class the statement is in.
+   *
+   * @param n The statement node.
+   * @param cls The class the statement is in.
+   */
+  public JavaStatement(GNode n, JavaClass cls) {
+    objects = new HashSet<String>();
+    c = cls;
+    dispatch(n);
+  }
+
+  /**
+   * Dispatches on the specified statement node
+   * and sets the method the statement is in.
+   *
+   * @param n The statement node.
+   * @param method The method the statement is in.
+   */
+  public JavaStatement(GNode n, JavaMethod method) {
+    objects = new HashSet<String>();
+    m = method;
+    dispatch(n);
+  }
+
+
+  // ============================ Get Methods =======================
+  
+  /**
+   * Gets the class the statement is in.
+   * 
+   * @return The class.
+   */
+  public JavaClass getClassFrom() {
+    return c;
+  }
+  
+  /**
+   * Gets the method the statement is in.
+   *
+   * @return The method.
+   */
+  public JavaMethod getMethod() {
+    return m;
+  }
+
+
+  // ============================ Get Methods =======================
+  
+  /**
+   * Adds an object to the statement.
+   *
+   * @param obj The object.
+   */
+  public void addObject(String obj) {
+    objects.add(obj);
   }
 
 
@@ -66,7 +131,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The block node.
    */
   public void visitBlock(GNode n) {
-    s = new Block(n,this);
+    s = new Block(n, this);
   }
 
   /**
@@ -75,7 +140,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The block declaration node.
    */
   public void visitBlockDeclaration(GNode n) {
-    s = new BlockDeclaration(n,this);
+    s = new BlockDeclaration(n, this);
   }
 
   /**
@@ -84,7 +149,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The break statement node.
    */
   public void visitBreakStatement(GNode n) {
-    s = new BreakStatement(n,this);
+    s = new BreakStatement(n, this);
   }
   
   /**
@@ -93,7 +158,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The conditional statement node.
    */
   public void visitConditionalStatement(GNode n) {
-    s = new ConditionalStatement(n,this);
+    s = new ConditionalStatement(n, this);
   }
   
   /**
@@ -102,7 +167,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The continue statement node.
    */
   public void visitContinueStatement(GNode n) {
-    s = new ContinueStatement(n,this);
+    s = new ContinueStatement(n, this);
   }
   
   /**
@@ -111,7 +176,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The do-while statement node.
    */
   public void visitDoWhileStatement(GNode n) {
-    s = new DoWhileStatement(n,this);
+    s = new DoWhileStatement(n, this);
   }
 
   /**
@@ -120,7 +185,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The empty statement node.
    */
   public void visitEmptyStatement(GNode n) {
-    s = null;
+    // Nothing to do
   }
   
   /**
@@ -129,7 +194,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The expression statement node.
    */
   public void visitExpressionStatement(GNode n) {
-    s = new ExpressionStatement(n,this);
+    s = new ExpressionStatement(n, this);
   }
 
   /**
@@ -138,7 +203,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The field declaration node.
    */
   public void visitFieldDeclaration(GNode n) {
-    s = new JavaField(n);
+    s = new FieldDeclaration(n, this);
   }
   
   /**
@@ -147,7 +212,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The for statement node.
    */
   public void visitForStatement(GNode n) {
-    s = new ForStatement(n,this);
+    s = new ForStatement(n, this);
   }
   
   /**
@@ -156,7 +221,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The return statement node.
    */
   public void visitReturnStatement(GNode n) {
-    s = new ReturnStatement(n,this);
+    s = new ReturnStatement(n, this);
   }
   
   /**
@@ -165,7 +230,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The switch statement node.
    */
   public void visitSwitchStatement(GNode n) {
-    s = new SwitchStatement(n,this);
+    s = new SwitchStatement(n, this);
   }
 
   /**
@@ -174,7 +239,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The throw statement node.
    */
   public void visitThrowStatement(GNode n) {
-    s = new ThrowStatement(n,this);
+    s = new ThrowStatement(n, this);
   }
   
   /**
@@ -183,7 +248,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The try-catch-finally statement node.
    */
   public void visitTryCatchFinallyStatement(GNode n) {
-    s = new TryCatchFinallyStatement(n,this);
+    s = new TryCatchFinallyStatement(n, this);
   }
 
   /**
@@ -192,7 +257,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The while statement node.
    */
   public void visitWhileStatement(GNode n) {
-    s = new WhileStatement(n,this);
+    s = new WhileStatement(n, this);
   }
 
 
@@ -213,7 +278,7 @@ public class JavaStatement extends Visitor implements Translatable {
     public Block(GNode n, JavaStatement parent) {
       statements = new ArrayList<JavaStatement>();
       for (Object o : n) {
-        statements.add(new JavaStatement((GNode)o));
+        statements.add(new JavaStatement((GNode)o, parent.getMethod()));
       }
     }
 
@@ -303,9 +368,9 @@ public class JavaStatement extends Visitor implements Translatable {
      */
     public ConditionalStatement(GNode n, JavaStatement parent) {
       e = new JavaExpression(n.getGeneric(0), parent);
-      ifStatement = new JavaStatement(n.getGeneric(1));
+      ifStatement = new JavaStatement(n.getGeneric(1), parent.getMethod());
       if (null != n.get(2))
-        elseStatement = new JavaStatement(n.getGeneric(2));
+        elseStatement = new JavaStatement(n.getGeneric(2), parent.getMethod());
     }
 
     /**
@@ -394,7 +459,7 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The do-while statement node.
      */
     public DoWhileStatement(GNode n, JavaStatement parent) {
-      s = new JavaStatement(n.getGeneric(0));
+      s = new JavaStatement(n.getGeneric(0), parent.getMethod());
       e = new JavaExpression(n.getGeneric(1), parent);
     }
 
@@ -449,6 +514,115 @@ public class JavaStatement extends Visitor implements Translatable {
   }
 
   /**
+   * A field declaration.
+   */
+  private class FieldDeclaration extends JavaStatement {
+  
+    private boolean isAbstract, isFinal, isStatic;
+    private List<GNode> isArrayInitializer;
+    private List<String> names;
+    private JavaType type;
+    private List<JavaExpression> values;
+    private JavaVisibility visibility;
+
+    /**
+     * Creates a new field declaration.
+     *
+     * @param n The field declaration node.
+     * @param parent The parent statement.
+     */
+    public FieldDeclaration(GNode n, JavaStatement parent) {
+      // Set the default visibility
+      visibility = JavaVisibility.PACKAGE_PRIVATE;
+
+      // Determine the modifiers
+      for (Object o : n.getNode(0)) {
+        String m = ((GNode)o).getString(0);
+        if (m.equals("public"))
+          visibility = JavaVisibility.PUBLIC;
+        else if (m.equals("private"))
+          visibility = JavaVisibility.PRIVATE;
+        else if (m.equals("protected"))
+          visibility = JavaVisibility.PROTECTED;
+        else if (m.equals("abstract"))
+          isAbstract = true;
+        else if (m.equals("static"))
+          isStatic = true;
+        else if (m.equals("final"))
+          isFinal = true;
+      }
+
+      // Get the type
+      type = new JavaType(n.getGeneric(1));
+
+      // Get the variable names and initialized values
+      names = new ArrayList<String>();
+      values = new ArrayList<JavaExpression>();
+      isArrayInitializer = new ArrayList<GNode>();
+      for (Object o : n.getNode(2)) {
+        Node declarator = (Node)o;
+        names.add(declarator.getString(0));
+        if (null != parent.getMethod())
+          parent.getMethod().addVariable(declarator.getString(0), type);
+        else if (null != parent.getClassFrom())
+          parent.getClassFrom().addVariable(declarator.getString(0), type);
+        if (null != declarator.get(2)) {
+          if (declarator.getNode(2).hasName("ArrayInitializer"))
+            isArrayInitializer.add(declarator.getGeneric(2));
+          else
+            isArrayInitializer.add(null);
+          values.add(new JavaExpression(declarator.getGeneric(2), this));
+        }
+        else
+          values.add(null);
+      }
+
+      // Get the dimensions if it's an array
+      if (null != n.getNode(2).getNode(0).get(1))
+        type.setDimensions(n.getNode(2).getNode(0).getNode(1).size());
+    }
+
+    /**
+     * Translates the statement and adds it 
+     * to the output stream.
+     *
+     * @param out The output stream.
+     *
+     * @return The output stream.
+     */
+    public Printer translate(Printer out) {
+      int size = names.size();
+      for (int i = 0; i < size; i++) {
+        out.indent();
+        type.translate(out);
+        if (type.isArray())
+          out.p("*");
+        out.p(" ").p(names.get(i));
+        if (null != values.get(i)) {
+          out.p(" = ");
+          if (null != isArrayInitializer.get(i)) {
+            List<JavaExpression> data = new ArrayList<JavaExpression>();
+            for (Object o : isArrayInitializer.get(i))
+              data.add(new JavaExpression((GNode)o, this));
+            out.p("new ");
+            type.translate(out);
+            out.p("(").p(data.size()).pln(");");
+            for (int j = 0; j < data.size(); j++) {
+              out.indent().p("(*").p(names.get(i)).p(")[").p(j).p("] = ");
+              data.get(j).translate(out).pln(";");
+            }
+          } else
+            values.get(i).translate(out).pln(";");
+        } else {
+          out.pln(";");
+        }
+      }
+      return out;
+    }
+
+  }
+
+  /**
    * A for statement.
    */
   private class ForStatement extends JavaStatement {
@@ -460,7 +634,7 @@ public class JavaStatement extends Visitor implements Translatable {
     private JavaType type;
     private List<JavaExpression> updates;
     private List<JavaExpression> values;
-    private List<String> variables;
+    private List<String> vars;
 
     /**
      * Creates a new for statement.
@@ -468,21 +642,21 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The for statement node.
      */
     public ForStatement(GNode n, JavaStatement parent) {
-      // Check if the variables are final
+      // Check if the parent.getMethod() are final
       if (null != n.getNode(0).get(0))
         isFinal = true;
 
-      // Get the type of the variables
+      // Get the type of the parent.getMethod()
       if (null != n.getNode(0).get(1))
         type = new JavaType(n.getNode(0).getGeneric(1));
 
-      // Get the names and values of the variables
+      // Get the names and values of the parent.getMethod()
       if (null != n.getNode(0).get(2)) {
-        variables = new ArrayList<String>();
+        vars = new ArrayList<String>();
         values = new ArrayList<JavaExpression>();
         for (Object o : n.getNode(0).getNode(2)) {
           Node declarator = (Node)o;
-          variables.add(declarator.getString(0));
+          vars.add(declarator.getString(0));
           if (null != declarator.get(1))
             type.setDimensions(declarator.getNode(1).size());
           if (null == declarator.get(2))
@@ -505,7 +679,7 @@ public class JavaStatement extends Visitor implements Translatable {
       }
 
       // Get the body of the foor loop
-      body = new JavaStatement(n.getGeneric(1));
+      body = new JavaStatement(n.getGeneric(1), parent.getMethod());
     }
 
     /**
@@ -522,10 +696,10 @@ public class JavaStatement extends Visitor implements Translatable {
         out.p("const ");
       if (null != type)
         type.translate(out).p(" ");
-      if (null != variables) {
-        int size = variables.size();
+      if (null != vars) {
+        int size = vars.size();
         for (int i = 0; i < size; i++) {
-          out.p(variables.get(i));
+          out.p(vars.get(i));
           // TODO: Handle C++ arrays
           // for (int j = 0; j < dimensions.get(i); j++)
           //   out.p("[]");
@@ -633,7 +807,7 @@ public class JavaStatement extends Visitor implements Translatable {
         if (start < node.size()) {
           for (int j = start; j < node.size(); j++) {
             if (!node.getNode(j).hasName("BreakStatement"))
-              caseActions.add(new JavaStatement(node.getGeneric(j)));
+              caseActions.add(new JavaStatement(node.getGeneric(j), parent.getMethod()));
             else
               breaks.add(true);
           }
@@ -750,7 +924,7 @@ public class JavaStatement extends Visitor implements Translatable {
      */
     public WhileStatement(GNode n, JavaStatement parent) {
       e = new JavaExpression(n.getGeneric(0), parent);
-      s = new JavaStatement(n.getGeneric(1));
+      s = new JavaStatement(n.getGeneric(1), parent.getMethod());
     }
 
     /**
@@ -783,7 +957,7 @@ public class JavaStatement extends Visitor implements Translatable {
   public Printer translate(Printer out) {
     if (null == s)
       return out;
-    for (String obj : Global.objects.get(this))
+    for (String obj : objects)
       out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
     return s.translate(out);
   }

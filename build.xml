@@ -76,7 +76,6 @@
 	<!-- Generate the Java documentation -->
 	<target name="docs" description="generation the documentation">
 		<javadoc destdir="${docs}"
-		         protected="true"
 		         version="true"
 			       use="true"
 			       sourcepath="${src}"

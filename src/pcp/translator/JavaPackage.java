@@ -17,9 +17,10 @@
  */
 package pcp.translator;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
@@ -29,7 +30,7 @@ import xtc.tree.Visitor;
  * both <code>PackageDeclaration</code> and
  * <code>ImportDeclaration</code> nodes as
  * we need all classes from a package even if
- * the Java file only explicitly imports one.
+ * the file only explicitly imports one.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -39,12 +40,35 @@ import xtc.tree.Visitor;
  * @version 1.1
  */
 public class JavaPackage {
+
+  // The default package name
+  final private static String DEFAULT = "__main__";
   
+  // The parts of the package name
   private List<String> pkg;
+
+  // Caches of the filename, namespace, and path
   private String filename, namespace, path;
+
+  // The files in the package
+  private Set<JavaFile> files;
 
 
   // =========================== Constructors =======================
+  
+  /**
+   * Constructs the default package.
+   */
+  public JavaPackage() {
+    // Set the filename to the default
+    filename = DEFAULT;
+
+    // Initialize the empty package set
+    pkg = new ArrayList<String>();
+
+    // Initialize the file set
+    files = new HashSet<JavaFile>();
+  }
   
   /**
    * Constructs the package using a GNode.
@@ -52,6 +76,7 @@ public class JavaPackage {
    * @param n The package or import declaration node.
    */
   public JavaPackage(GNode n) {
+    // Parse the package name
     pkg = new ArrayList<String>();
     int size;
     if (n.hasName("ImportDeclaration")) {
@@ -65,6 +90,9 @@ public class JavaPackage {
     for (int i = 0; i < size; i++) {
       pkg.add(n.getNode(1).getString(i));
     }
+
+    // Initialize the file set
+    files = new HashSet<JavaFile>();
   }
 
   /**
@@ -73,7 +101,11 @@ public class JavaPackage {
    * @param s The package path as a list.
    */
   public JavaPackage(List<String> s) {
+    // Use the list s as the package
     pkg = s;
+
+    // Initialize the file set
+    files = new HashSet<JavaFile>();
   }
 
 
@@ -85,9 +117,19 @@ public class JavaPackage {
    * @return The filename.
    */
   public String getFilename() {
+    // Only create the filename string if it doesn't already exist
     if (null == filename)
       filename = getString("_");
     return filename;
+  }
+
+  /**
+   * Gets the files in the package.
+   *
+   * @return The files.
+   */
+  public Set<JavaFile> getFiles() {
+    return files;
   }
 
   /**
@@ -96,6 +138,7 @@ public class JavaPackage {
    * @return The namespace.
    */
   public String getNamespace() {
+    // Only create the namespace string if it doesn't already exist
     if (null == namespace)
       namespace = getString("::");
     return namespace;
@@ -116,19 +159,21 @@ public class JavaPackage {
    * @return The package path.
    */
   public String getPath() {
+    // Only create the path string if it doesn't already exist
     if (null == path)
       path = getString("/");
     return path;
   }
 
   /**
-   * Creates a string using the specified separator.
+   * Joins together the parts of the package name
+   * using the specified separator.
    *
    * @param sep The separator.
    *
    * @return The package string.
    */
-  public String getString(String sep) {
+  private String getString(String sep) {
     StringBuilder p = new StringBuilder();
     int size = pkg.size();
     for (int i = 0; i < size; i++) {
@@ -137,6 +182,18 @@ public class JavaPackage {
         p.append(sep);
     }
     return p.toString();
+  }
+
+
+  // ============================ Set Methods =======================
+
+  /**
+   * Adds the specified file to the package.
+   *
+   * @param file The JavaFile to add.
+   */
+  public void addFile(JavaFile file) {
+    files.add(file);
   }
 
 

@@ -41,11 +41,13 @@ public class JavaClass extends Visitor implements Translatable {
   
   private JavaMethod constructor;
   private JavaType extension;
-  private List<JavaField> fields;
+  private List<JavaStatement> fields;
+  private JavaFile file;
   private boolean isAbstract, isFinal, isStatic;
   private List<JavaMethod> methods;
   private String name;
   private JavaClass parent;
+  private LinkedHashMap<String, JavaType> variables;
   private JavaVisibility visibility;
   private LinkedHashMap<String, JavaMethod> vtable;
 
@@ -56,8 +58,15 @@ public class JavaClass extends Visitor implements Translatable {
    * Constructs the class.
    * 
    * @param n The class declaration node.
+   * @param f The source file.
    */
-  public JavaClass(GNode n) {
+  public JavaClass(GNode n, JavaFile f) {
+    // Set the source file
+    file = f;
+
+    // Initialize the variable table
+    variables = new LinkedHashMap<String, JavaType>();
+
     // Get the class name
     name = n.getString(1);
 
@@ -68,7 +77,7 @@ public class JavaClass extends Visitor implements Translatable {
     visibility = JavaVisibility.PACKAGE_PRIVATE;
 
     // Instantiate the lists
-    fields = new ArrayList<JavaField>();
+    fields = new ArrayList<JavaStatement>();
     methods = new ArrayList<JavaMethod>();
 
     // Visit the nodes in the class
@@ -89,6 +98,15 @@ public class JavaClass extends Visitor implements Translatable {
    */
   public JavaType getExtension() {
     return extension;
+  }
+
+  /**
+   * Gets the file the class is in.
+   *
+   * @return The file.
+   */
+  public JavaFile getFile() {
+    return file;
   }
   
   /**
@@ -116,6 +134,15 @@ public class JavaClass extends Visitor implements Translatable {
    */
   public JavaVisibility getJavaVisibility() {
     return visibility;
+  }
+
+  /**
+   * Gets the class variables.
+   *
+   * @return The variables.
+   */
+  public LinkedHashMap<String, JavaType> getVariables() {
+    return variables;
   }
 
   /**
@@ -163,6 +190,16 @@ public class JavaClass extends Visitor implements Translatable {
 
   // ============================ Set Methods =======================
   
+  /**
+   * Adds a variable to the method scope.
+   *
+   * @param name The name of the variable.
+   * @param type The type of the variable.
+   */
+  public void addVariable(String name, JavaType type) {
+    variables.put(name, type);
+  }
+
   /**
    * Sets the superclass.
    *
@@ -212,7 +249,7 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitFieldDeclaration(GNode n) {
-    fields.add(new JavaField(n));
+    fields.add(new JavaStatement(n));
   }
 
   /**
@@ -293,7 +330,7 @@ public class JavaClass extends Visitor implements Translatable {
 
     // Declare all the fields
     out.indent().p("__").p(name).pln("_VT* __vptr;");
-    for (JavaField f : fields) {
+    for (JavaStatement f : fields) {
       f.translate(out);
     }
     out.pln();
@@ -352,7 +389,7 @@ public class JavaClass extends Visitor implements Translatable {
     if (vtable.containsKey("toString_String")) {
       vtable.get("toString_String").translateVTableReference(out, this);
     } else {
-      out.indent().p("toString(String(*)(").p(name).p("))&__Object::toString)");
+      out.indent().p("toString((String(*)(").p(name).p("))&__Object::toString)");
     }
     for (String key : keys) {
       if (key.equals("hashCode_int32_t") || key.equals("equals_bool") || key.equals("toString_String"))
@@ -375,8 +412,14 @@ public class JavaClass extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
-    for (JavaMethod m : methods)
+    for (JavaMethod m : methods) {
       m.translate(out);
+    }
+    out.indent().p("Class __").p(name).pln("::__class() {").incr();
+    out.indent().p("static Class k = new Class(__rt::literal(\"").p(name).pln("\"), __Object::__class());");
+    out.indent().pln("return k;");
+    out.decr().indent().pln("}").pln();
+    out.indent().p("__").p(name).p("_VT __").p(name).pln("::__vtable;");
     return out;
   }
 
