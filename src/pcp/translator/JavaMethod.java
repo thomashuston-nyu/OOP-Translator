@@ -136,6 +136,15 @@ public class JavaMethod extends Visitor implements Translatable {
     return isAbstract;
   }
 
+  /**
+   * Returns <code>true</code> if this method is a constructor.
+   *
+   * @return <code>true</code> if this method is a constructor; 
+   * <code>false</code> otherwise;
+   */
+  public boolean isConstructor() {
+    return isConstructor;
+  }
 
   /**
    * Returns <code>true</code> if this method is final.
@@ -369,8 +378,7 @@ public class JavaMethod extends Visitor implements Translatable {
    */
   public Printer translate(Printer out) {
     if (isConstructor) {
-      // TODO: translate constructors
-      return out;
+      return body.translate(out);
     } else {
       out.indent();
       returnType.translate(out).p(" ");
@@ -380,20 +388,33 @@ public class JavaMethod extends Visitor implements Translatable {
         if (paramNames.size() > 0)
           out.p(", ");
       }
-      int size = paramNames.size();
-      for (int i = 0; i < size; i++) {
-        paramTypes.get(i).translate(out);
-        if (paramTypes.get(i).isArray())
-          out.p("*");
-        out.p(" ").p(paramNames.get(i));
-        if (i < size - 1)
-          out.p(", ");
-      }
+      translateParameters(out);
       out.pln(") {").incr();
       body.translate(out);
       out.decr().indent().pln("}");
-      return out.pln();
+      return out;
     }
+  }
+
+  /**
+   * Translates the method parameters into C++
+   * and writes them to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
+  public Printer translateParameters(Printer out) {
+    int size = paramNames.size();
+    for (int i = 0; i < size; i++) {
+      paramTypes.get(i).translate(out);
+      if (paramTypes.get(i).isArray())
+        out.p("*");
+      out.p(" ").p(paramNames.get(i));
+      if (i < size - 1)
+        out.p(", ");
+    }
+    return out;
   }
 
 }

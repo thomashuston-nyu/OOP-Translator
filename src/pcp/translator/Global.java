@@ -48,4 +48,25 @@ public class Global {
   // The runtime
   public static Runtime runtime;
 
+  /**
+   * Converts the specified variable name to a valid
+   * C++ variable name.
+   *
+   * @return The valid variable name.
+   */
+  public static String getValidName(String name) {
+    boolean isValid = true;
+    Set<String> keys = JavaType.primitives.keySet();
+    for (String key : keys) {
+      if (name == JavaType.primitives.get(key)) {
+        isValid = false;
+        break;
+      }
+    }
+    if (isValid)
+      return name;
+    else
+      return "__" + name;
+  }
+
 }

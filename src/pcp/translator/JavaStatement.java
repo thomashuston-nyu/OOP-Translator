@@ -957,8 +957,10 @@ public class JavaStatement extends Visitor implements Translatable {
   public Printer translate(Printer out) {
     if (null == s)
       return out;
-    for (String obj : objects)
-      out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
+    if (null != m && !m.isConstructor()){
+      for (String obj : objects)
+        out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
+    }
     return s.translate(out);
   }
 

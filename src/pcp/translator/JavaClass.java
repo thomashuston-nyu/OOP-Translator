@@ -412,8 +412,19 @@ public class JavaClass extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
+    out.indent().p("__").p(name).p("::").p(name).p("(");
+    if (null != constructor)
+      constructor.translateParameters(out);
+    out.pln(")");
+    out.indent().p(": __vptr(&__vtable)");
+    out.pln(" {").incr();
+    if (null != constructor) {
+      constructor.translate(out);
+    }
+    out.decr().indent().pln("}").pln();
     for (JavaMethod m : methods) {
       m.translate(out);
+      out.pln();
     }
     out.indent().p("Class __").p(name).pln("::__class() {").incr();
     out.indent().p("static Class k = new Class(__rt::literal(\"").p(name).pln("\"), __Object::__class());");

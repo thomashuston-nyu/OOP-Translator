@@ -42,7 +42,7 @@ public class JavaType extends Visitor implements Translatable {
   
   // Map from Java primitive types to C++ primitive types
   // Includes void for convenience
-  private final static Map<String, String> primitives = new HashMap<String, String>();
+  public final static Map<String, String> primitives = new HashMap<String, String>();
   static {
     primitives.put("byte", "int8_t");
     primitives.put("short", "int16_t");
