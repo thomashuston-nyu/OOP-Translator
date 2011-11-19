@@ -136,6 +136,14 @@ public class JavaType extends Visitor implements Translatable {
     return null;
   }
 
+  public String getJavaType() {
+    if (null != primitiveType)
+      return primitiveType;
+    if (null != classType)
+      return classType;
+    return null;
+  }
+
   /**
    * Gets the path to the class type.
    *

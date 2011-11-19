@@ -441,6 +441,7 @@ public class JavaExpression extends Visitor implements Translatable {
 
     private JavaExpression left, right;
     private String operator;
+    private boolean isString;
 
     /**
      * Creates a new additive expression.
@@ -451,7 +452,17 @@ public class JavaExpression extends Visitor implements Translatable {
       left = new JavaExpression(n.getGeneric(0), parent.getStatement());
       operator = n.getString(1);
       right = new JavaExpression(n.getGeneric(2), parent.getStatement());
-      // TODO: deal with all the different kinds of additive expressions
+      if (left.getType().hasType("String") || right.getType().hasType("String")) {
+        isString = true;
+        parent.setType(new JavaType("String"));
+      } else if (left.getType().hasType("double") || right.getType().hasType("double"))
+        parent.setType(new JavaType("double"));
+      else if (left.getType().hasType("float") || right.getType().hasType("float"))
+        parent.setType(new JavaType("float"));
+      else if (left.getType().hasType("long") || right.getType().hasType("long"))
+        parent.setType(new JavaType("long"));
+      else
+        parent.setType(new JavaType("int"));
     }
 
     /**
@@ -489,7 +500,9 @@ public class JavaExpression extends Visitor implements Translatable {
       for (Object o : n) {
         variables.add(new JavaExpression((GNode)o, parent.getStatement()));
       }
-      parent.setType(variables.get(0).getType());
+      JavaType type = new JavaType(variables.get(0).getType().getJavaType());
+      type.setDimensions(1); // doesn't work for multidimensional arrays
+      parent.setType(type);
     }
 
     /**
@@ -803,6 +816,7 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public CastExpression(GNode n, JavaExpression parent) {
       type = new JavaType(n.getGeneric(0));
+      parent.setType(type);
     }
 
     /**
@@ -868,6 +882,7 @@ public class JavaExpression extends Visitor implements Translatable {
       test = new JavaExpression(n.getGeneric(0), parent.getStatement());
       ifTrue = new JavaExpression(n.getGeneric(1), parent.getStatement());
       ifFalse = new JavaExpression(n.getGeneric(2), parent.getStatement());
+      parent.setType(ifTrue.getType());
     }
 
     /**
@@ -917,6 +932,12 @@ public class JavaExpression extends Visitor implements Translatable {
       left = new JavaExpression(n.getGeneric(0), parent.getStatement());
       operator = n.getString(1);
       right = new JavaExpression(n.getGeneric(2), parent.getStatement());
+      if (n.hasName("Expression"))
+        parent.setType(left.getType());
+      else if (n.hasName("EqualityExpression") || n.hasName("RelationalExpression"))
+        parent.setType(new JavaType("boolean"));
+      else if (n.hasName("ShiftExpression"))
+        parent.setType(left.getType());
     }
 
     /**
@@ -930,6 +951,13 @@ public class JavaExpression extends Visitor implements Translatable {
       this.operator = operator;
       if (!operator.equals("~") && !operator.equals("!"))
         right = new JavaExpression(n.getGeneric(1), parent.getStatement());
+      if (n.getName().startsWith("Logical"))
+        parent.setType(new JavaType("boolean"));
+      else if (n.getName().startsWith("Bitwise"))
+        if (left.getType().hasType("long") || (right != null && right.getType().hasType("long")))
+          parent.setType(new JavaType("long"));
+        else
+          parent.setType(new JavaType("int"));
     }
 
     /**
@@ -969,6 +997,7 @@ public class JavaExpression extends Visitor implements Translatable {
     public InstanceOfExpression(GNode n, JavaExpression parent) {
       object = new JavaExpression(n.getGeneric(0), parent.getStatement());
       type = new JavaType(n.getGeneric(1));
+      parent.setType(new JavaType("boolean"));
     }
 
     /**
@@ -1007,10 +1036,27 @@ public class JavaExpression extends Visitor implements Translatable {
     public Literal(GNode n, JavaExpression parent) {
       if (n.size() == 0)
         isNull = true;
-      else
+      else {
         value = n.getString(0);
-      if (n.hasName("StringLiteral"))
-        isString = true;
+        if (n.hasName("BooleanLiteral"))
+          parent.setType(new JavaType("boolean"));
+        else if (n.hasName("CharacterLiteral"))
+          parent.setType(new JavaType("char"));
+        else if (n.hasName("FloatingPointLiteral"))
+          if (value.charAt(value.length() - 1) == 'F' || value.charAt(value.length() - 1) == 'f')
+            parent.setType(new JavaType("float"));
+          else
+            parent.setType(new JavaType("double"));
+        else if (n.hasName("IntegerLiteral"))
+          if (value.charAt(value.length() - 1) == 'L' || value.charAt(value.length() - 1) == 'l')
+            parent.setType(new JavaType("long"));
+          else
+            parent.setType(new JavaType("int"));
+        else if (n.hasName("StringLiteral")) {
+          isString = true;
+          parent.setType(new JavaType("String"));
+        }
+      }
     }
 
     /**
@@ -1050,6 +1096,14 @@ public class JavaExpression extends Visitor implements Translatable {
       left = new JavaExpression(n.getGeneric(0), parent.getStatement());
       right = new JavaExpression(n.getGeneric(2), parent.getStatement());
       operator = n.getString(1);
+      if (left.getType().hasType("double") || right.getType().hasType("double"))
+        parent.setType(new JavaType("double"));
+      else if (left.getType().hasType("float") || right.getType().hasType("float"))
+        parent.setType(new JavaType("float"));
+      else if (left.getType().hasType("long") || right.getType().hasType("long"))
+        parent.setType(new JavaType("long"));
+      else
+        parent.setType(new JavaType("int"));
     }
 
     /**
@@ -1093,6 +1147,8 @@ public class JavaExpression extends Visitor implements Translatable {
           continue;
         dimensions.add(new JavaExpression((GNode)o, parent.getStatement()));
       }
+      type.setDimensions(dimensions.size());
+      parent.setType(type);
     }
 
     /**
@@ -1144,6 +1200,7 @@ public class JavaExpression extends Visitor implements Translatable {
           continue;
         arguments.add(new JavaExpression((GNode)o, parent.getStatement()));
       }
+      parent.setType(type);
     }
 
     /**
@@ -1183,7 +1240,12 @@ public class JavaExpression extends Visitor implements Translatable {
       if (null != parent.getStatement().getMethod()) {
         if (!parent.getStatement().getMethod().isConstructor() && !parent.getStatement().getMethod().hasVariable(name))
           isClassVar = true;
+        if (parent.getStatement().getMethod().hasVariable(name))
+          parent.setType(parent.getStatement().getMethod().getVariableType(name));
       }
+      else
+        if (null != parent.getStatement().getClassFrom() && parent.getStatement().getClassFrom().hasVariable(name))
+          parent.setType(parent.getStatement().getClassFrom().getVariableType(name));
     }
 
     /**
@@ -1256,6 +1318,7 @@ public class JavaExpression extends Visitor implements Translatable {
       }
       if (n.getNode(0).hasName("PrimaryIdentifier"))
         parent.getStatement().addObject(n.getNode(0).getString(0));
+      parent.setType(variable.getType().getArrayType());
     }
 
     public Printer translate(Printer out) {
@@ -1293,6 +1356,7 @@ public class JavaExpression extends Visitor implements Translatable {
         identifier = new JavaExpression(n.getGeneric(0), parent.getStatement());
         post = n.getString(1);
       }
+      parent.setType(identifier.getType());
     }
 
     /**
