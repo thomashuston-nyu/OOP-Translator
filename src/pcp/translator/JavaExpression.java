@@ -1271,6 +1271,7 @@ public class JavaExpression extends Visitor implements Translatable {
       else
         if (null != parent.getStatement().getClassFrom() && parent.getStatement().getClassFrom().hasVariable(name))
           parent.setType(parent.getStatement().getClassFrom().getVariableType(name));
+      Global.runtime.console().pln(n.toString()).flush();
     }
 
     /**
@@ -1333,25 +1334,26 @@ public class JavaExpression extends Visitor implements Translatable {
   private class SubscriptExpression extends JavaExpression {
 
     private JavaExpression variable;
-    private List<Integer> indices;
+    private List<JavaExpression> indices;
 
     public SubscriptExpression(GNode n, JavaExpression parent) {
       variable = new JavaExpression(n.getGeneric(0), parent.getStatement());
-      indices = new ArrayList<Integer>();
-      for (int i = 1; i < n.size(); i++) {
-        indices.add(Integer.parseInt(n.getNode(i).getString(0)));
-      }
+      indices = new ArrayList<JavaExpression>();
+      for (int i = 1; i < n.size(); i++)
+        indices.add(new JavaExpression(n.getGeneric(i), parent.getStatement()));
       if (n.getNode(0).hasName("PrimaryIdentifier"))
         parent.getStatement().addObject(n.getNode(0).getString(0));
       parent.setType(variable.getType().getArrayType());
     }
 
     public Printer translate(Printer out) {
-      for (Integer i : indices)
+      for (JavaExpression e : indices)
         out.p("(*");
       variable.translate(out);
-      for (Integer i : indices)
-        out.p(")[").p(i).p("]");
+      for (JavaExpression e : indices) {
+        out.p(")[");
+        e.translate(out).p("]");
+      }
       return out;
     }
 
