@@ -98,6 +98,20 @@ public class JavaType extends Visitor implements Translatable {
   // ============================ Get Methods =======================
 
   /**
+   * Gets the type stored in the array.
+   *
+   * @return The type stored in the array.
+   */
+  public JavaType getArrayType() {
+    if (0 == dimensions)
+      return null;
+    if (null != primitiveType)
+      return new JavaType(primitiveType);
+    else
+      return new JavaType(classType);
+  }
+
+  /**
    * Gets the dimensions if it's an array.
    *
    * @return The dimensions if it's an array;
