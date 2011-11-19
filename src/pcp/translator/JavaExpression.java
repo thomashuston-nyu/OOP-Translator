@@ -474,10 +474,21 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
-      left.translate(out);
-      out.p(" ").p(operator).p(" ");
-      right.translate(out);
-      return out;
+      if (!isString) {
+        left.translate(out);
+        out.p(" ").p(operator).p(" ");
+        right.translate(out);
+        return out;
+      } else {
+        out.pln("({");
+        out.incr().indent().pln("std::ostringsteam sout;");
+        out.indent().p("sout << ");
+        left.translate(out).p(" << ");
+        right.translate(out).pln(";");
+        out.indent().pln("new __String(sout.str())");
+        out.decr().indent().p("})");
+        return out;
+      }
     }
 
   }
