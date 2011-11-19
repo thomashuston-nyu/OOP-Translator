@@ -485,7 +485,7 @@ public class JavaExpression extends Visitor implements Translatable {
         out.indent().p("sout << ");
         left.translate(out).p(" << ");
         right.translate(out).pln(";");
-        out.indent().pln("new __String(sout.str())");
+        out.indent().pln("new __String(sout.str());");
         out.decr().indent().p("})");
         return out;
       }
