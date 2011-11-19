@@ -350,7 +350,7 @@ public class Translator extends Tool {
    */
   public void printHeader(Printer out, JavaPackage pkg) {
     // Get the files in the package
-    Set<JavaFile> files = pkg.getFiles();
+    List<JavaFile> files = pkg.getFiles();
 
     // Print the name of the current header file
     runtime.console().p("### HEADER: ").p(pkg.getFilename()).pln(".h ###").pln().flush();
@@ -400,7 +400,9 @@ public class Translator extends Tool {
 
     // Print header structs
     for (JavaFile file : files) {
-      printHeaderVTable(out, file);
+      for (JavaClass cls : file.getClasses()) {
+        cls.translateHeader(out);
+      }
       out.pln();
     } 
 
@@ -420,10 +422,6 @@ public class Translator extends Tool {
   * @param c The compilation unit to print.
   */
   public void printHeaderVTable(Printer out, JavaFile c) {
-    // Don't print out the structs twice
-    if (printed.get(c))
-      return;
-
     // Make sure that all dependencies have been printed first
     if (c.getPublicClass().hasParent()) {
       JavaFile d = c.getPublicClass().getParent().getFile();
@@ -461,7 +459,7 @@ public class Translator extends Tool {
    */
   public void printBody(Printer out, JavaPackage pkg) {
     // Get the files in the package
-    Set<JavaFile> files = pkg.getFiles();
+    List<JavaFile> files = pkg.getFiles();
 
     // Print the name of the current cc file
     runtime.console().p("### BODY: ").p(pkg.getFilename()).pln(".cc ###").pln().flush();

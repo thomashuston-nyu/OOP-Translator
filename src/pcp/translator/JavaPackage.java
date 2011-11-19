@@ -51,7 +51,7 @@ public class JavaPackage {
   private String filename, namespace, path;
 
   // The files in the package
-  private Set<JavaFile> files;
+  private List<JavaFile> files;
 
 
   // =========================== Constructors =======================
@@ -66,8 +66,8 @@ public class JavaPackage {
     // Initialize the empty package set
     pkg = new ArrayList<String>();
 
-    // Initialize the file set
-    files = new HashSet<JavaFile>();
+    // Initialize the file list
+    files = new ArrayList<JavaFile>();
   }
   
   /**
@@ -91,8 +91,8 @@ public class JavaPackage {
       pkg.add(n.getNode(1).getString(i));
     }
 
-    // Initialize the file set
-    files = new HashSet<JavaFile>();
+    // Initialize the file list
+    files = new ArrayList<JavaFile>();
   }
 
   /**
@@ -104,8 +104,8 @@ public class JavaPackage {
     // Use the list s as the package
     pkg = s;
 
-    // Initialize the file set
-    files = new HashSet<JavaFile>();
+    // Initialize the file list
+    files = new ArrayList<JavaFile>();
   }
 
 
@@ -128,7 +128,7 @@ public class JavaPackage {
    *
    * @return The files.
    */
-  public Set<JavaFile> getFiles() {
+  public List<JavaFile> getFiles() {
     return files;
   }
 
@@ -196,6 +196,37 @@ public class JavaPackage {
     files.add(file);
   }
 
+  /**
+   * Orders the files based on dependencies.
+   */
+  public void orderFiles() {
+    List<JavaFile> ordered = new ArrayList<JavaFile>();
+    for (JavaFile file : files) {
+      if (ordered.contains(file))
+        continue;
+      if (!file.getPublicClass().hasParent()) {
+        ordered.add(file);
+        continue;
+      }
+      JavaFile parent = file.getPublicClass().getParent().getFile();
+      if (null != parent.getPackage() && null != file.getPackage()) {
+        if (!parent.getPackage().equals(file.getPackage())) {          
+          ordered.add(file);
+        } else {
+          if (!ordered.contains(parent))
+            ordered.add(parent);
+          ordered.add(file);
+        }
+      } else if (null != parent.getPackage() || null != file.getPackage()) {
+        ordered.add(file);
+      } else {
+        if (!ordered.contains(parent))
+          ordered.add(parent);
+        ordered.add(file);
+      }
+    }
+    files = ordered;
+  }
 
   // =========================== Other Methods ======================
 

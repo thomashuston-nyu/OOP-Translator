@@ -55,17 +55,6 @@ public class JavaStatement extends Visitor implements Translatable {
   protected JavaStatement() {}
 
   /**
-   * Dispatches on the specified statement node.
-   *
-   * @param n The statement node.
-   */
-  public JavaStatement(GNode n) {
-    this.node = n;
-    objects = new HashSet<String>();
-    dispatch(n);
-  }
-
-  /**
    * Dispatches on the specified statement node
    * and sets the class the statement is in.
    *
@@ -563,6 +552,7 @@ public class JavaStatement extends Visitor implements Translatable {
     private JavaType type;
     private List<JavaExpression> values;
     private JavaVisibility visibility;
+    private JavaStatement parent;
 
     /**
      * Creates a new field declaration.
@@ -571,6 +561,9 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param parent The parent statement.
      */
     public FieldDeclaration(GNode n, JavaStatement parent) {
+      // Save the statement parent
+      this.parent = parent;
+
       // Set the default visibility
       visibility = JavaVisibility.PACKAGE_PRIVATE;
 
@@ -610,7 +603,7 @@ public class JavaStatement extends Visitor implements Translatable {
             isArrayInitializer.add(declarator.getGeneric(2));
           else
             isArrayInitializer.add(null);
-          values.add(new JavaExpression(declarator.getGeneric(2), this));
+          values.add(new JavaExpression(declarator.getGeneric(2), parent));
         }
         else
           values.add(null);
@@ -642,7 +635,7 @@ public class JavaStatement extends Visitor implements Translatable {
           if (null != isArrayInitializer.get(i)) {
             List<JavaExpression> data = new ArrayList<JavaExpression>();
             for (Object o : isArrayInitializer.get(i))
-              data.add(new JavaExpression((GNode)o, this));
+              data.add(new JavaExpression((GNode)o, parent));
             out.p("new ");
             type.translate(out);
             out.p("(").p(data.size()).pln(");");

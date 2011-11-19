@@ -297,7 +297,7 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitFieldDeclaration(GNode n) {
-    fields.add(new JavaStatement(n));
+    fields.add(new JavaStatement(n, this));
   }
 
   /**

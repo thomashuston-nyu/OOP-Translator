@@ -621,11 +621,6 @@ public class JavaExpression extends Visitor implements Translatable {
         if (isObject.size() != args.size())
           isObject.add(false);
       }
-
-      // Check if this is a print call
-      if (null != ref && 2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
-            && (name.equals("print") || name.equals("println")))
-          isPrint = true; 
     }
     
     /**
@@ -657,7 +652,8 @@ public class JavaExpression extends Visitor implements Translatable {
             }
             // Check the current package for the class
             if (null != pkg) {
-              for (JavaFile f : pkg.getFiles()) {
+              List<JavaFile> files = pkg.getFiles();
+              for (JavaFile f : files) {
                 if (f.getPublicClass().getName().equals(classType)) {
                   JavaMethod m = f.getPublicClass().getMethod(name);
                   parent.setType(m.getReturnType());
@@ -668,7 +664,8 @@ public class JavaExpression extends Visitor implements Translatable {
             }
             // Then check the imported packages for the class
             for (JavaPackage imp : imports) {
-              for (JavaFile f : imp.getFiles()) {
+              List<JavaFile> files = imp.getFiles();
+              for (JavaFile f : files) {
                 if (f.getPublicClass().getName().equals(classType)) {
                   JavaMethod m = f.getPublicClass().getMethod(name);
                   parent.setType(m.getReturnType());
@@ -677,6 +674,8 @@ public class JavaExpression extends Visitor implements Translatable {
                 }
               }
             }
+          } else {
+            Global.runtime.errConsole().pln("Method and Class are both null - we're fucked!").flush();
           }
         } else if (2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
             && (name.equals("print") || name.equals("println"))) {
