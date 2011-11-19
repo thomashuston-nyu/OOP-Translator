@@ -18,8 +18,10 @@
 package pcp.translator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import xtc.tree.GNode;
@@ -39,7 +41,7 @@ import xtc.tree.Visitor;
  */
 public class JavaClass extends Visitor implements Translatable {
   
-  private JavaMethod constructor;
+  private List<JavaConstructor> constructors;
   private JavaType extension;
   private List<JavaStatement> fields;
   private JavaFile file;
@@ -47,7 +49,7 @@ public class JavaClass extends Visitor implements Translatable {
   private List<JavaMethod> methods;
   private String name;
   private JavaClass parent;
-  private LinkedHashMap<String, JavaType> variables;
+  private Map<String, JavaType> variables;
   private JavaVisibility visibility;
   private LinkedHashMap<String, JavaMethod> vtable;
 
@@ -65,7 +67,7 @@ public class JavaClass extends Visitor implements Translatable {
     file = f;
 
     // Initialize the variable table
-    variables = new LinkedHashMap<String, JavaType>();
+    variables = new HashMap<String, JavaType>();
 
     // Get the class name
     name = n.getString(1);
@@ -78,6 +80,7 @@ public class JavaClass extends Visitor implements Translatable {
 
     // Instantiate the lists
     fields = new ArrayList<JavaStatement>();
+    constructors = new ArrayList<JavaConstructor>();
     methods = new ArrayList<JavaMethod>();
 
     // Visit the nodes in the class
@@ -108,6 +111,29 @@ public class JavaClass extends Visitor implements Translatable {
   public JavaFile getFile() {
     return file;
   }
+
+  /**
+   * Gets the method of the specified name if it exists.
+   *
+   * @param name The name of the method.
+   *
+   * @return The method if it is in the class;
+   * <code>null</code> otherwise.
+   */
+  public JavaMethod getMethod(String name) {
+    if (null == vtable)
+      initializeVTable();
+    Set<String> keys = vtable.keySet();
+    for (String key : keys) {
+      if (key.startsWith(name + "_"))
+        return vtable.get(key);
+    }
+    for (JavaMethod m : methods) {
+      if (m.getName().equals(name))
+        return m;
+    }
+    return null;
+  }
   
   /**
    * Gets the name of the class.
@@ -128,21 +154,33 @@ public class JavaClass extends Visitor implements Translatable {
   }
 
   /**
-   * Gets the visibility of the class.
-   *
-   * @return The visibility.
-   */
-  public JavaVisibility getJavaVisibility() {
-    return visibility;
-  }
-
-  /**
    * Gets the class variables.
    *
    * @return The variables.
    */
-  public LinkedHashMap<String, JavaType> getVariables() {
+  public Map<String, JavaType> getVariables() {
     return variables;
+  }
+
+  /**
+   * Gets the type of the specified variable.
+   *
+   * @param name The name of the variable.
+   *
+   * @return The type if the variable exists;
+   * <code>null</code> otherwise.
+   */
+  public JavaType getVariableType(String name) {
+    return variables.get(name);
+  }
+
+  /**
+   * Gets the visibility of the class.
+   *
+   * @return The visibility.
+   */
+  public JavaVisibility getVisibility() {
+    return visibility;
   }
 
   /**
@@ -165,6 +203,16 @@ public class JavaClass extends Visitor implements Translatable {
    */
   public boolean hasParent() {
     return extension != null;
+  }
+
+  /**
+   * Checks if a variable was declared in this class.
+   *
+   * @return <code>True</code> if the variable was declared
+   * in this class; <code>false</code> otherwise.
+   */
+  public boolean hasVariable(String name) {
+    return variables.containsKey(name);
   }
 
   /**
@@ -231,7 +279,7 @@ public class JavaClass extends Visitor implements Translatable {
    * @param n The AST node to visit.
    */
   public void visitConstructorDeclaration(GNode n) {
-    constructor = new JavaMethod(n, this);
+    constructors.add(new JavaConstructor(n, this));
   }
   
   /**
@@ -307,7 +355,7 @@ public class JavaClass extends Visitor implements Translatable {
 
     // Add/override methods
     for (JavaMethod m : methods) {
-      if ((m.getJavaVisibility() == JavaVisibility.PUBLIC || m.getJavaVisibility() == JavaVisibility.PROTECTED) 
+      if ((m.getVisibility() == JavaVisibility.PUBLIC || m.getVisibility() == JavaVisibility.PROTECTED) 
           && !m.isFinal() && !m.isStatic())
         vtable.put(m.getName() + "_" + m.getReturnType().getType(), m);
     }
@@ -336,8 +384,10 @@ public class JavaClass extends Visitor implements Translatable {
     out.pln();
 
     // Declare the constructor
-    if (null != constructor) {
-      constructor.translateHeaderDeclaration(out);
+    if (0 != constructors.size()) {
+      for (JavaConstructor con : constructors) {
+        con.translateHeaderDeclaration(out);
+      }
     } else {
       out.indent().p("__").p(name).pln("();");
     }
@@ -412,22 +462,21 @@ public class JavaClass extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
-    out.indent().p("__").p(name).p("::").p(name).p("(");
-    if (null != constructor)
-      constructor.translateParameters(out);
-    out.pln(")");
-    out.indent().p(": __vptr(&__vtable)");
-    out.pln(" {").incr();
-    if (null != constructor) {
-      constructor.translate(out);
+    if (0 != constructors.size()) {
+      for (JavaConstructor c : constructors) {
+        c.translate(out);
+        out.pln();
+      }
+    } else {
+      out.indent().p("__").p(name).p("::__").p(name).pln("()");
+      out.indent().pln(": __vptr(&__vtable) {}").pln();
     }
-    out.decr().indent().pln("}").pln();
     for (JavaMethod m : methods) {
       m.translate(out);
       out.pln();
     }
     out.indent().p("Class __").p(name).pln("::__class() {").incr();
-    out.indent().p("static Class k = new Class(__rt::literal(\"").p(name).pln("\"), __Object::__class());");
+    out.indent().p("static Class k = new __Class(__rt::literal(\"").p(name).pln("\"), __Object::__class());");
     out.indent().pln("return k;");
     out.decr().indent().pln("}").pln();
     out.indent().p("__").p(name).p("_VT __").p(name).pln("::__vtable;");

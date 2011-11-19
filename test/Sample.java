@@ -5,7 +5,7 @@ public class Sample {
   public static void main(String[] args) {
     
     // Create superclass
-    Super sup = new Super(1);
+    Super sup = new Super();
     
     // Create subclass
     Sub sub = new Sub(2);
@@ -52,6 +52,8 @@ public class Sample {
     for (int i = 0; i < 10; i++)
       System.out.print(i);
     System.out.println();
+
+    System.out.println("test " + sup.toString());
   }
 
 }

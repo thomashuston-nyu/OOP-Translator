@@ -136,7 +136,7 @@ public class JavaFile extends Visitor implements Translatable {
     allClasses.add(c);
 
     // Check if this is the public class
-    JavaVisibility v = c.getJavaVisibility();
+    JavaVisibility v = c.getVisibility();
     if (v == JavaVisibility.PUBLIC) {
       if (null == publicClass)
         publicClass = c;

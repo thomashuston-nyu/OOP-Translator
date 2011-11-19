@@ -43,6 +43,7 @@ public class JavaStatement extends Visitor implements Translatable {
   private JavaClass c;
   private JavaMethod m;
   private JavaStatement s;
+  private GNode node;
   private Set<String> objects;
 
 
@@ -59,6 +60,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The statement node.
    */
   public JavaStatement(GNode n) {
+    this.node = n;
     objects = new HashSet<String>();
     dispatch(n);
   }
@@ -71,6 +73,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param cls The class the statement is in.
    */
   public JavaStatement(GNode n, JavaClass cls) {
+    this.node = n;
     objects = new HashSet<String>();
     c = cls;
     dispatch(n);
@@ -84,6 +87,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param method The method the statement is in.
    */
   public JavaStatement(GNode n, JavaMethod method) {
+    this.node = n;
     objects = new HashSet<String>();
     m = method;
     dispatch(n);
@@ -108,6 +112,18 @@ public class JavaStatement extends Visitor implements Translatable {
    */
   public JavaMethod getMethod() {
     return m;
+  }
+
+  /**
+   * Checks if the statement has the specified name.
+   *
+   * @param name The name.
+   *
+   * @return <code>True</code> if it has the specified name;
+   * <code>false</code> otherwise.
+   */
+  public boolean hasName(String name) {
+    return node.hasName(name);
   }
 
 
@@ -185,7 +201,6 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The empty statement node.
    */
   public void visitEmptyStatement(GNode n) {
-    // Nothing to do
   }
   
   /**
@@ -384,10 +399,17 @@ public class JavaStatement extends Visitor implements Translatable {
     public Printer translate(Printer out) {
       out.indent().p("if (");
       e.translate(out).pln(") {").incr();
-      ifStatement.translate(out);
-      if (null != elseStatement)
-        out.decr().indent().pln("} else {").incr();
-      out.decr().indent().pln("}");
+      ifStatement.translate(out).decr().indent().p("}");
+      if (null != elseStatement) {
+        out.p(" else ");
+        if (!elseStatement.hasName("ConditionalStatement"))
+          out.pln("{").incr();
+        elseStatement.translate(out);
+        if (!elseStatement.hasName("ConditionalStatement"))
+          out.decr().indent().pln("}");
+      } else {
+        out.pln();
+      }
       return out;
     }
 
@@ -487,6 +509,7 @@ public class JavaStatement extends Visitor implements Translatable {
   private class ExpressionStatement extends JavaStatement {
 
     private JavaExpression e;
+    private boolean isInitializer;
 
     /**
      * Creates a new expression statement.
@@ -494,6 +517,20 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The expression statement node.
      */
     public ExpressionStatement(GNode n, JavaStatement parent) {
+      if (null != parent.getMethod() && parent.getMethod().isConstructor()) {
+        if (n.getNode(0).hasName("Expression") && n.getNode(0).getString(1).equals("=")) {
+          String name = "";
+          if (n.getNode(0).getNode(0).hasName("PrimaryIdentifier"))
+            name = n.getNode(0).getNode(0).getString(0);
+          else if (n.getNode(0).getNode(0).hasName("SelectionExpression")
+              && n.getNode(0).getNode(0).getNode(0).hasName("ThisExpression"))
+            name = n.getNode(0).getNode(0).getString(1);
+          if (!name.equals("") && !parent.getMethod().hasVariable(name)) {
+            ((JavaConstructor)parent.getMethod()).addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
+            isInitializer = true;
+          }
+        }
+      }
       e = new JavaExpression(n.getGeneric(0), parent);
     }
 
@@ -506,6 +543,8 @@ public class JavaStatement extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      if (isInitializer)
+        return out;
       out.indent();
       e.translate(out);
       return out.pln(";");
@@ -642,15 +681,15 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The for statement node.
      */
     public ForStatement(GNode n, JavaStatement parent) {
-      // Check if the parent.getMethod() are final
-      if (null != n.getNode(0).get(0))
+      // Check if the variables are final
+      if (n.getNode(0).getNode(0).size() > 0)
         isFinal = true;
 
-      // Get the type of the parent.getMethod()
+      // Get the type of the variables
       if (null != n.getNode(0).get(1))
         type = new JavaType(n.getNode(0).getGeneric(1));
 
-      // Get the names and values of the parent.getMethod()
+      // Get the names and values of the variables
       if (null != n.getNode(0).get(2)) {
         vars = new ArrayList<String>();
         values = new ArrayList<JavaExpression>();
@@ -663,6 +702,12 @@ public class JavaStatement extends Visitor implements Translatable {
             values.add(null);
           else
             values.add(new JavaExpression(declarator.getGeneric(2), parent));
+        }
+      }
+
+      if (null != parent.getMethod()) {
+        for (String var : vars) {
+          parent.getMethod().addVariable(var, type);
         }
       }
 

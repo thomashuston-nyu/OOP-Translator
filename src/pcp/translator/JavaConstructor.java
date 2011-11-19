@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
@@ -28,7 +29,7 @@ import xtc.tree.Printer;
 import xtc.tree.Visitor;
 
 /**
- * A method or constructor.
+ * A constructor.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -37,16 +38,16 @@ import xtc.tree.Visitor;
  *
  * @version 1.1
  */
-public class JavaMethod extends Visitor implements Translatable {
+public class JavaConstructor extends JavaMethod implements Translatable {
 
   private JavaStatement body;
   private JavaClass cls;
   //private ThrowsClause exception;
+  private Map<String, JavaExpression> initialize;
   private boolean isAbstract, isFinal, isStatic;
   private String name;
   private List<String> paramNames;
   private List<JavaType> paramTypes;
-  private JavaType returnType;
   private Map<String, JavaType> variables;
   private JavaVisibility visibility;
 
@@ -54,22 +55,16 @@ public class JavaMethod extends Visitor implements Translatable {
   // =========================== Constructors =======================
   
   /**
-   * Empty constructor for subclass use.
-   */
-  public JavaMethod() {
-    // Nothing to do
-  }
-
-  /**
-   * Creates the method.
+   * Creates the constructor.
    *
-   * @param n The method declaration node.
+   * @param n The constructor declaration node.
    */
-  public JavaMethod(GNode n, JavaClass cls) {
+  public JavaConstructor(GNode n, JavaClass cls) {
     // Set the class
     this.cls = cls;
 
-    // Initialize the variable map
+    // Initialize the maps
+    initialize = new HashMap<String, JavaExpression>();
     variables = new HashMap<String, JavaType>();
     
     // Set the default visibility
@@ -80,7 +75,7 @@ public class JavaMethod extends Visitor implements Translatable {
     paramTypes = new ArrayList<JavaType>();
 
     // Get the name
-    name = n.getString(3);
+    name= n.getString(2);
 
     // Dispatch over the child nodes
     for (Object o : n) {
@@ -94,7 +89,7 @@ public class JavaMethod extends Visitor implements Translatable {
   // ============================ Get Methods =======================
 
   /**
-   * Gets the class the method is in.
+   * Gets the class constructor is for.
    *
    * @return The class.
    */
@@ -103,25 +98,7 @@ public class JavaMethod extends Visitor implements Translatable {
   }
 
   /**
-   * Gets the name of the method.
-   *
-   * @return The name.
-   */
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * Gets the return type of this method.
-   *
-   * @return The return type.
-   */
-  public JavaType getReturnType() {
-    return returnType;
-  }
-
-  /**
-   * Gets the variables declared in the method.
+   * Gets the variables declared in the constructor.
    *
    * @return The variables.
    */
@@ -142,7 +119,7 @@ public class JavaMethod extends Visitor implements Translatable {
   }
 
   /**
-   * Gets the visibility of the method.
+   * Gets the visibility of the constructor.
    *
    * @return The visibility.
    */
@@ -161,58 +138,27 @@ public class JavaMethod extends Visitor implements Translatable {
   }
 
   /**
-   * Returns <code>true</code> if this method is abstract.
+   * Returns <code>true</code>.
    *
-   * @return <code>true</code> if this method is abstract; 
-   * <code>false</code> otherwise.
-   */
-  public boolean isAbstract() {
-    return isAbstract;
-  }
-
-  /**
-   * Returns <code>false</code> by default; overridden in
-   * the constructor subclass.
-   *
-   * @return <code>false</code>.
+   * @return <code>true</code>.
    */
   public boolean isConstructor() {
-    return false;
-  }
-
-  /**
-   * Returns <code>true</code> if this method is final.
-   *
-   * @return <code>true</code> if this method is final; 
-   * <code>false</code> otherwise.
-   */
-  public boolean isFinal() {
-    return isFinal;
-  }
-
-  /**
-   * Returns <code>true</code> if this method is static.
-   *
-   * @return <code>true</code> if this method is static; 
-   * <code>false</code> otherwise.
-   */
-  public boolean isStatic() {
-    return isStatic;
-  }
-
-  /**
-   * Returns <code>true</code> if this method is virtual.
-   *
-   * @return <code>True</code> if this method is virtual;
-   * <code>false</code> otehrwise.
-   */
-  public boolean isVirtual() {
-    return !isStatic && (visibility == JavaVisibility.PUBLIC || visibility == JavaVisibility.PROTECTED);
+    return true;
   }
 
 
   // ============================ Set Methods =======================
   
+  /**
+   * Adds a variable to initialize in the constructor.
+   *
+   * @param name The name of the variable.
+   * @param value The value of the variable.
+   */
+  public void addInitializer(String name, JavaExpression value) {
+    initialize.put(name, value);
+  }
+
   /**
    * Adds a variable to the method scope.
    *
@@ -227,7 +173,7 @@ public class JavaMethod extends Visitor implements Translatable {
   // =========================== Visit Methods ======================
 
   /**
-   * Parses the body of the method.
+   * Parses the body of the constructor.
    *
    * @param n The block node.
    */
@@ -236,7 +182,7 @@ public class JavaMethod extends Visitor implements Translatable {
   }
 
   /**
-   * Parses the dimensions of the method.
+   * Parses the dimensions of the constructor.
    *
    * @param n The dimensions node.
    */
@@ -245,7 +191,7 @@ public class JavaMethod extends Visitor implements Translatable {
   }
      
   /**
-   * Parses the parameters of the method.
+   * Parses the parameters of the constructor.
    *
    * @param n The formal parameters node.
    */
@@ -261,12 +207,11 @@ public class JavaMethod extends Visitor implements Translatable {
       paramNames.add(param.getString(++j));
       if (++j < param.size() - 1)
         paramTypes.get(paramTypes.size() - 1).setDimensions(param.getNode(j).size());
-      variables.put(paramNames.get(paramNames.size()-1),paramTypes.get(paramTypes.size()-1));
     }
   }
 
   /**
-   * Parses the modifiers of the method.
+   * Parses the modifiers of the constructor.
    *
    * @param n The modifiers node.
    */
@@ -279,17 +224,11 @@ public class JavaMethod extends Visitor implements Translatable {
         visibility = JavaVisibility.PRIVATE;
       else if (m.equals("protected"))
         visibility = JavaVisibility.PROTECTED;
-      else if (m.equals("abstract"))
-        isAbstract = true;
-      else if (m.equals("final"))
-        isFinal = true;
-      else if (m.equals("static"))
-        isStatic = true;
     }
   }
 
   /**
-   * Parses the exceptions thrown by the method.
+   * Parses the exceptions thrown by the constructor.
    *
    * @param n The throws clause node.
    */
@@ -298,29 +237,11 @@ public class JavaMethod extends Visitor implements Translatable {
     //exception = new ThrowsClause(n);
   }
 
-  /**
-   * Parses the return type of the method.
-   *
-   * @param n The type node.
-   */
-  public void visitType(GNode n) {
-    returnType = new JavaType(n);
-  }
-
-  /**
-   * Sets the return type to void.
-   *
-   * @param n The void type node.
-   */
-  public void visitVoidType(GNode n) {
-    returnType = new JavaType(n);
-  }
-
 
   // ======================== Translation Methods ===================
 
   /**
-   * Translates the method into a declaration for
+   * Translates the constructor into a declaration for
    * the C++ header struct and writes it to the
    * output stream.
    *
@@ -329,90 +250,7 @@ public class JavaMethod extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translateHeaderDeclaration(Printer out) {
-    out.indent().p("static ");
-    returnType.translate(out);
-    if (returnType.isArray())
-      out.p("*");
-    out.p(" ").p(name).p("(");
-    if (!isStatic) {
-      out.p(cls.getName());
-      if (paramNames.size() > 0)
-        out.p(", ");
-    }
-    int size = paramNames.size();
-    for (int i = 0; i < size; i++) {
-      paramTypes.get(i).translate(out);
-      if (paramTypes.get(i).isArray())
-        out.p("*");
-      if (i < size - 1)
-        out.p(", ");
-    }
-    return out.pln(");");
-  }
-
-  /**
-   * Translates the method into a declaration for
-   * the C++ vtable header struct and writes it to
-   * the output stream.
-   *
-   * @param out The output stream.
-   *
-   * @return The output stream.
-   */
-  public Printer translateVTableDeclaration(Printer out, JavaClass caller) {
-    out.indent().p(returnType.getType()).p(" (*")
-      .p(name).p(")(").p(caller.getName());
-    for (JavaType param : paramTypes) {
-      out.p(", ");
-      param.translate(out);
-      if (param.isArray())
-        out.p("*");
-    }
-    return out.pln(");");
-  }
-
-  /**
-   * Translates the method into a constructor
-   * initialization for the C++ vtable header struct
-   * and writes it to the output stream.
-   *
-   * @param out The output stream.
-   *
-   * @return The output stream.
-   */
-  public Printer translateVTableReference(Printer out, JavaClass caller) {
-    out.indent().p(name).p("(");
-    if (caller != cls) {
-      out.p("(").p(returnType.getType()).p("(*)(").p(caller.getName());
-      for (JavaType param : paramTypes) {
-        out.p(",");
-        param.translate(out);
-        if (param.isArray())
-          out.p("*");
-      }
-      out.p("))");
-    }
-    out.p("&__").p(cls.getName()).p("::").p(name);
-    return out.p(")");
-  }
-
-  /**
-   * Translates the method into C++ and writes
-   * it to the output stream.
-   *
-   * @param out The output stream.
-   *
-   * @return The output stream.
-   */
-  public Printer translate(Printer out) {
-    out.indent();
-    returnType.translate(out).p(" ");
-    out.p("__").p(cls.getName()).p("::").p(name).p("(");
-    if (!isStatic) {
-      out.p(cls.getName()).p(" __this");
-      if (paramNames.size() > 0)
-        out.p(", ");
-    }
+    out.indent().p("__").p(cls.getName()).p("(");
     int size = paramNames.size();
     for (int i = 0; i < size; i++) {
       paramTypes.get(i).translate(out);
@@ -422,10 +260,39 @@ public class JavaMethod extends Visitor implements Translatable {
       if (i < size - 1)
         out.p(", ");
     }
-    out.pln(") {").incr();
+    return out.pln(");");
+  }
+
+  /**
+   * Translates the constructor into C++ and writes
+   * it to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
+  public Printer translate(Printer out) {
+    out.indent().p("__").p(name).p("::__").p(name).p("(");
+    int size = paramNames.size();
+    for (int i = 0; i < size; i++) {
+      paramTypes.get(i).translate(out);
+      if (paramTypes.get(i).isArray())
+        out.p("*");
+      out.p(" ").p(paramNames.get(i));
+      if (i < size - 1)
+        out.p(", ");
+    }
+    out.pln(")");
+    out.indent().p(": __vptr(&__vtable)");
+    Set<String> keys = initialize.keySet();
+    for (String key : keys) {
+      out.pln(",").indent().p(key).p("(");
+      initialize.get(key).translate(out);
+      out.p(")");
+    }
+    out.pln(" {").incr();
     body.translate(out);
-    out.decr().indent().pln("}");
-    return out;
+    return out.decr().indent().pln("}");
   }
 
 }

@@ -71,6 +71,29 @@ public class JavaType extends Visitor implements Translatable {
     dispatch(n);
   }
 
+  /**
+   * Creates the type from a string.
+   *
+   * @param type The type.
+   */
+  public JavaType(String type) {
+    if (primitives.containsKey(type))
+      primitiveType = type;
+    else
+      classType = type;
+  }
+
+  /**
+   * Creates the type from a string and dimensions.
+   *
+   * @param type The type.
+   * @param dim The dimensions of the array.
+   */
+  public JavaType(String type, int dim) {
+    this(type);
+    dimensions = dim;
+  }
+
 
   // ============================ Get Methods =======================
 
@@ -146,6 +169,16 @@ public class JavaType extends Visitor implements Translatable {
    */
   public boolean isArray() {
     return 0 < dimensions;
+  }
+
+  /**
+   * Checks if the type is primitive.
+   *
+   * @return <code>True</code> if it is primitive;
+   * <code>false</code> otherwise.
+   */
+  public boolean isPrimitive() {
+    return 0 == dimensions && null != primitiveType;
   }
 
 

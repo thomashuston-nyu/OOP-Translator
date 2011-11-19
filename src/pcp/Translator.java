@@ -495,11 +495,8 @@ public class Translator extends Tool {
     if (isMain) {
       out.pln("int main(int argc, char *argv[]) {").incr();
       out.indent().pln("__rt::Array<String>* args;");
-      out.indent().pln("if (0 < argc)").incr();
       out.indent().pln("args = new __rt::Array<String>(argc);");
-      out.decr().indent().pln("else").incr();
-      out.indent().pln("args = __rt::null();");
-      out.decr().indent().pln("for (int i = 0; i < argc; i++) {").incr();
+      out.indent().pln("for (int i = 0; i < argc; i++) {").incr();
       out.indent().pln("(*args)[i] = __rt::literal(argv[i]);");
       out.decr().indent().pln("}");
       out.indent();

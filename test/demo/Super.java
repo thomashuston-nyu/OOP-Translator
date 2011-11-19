@@ -8,8 +8,8 @@ public class Super {
     x = 0;
   }
 
-  public Super(int x1) {
-    x = x1;
+  public Super(int x) {
+    int x = 5;
   }
 
   public int getX() {
