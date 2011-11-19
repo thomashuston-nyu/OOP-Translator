@@ -661,7 +661,6 @@ public class JavaExpression extends Visitor implements Translatable {
      * Determines the return type of the method call.
      */
     public void determineType() {
-      Global.runtime.console().flush();
       if (null != ref) {
         if (1 == ref.size()) {
           // If it's a variable, figure out what type it is and find the method called
@@ -1271,7 +1270,6 @@ public class JavaExpression extends Visitor implements Translatable {
       else
         if (null != parent.getStatement().getClassFrom() && parent.getStatement().getClassFrom().hasVariable(name))
           parent.setType(parent.getStatement().getClassFrom().getVariableType(name));
-      Global.runtime.console().pln(n.toString()).flush();
     }
 
     /**

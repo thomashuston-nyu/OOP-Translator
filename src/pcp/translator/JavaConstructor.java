@@ -204,7 +204,7 @@ public class JavaConstructor extends JavaMethod implements Translatable {
       else
         j = 2;
       paramTypes.add(new JavaType(param.getGeneric(j++)));
-      paramNames.add(param.getString(++j));
+      paramNames.add("$" + param.getString(++j));
       if (++j < param.size() - 1)
         paramTypes.get(paramTypes.size() - 1).setDimensions(param.getNode(j).size());
     }

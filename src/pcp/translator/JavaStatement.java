@@ -688,7 +688,7 @@ public class JavaStatement extends Visitor implements Translatable {
         values = new ArrayList<JavaExpression>();
         for (Object o : n.getNode(0).getNode(2)) {
           Node declarator = (Node)o;
-          vars.add(declarator.getString(0));
+          vars.add("$" + declarator.getString(0));
           if (null != declarator.get(1))
             type.setDimensions(declarator.getNode(1).size());
           if (null == declarator.get(2))
