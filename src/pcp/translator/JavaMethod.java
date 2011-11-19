@@ -87,6 +87,10 @@ public class JavaMethod extends Visitor implements Translatable {
     }
 
     // Name mangling for method overloading
+    if (n.getString(3).contains("$")) {
+      Global.runtime().errConsole().pln("$ is not allowed in method names: " + n.getString(3)).flush();
+      throw new RuntimeException();
+    }
     StringBuilder s = new StringBuilder();
     s.append(n.getString(3));
     for (JavaType t : paramTypes)
