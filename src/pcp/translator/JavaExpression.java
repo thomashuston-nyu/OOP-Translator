@@ -674,9 +674,7 @@ public class JavaExpression extends Visitor implements Translatable {
                 }
               }
             }
-          } else {
-            Global.runtime.errConsole().pln("Method and Class are both null - we're fucked!").flush();
-          }
+          } 
         } else if (2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
             && (name.equals("print") || name.equals("println"))) {
           isPrint = true;

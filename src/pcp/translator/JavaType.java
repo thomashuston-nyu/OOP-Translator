@@ -162,6 +162,20 @@ public class JavaType extends Visitor implements Translatable {
   }
 
   /**
+   * Checks if this type is equal to the specified Java type.
+   *
+   * @return <code>True</code> if it is the specified type;
+   * <code>false</code> otherwise.
+   */
+  public boolean hasType(String type) {
+    if (null != primitiveType && primitiveType.equals(type))
+      return true;
+    if (null != classType && classType.equals(type))
+      return true;
+    return false;
+  }
+
+  /**
    * Checks if the type is an array.
    *
    * @return <code>True</code> if it is an array;
