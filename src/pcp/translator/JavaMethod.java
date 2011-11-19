@@ -79,15 +79,19 @@ public class JavaMethod extends Visitor implements Translatable {
     paramNames = new ArrayList<String>();
     paramTypes = new ArrayList<JavaType>();
 
-    // Get the name
-    name = n.getString(3);
-
     // Dispatch over the child nodes
     for (Object o : n) {
       if (o instanceof Node) {
         dispatch((Node)o);
       }
     }
+
+    // Name mangling for method overloading
+    StringBuilder s = new StringBuilder();
+    s.append(n.getString(3));
+    for (JavaType t : paramTypes)
+      s.append("$" + t.getMangledType());
+    name = s.toString();
   }
 
 

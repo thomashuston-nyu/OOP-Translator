@@ -136,12 +136,34 @@ public class JavaType extends Visitor implements Translatable {
     return null;
   }
 
+  /**
+   * Gets the Java type.
+   *
+   * @return The type.
+   */
   public String getJavaType() {
     if (null != primitiveType)
       return primitiveType;
     if (null != classType)
       return classType;
     return null;
+  }
+  
+  /**
+   * Gets the mangled C++ type.
+   *
+   * @return The type.
+   */
+  public String getMangledType() {
+    if (0 == dimensions)
+      return getType();
+    StringBuilder s = new StringBuilder();
+    s.append("array" + dimensions + "_");
+    if (null != primitiveType)
+      s.append(primitives.get(primitiveType));
+    else
+      s.append(classType);
+    return s.toString();
   }
 
   /**

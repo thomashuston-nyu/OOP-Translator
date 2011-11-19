@@ -623,9 +623,6 @@ public class JavaExpression extends Visitor implements Translatable {
         }
       }
 
-      // Get the name of the method called
-      name = n.getString(2);
-
       // Get the arguments passed to the method
       args = new ArrayList<JavaExpression>();
       for (Object o : n.getNode(3)) {     
@@ -645,12 +642,26 @@ public class JavaExpression extends Visitor implements Translatable {
         if (isObject.size() != args.size())
           isObject.add(false);
       }
+
+      if (null != ref && 2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
+          && (n.getString(2).equals("print") || n.getString(2).equals("println")))
+        isPrint = true;
+
+      // Name mangling for method overloading
+      StringBuilder s = new StringBuilder();
+      s.append(n.getString(2));
+      if (!isPrint) {
+        for (JavaExpression e : args)
+          s.append("$" + e.getType().getMangledType());
+      }
+      name = s.toString();
     }
     
     /**
      * Determines the return type of the method call.
      */
     public void determineType() {
+      Global.runtime.console().flush();
       if (null != ref) {
         if (1 == ref.size()) {
           // If it's a variable, figure out what type it is and find the method called
@@ -701,7 +712,6 @@ public class JavaExpression extends Visitor implements Translatable {
           } 
         } else if (2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
             && (name.equals("print") || name.equals("println"))) {
-          isPrint = true;
           parent.setType(new JavaType("void"));
         } else {
           // TODO: reference to some explicit package and class

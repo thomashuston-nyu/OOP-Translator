@@ -410,7 +410,7 @@ public class JavaClass extends Visitor implements Translatable {
 
     // Declare all the methods in the vtable
     out.indent().p("int32_t (*hashCode)(").p(name).pln(");");
-    out.indent().p("bool (*equals)(").p(name).pln(", Object);");
+    out.indent().p("bool (*equals$Object)(").p(name).pln(", Object);");
     out.indent().p("Class (*getClass)(").p(name).pln(");");
     out.indent().p("String (*toString)(").p(name).pln(");");
     Set<String> keys = vtable.keySet();
