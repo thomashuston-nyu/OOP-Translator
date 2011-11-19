@@ -593,7 +593,7 @@ public class JavaStatement extends Visitor implements Translatable {
       isArrayInitializer = new ArrayList<GNode>();
       for (Object o : n.getNode(2)) {
         Node declarator = (Node)o;
-        names.add(declarator.getString(0));
+        names.add("$" + declarator.getString(0));
         if (null != parent.getMethod())
           parent.getMethod().addVariable(declarator.getString(0), type);
         else if (null != parent.getClassFrom())

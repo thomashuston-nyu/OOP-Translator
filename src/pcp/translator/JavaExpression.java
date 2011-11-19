@@ -1030,7 +1030,11 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
-      // TODO: translate instanceof into C++
+      out.pln("({");
+      out.incr().indent().p("Class k = __").p(type.getType()).pln("::__class();");
+      out.indent().p("k->__vptr->isInstance(k, ");
+      object.translate(out).pln(");");
+      out.decr().indent().p("})");
       return out;
     }
 
@@ -1257,7 +1261,7 @@ public class JavaExpression extends Visitor implements Translatable {
     private String name;
 
     public PrimaryIdentifier(GNode n, JavaExpression parent) {
-      name = n.getString(0);
+      name = "$" + n.getString(0);
       if (null != parent.getStatement().getMethod()) {
         if (!parent.getStatement().getMethod().isConstructor() && !parent.getStatement().getMethod().hasVariable(name))
           isClassVar = true;
