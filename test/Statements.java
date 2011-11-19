@@ -1,16 +1,14 @@
 public class Statements {
 
-  private int x;
-  public String[] s;
-
   public static void main(String[] args) {
-    int[] a = new int[5];
-    a[0] = 1;
-    int[][] b = new int[2][4];
-    b[0][1] = a[0];
-    System.out.println(a[0]);
-    x.getName().getX();
-    getClass().getName();
+    byte b = 1;
+    short s = 2;
+    int i = 3;
+    long l = 4;
+    float f = 5.0;
+    double d = 6.0;
+    boolean bool = true;
+    String a = "a";
   }
 
 }
