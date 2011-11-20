@@ -105,10 +105,14 @@ public class JavaType extends Visitor implements Translatable {
   public JavaType getArrayType() {
     if (0 == dimensions)
       return null;
-    if (null != primitiveType)
-      return new JavaType(primitiveType);
-    else
-      return new JavaType(classType);
+    JavaType t;
+    if (null != primitiveType) {
+      t = new JavaType(primitiveType);
+    } else {
+      t = new JavaType(classType);
+    }
+    t.setDimensions(dimensions - 1);
+    return t;
   }
 
   /**

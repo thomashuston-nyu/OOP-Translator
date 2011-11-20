@@ -596,8 +596,7 @@ public class JavaExpression extends Visitor implements Translatable {
       isObject = new ArrayList<Boolean>();
 
       // Check if this expression is in the constructor
-      if (null != parent.getStatement().getMethod())
-        isConstructor = parent.getStatement().getMethod().isConstructor();
+      isConstructor = parent.getStatement().getScope().hasName("JavaConstructor");
 
       // Determine who is making the call
       if (null != n.get(0)) {
@@ -628,21 +627,16 @@ public class JavaExpression extends Visitor implements Translatable {
       for (Object o : n.getNode(3)) {     
         GNode node = (GNode)o;
         args.add(new JavaExpression(node, parent.getStatement()));
-        if (node.hasName("PrimaryIdentifier")) {
-          if (null != parent.getStatement().getMethod()) {
-            if (parent.getStatement().getMethod().hasVariable(node.getString(0)) &&
-              !parent.getStatement().getMethod().getVariableType(node.getString(0)).isPrimitive()) {
-              isObject.add(true);
-            } else if (parent.getStatement().getMethod().getClassFrom().hasVariable(node.getString(0)) &&
-              !parent.getStatement().getMethod().getClassFrom().getVariableType(node.getString(0)).isPrimitive()) {
-              isObject.add(false);
-            }
-          }
-        }
-        if (isObject.size() != args.size())
+        // TODO: Just use args.getType()
+        if (node.hasName("PrimaryIdentifier") &&
+            parent.getStatement().getScope().isInScope("$" + node.getString(0)) &&
+            parent.getStatement().getScope().getVariableType("$" + node.getString(0)).isPrimitive())
+            isObject.add(true);
+        else
           isObject.add(false);
       }
 
+      // Check if this is a print expression
       if (null != ref && 2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
           && (n.getString(2).equals("print") || n.getString(2).equals("println")))
         isPrint = true;
@@ -651,8 +645,9 @@ public class JavaExpression extends Visitor implements Translatable {
       StringBuilder s = new StringBuilder();
       s.append(n.getString(2));
       if (!isPrint) {
-        for (JavaExpression e : args)
+        for (JavaExpression e : args) {
           s.append("$" + e.getType().getMangledType());
+        }
       }
       name = s.toString();
     }
@@ -664,51 +659,42 @@ public class JavaExpression extends Visitor implements Translatable {
       if (null != ref) {
         if (1 == ref.size()) {
           // If it's a variable, figure out what type it is and find the method called
-          if (null != parent.getStatement().getMethod() ||
-              null != parent.getStatement().getClassFrom()) {
-            String classType;
-            JavaPackage pkg;
-            Set<JavaPackage> imports;
-            if (null != parent.getStatement().getMethod()) {
-              if (parent.getStatement().getMethod().hasVariable(ref.get(0)))
-                classType = parent.getStatement().getMethod().getVariableType(ref.get(0)).getType();
-              else
-                classType = ref.get(0);
-              pkg = parent.getStatement().getMethod().getClassFrom().getFile().getPackage();
-              imports = parent.getStatement().getMethod().getClassFrom().getFile().getImports();
-            } else {
-              if (parent.getStatement().getClassFrom().hasVariable(ref.get(0)))
-                classType = parent.getStatement().getClassFrom().getVariableType(ref.get(0)).getType();
-              else
-                classType = ref.get(0);
-              pkg = parent.getStatement().getClassFrom().getFile().getPackage();
-              imports = parent.getStatement().getClassFrom().getFile().getImports();
-            }
-            // Check the current package for the class
-            if (null != pkg) {
-              List<JavaFile> files = pkg.getFiles();
-              for (JavaFile f : files) {
-                if (f.getPublicClass().getName().equals(classType)) {
-                  JavaMethod m = f.getPublicClass().getMethod(name);
-                  parent.setType(m.getReturnType());
-                  method = m;
-                  return;
-                }
+          String classType;
+          if (parent.getStatement().getScope().isInScope("$" + ref.get(0)))
+            classType = parent.getStatement().getScope().getVariableType("$" + ref.get(0)).getType();
+          else
+            classType = ref.get(0);
+          JavaScope temp = parent.getStatement().getScope();
+          while (!temp.hasName("JavaClass")) {
+            temp = temp.getParentScope();
+          }
+          JavaClass cls = (JavaClass)temp;
+          JavaPackage pkg = cls.getFile().getPackage();
+          Set<JavaPackage> imports = cls.getFile().getImports();
+          // Check the current package for the class
+          if (null != pkg) {
+            List<JavaFile> files = pkg.getFiles();
+            for (JavaFile f : files) {
+              if (f.getPublicClass().getName().equals(classType)) {
+                JavaMethod m = f.getPublicClass().getMethod(name);
+                parent.setType(m.getReturnType());
+                method = m;
+                return;
               }
             }
-            // Then check the imported packages for the class
-            for (JavaPackage imp : imports) {
-              List<JavaFile> files = imp.getFiles();
-              for (JavaFile f : files) {
-                if (f.getPublicClass().getName().equals(classType)) {
-                  JavaMethod m = f.getPublicClass().getMethod(name);
-                  parent.setType(m.getReturnType());
-                  method = m;
-                  return;
-                }
+          }
+          // Then check the imported packages for the class
+          for (JavaPackage imp : imports) {
+            List<JavaFile> files = imp.getFiles();
+            for (JavaFile f : files) {
+              if (f.getPublicClass().getName().equals(classType)) {
+                JavaMethod m = f.getPublicClass().getMethod(name);
+                parent.setType(m.getReturnType());
+                method = m;
+                return;
               }
             }
-          } 
+          }
         } else if (2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
             && (name.equals("print") || name.equals("println"))) {
           parent.setType(new JavaType("void"));
@@ -727,15 +713,13 @@ public class JavaExpression extends Visitor implements Translatable {
             f = Global.files.get(path);
         }
       } else {
-        if (null != parent.getStatement().getMethod()) {
-          JavaMethod m = parent.getStatement().getMethod().getClassFrom().getMethod(name);
-          parent.setType(m.getReturnType());
-          method = m;
-        } else {
-          JavaMethod m = parent.getStatement().getClassFrom().getMethod(name);
-          parent.setType(m.getReturnType());
-          method = m;
+        JavaScope temp = parent.getStatement().getScope();
+        while (!temp.hasName("JavaClass")) {
+          temp = temp.getParentScope();
         }
+        JavaMethod m = ((JavaClass)temp).getMethod(name);
+        parent.setType(m.getReturnType());
+        method = m;
       }
     }
 
@@ -768,10 +752,14 @@ public class JavaExpression extends Visitor implements Translatable {
         } else {
           String namespace = "";
           int refsize = ref.size();
-          for (int i = 0; i < refsize; i++) {
-            if (0 < i)
-              namespace += "::";
-            namespace += ref.get(i);
+          if (1 < refsize) {
+            for (int i = 0; i < refsize; i++) {
+              if (0 < i)
+                namespace += "::";
+              namespace += ref.get(i);
+            }
+          } else {
+            namespace = "$" + ref.get(0);
           }
           if (!method.isStatic()) {
             out.p(namespace).p("->");
@@ -1184,18 +1172,29 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
-      // TODO: multi-dimensional arrays don't quite work
-      // we need the variable name 
-      //Set<String> vars = 
-      for (int i = 0; i < 1; i++) {
-        out.p("new __rt::Array<");
-        type.setDimensions(dimensions.size() - 1 - i);
-        type.translate(out).p(">(");
-        dimensions.get(i).translate(out).p(")");
-        //for (int j = 0; j < )
-        //if (dimensions.size() > 1 && i < dimensions.size() - 1) {
-        //  out.pln(";").indent().p(variable).p(" ");
-        //}
+      if (1 < dimensions.size()) {
+        out.pln("({").incr();
+        for (int i = 0; i < dimensions.size(); i++) {
+          out.indent();
+          type.setDimensions(dimensions.size() - i);
+          type.translate(out).p("* $a").p(i).p("$ = new ");
+          type.translate(out).p("(");
+          dimensions.get(i).translate(out).pln(");");
+          if (i < dimensions.size() - 1) {
+            out.indent().p("for (int32_t $i").p(i).p("$; $i").p(i).p("$ < ");
+            dimensions.get(i).translate(out).p("; $i").p(i).pln("$++) {").incr();
+          }
+        }
+        for (int i = dimensions.size() - 1; i > 0; i--) {
+          out.indent().p("(*$a").p(i-1).p("$)[$i").p(i-1).p("$] = $a").p(i).pln("$;");
+          out.decr().indent().pln("}");
+        }
+        out.indent().pln("$a0$;");
+        out.decr().indent().p("})");
+      } else {
+        out.p("new ");
+        type.translate(out).p("(");
+        dimensions.get(0).translate(out).p(")");
       }
       return out;
     }
@@ -1261,15 +1260,11 @@ public class JavaExpression extends Visitor implements Translatable {
 
     public PrimaryIdentifier(GNode n, JavaExpression parent) {
       name = "$" + n.getString(0);
-      if (null != parent.getStatement().getMethod()) {
-        if (!parent.getStatement().getMethod().isConstructor() && !parent.getStatement().getMethod().hasVariable(name))
+      if (parent.getStatement().getScope().isInScope(name)) {
+        parent.setType(parent.getStatement().getScope().getVariableType(name));
+        if (parent.getStatement().getScope().getVariableScope(name).hasName("JavaClass")) 
           isClassVar = true;
-        if (parent.getStatement().getMethod().hasVariable(name))
-          parent.setType(parent.getStatement().getMethod().getVariableType(name));
       }
-      else
-        if (null != parent.getStatement().getClassFrom() && parent.getStatement().getClassFrom().hasVariable(name))
-          parent.setType(parent.getStatement().getClassFrom().getVariableType(name));
     }
 
     /**

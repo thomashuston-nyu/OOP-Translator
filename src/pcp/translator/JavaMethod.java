@@ -19,8 +19,10 @@ package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
@@ -39,13 +41,12 @@ import xtc.tree.Visitor;
  */
 public class JavaMethod extends Visitor implements Translatable {
 
-  private JavaStatement body;
+  private JavaBlock body;
   private JavaClass cls;
   //private ThrowsClause exception;
   private boolean isAbstract, isFinal, isStatic;
   private String name;
-  private List<String> paramNames;
-  private List<JavaType> paramTypes;
+  private LinkedHashMap<String, JavaType> parameters; 
   private JavaType returnType;
   private Map<String, JavaType> variables;
   private JavaVisibility visibility;
@@ -69,15 +70,11 @@ public class JavaMethod extends Visitor implements Translatable {
     // Set the class
     this.cls = cls;
 
-    // Initialize the variable map
-    variables = new HashMap<String, JavaType>();
-    
     // Set the default visibility
     visibility = JavaVisibility.PACKAGE_PRIVATE;
 
-    // Initialize the parameter lists
-    paramNames = new ArrayList<String>();
-    paramTypes = new ArrayList<JavaType>();
+    // Initialize the parameters map
+    parameters = new LinkedHashMap<String, JavaType>();
 
     // Dispatch over the child nodes
     for (Object o : n) {
@@ -93,9 +90,15 @@ public class JavaMethod extends Visitor implements Translatable {
     }
     StringBuilder s = new StringBuilder();
     s.append(n.getString(3));
-    for (JavaType t : paramTypes)
-      s.append("$" + t.getMangledType());
+    Set<String> params = parameters.keySet();
+    for (String param : params) {
+      s.append("$" + parameters.get(param).getMangledType());
+    }
     name = s.toString();
+
+    // Create the body of the method
+    body = new JavaBlock(n.getGeneric(7), cls, this);
+
   }
 
 
@@ -120,33 +123,21 @@ public class JavaMethod extends Visitor implements Translatable {
   }
 
   /**
+   * Gets the parameters of the constructor.
+   *
+   * @return The parameters.
+   */
+  public LinkedHashMap<String, JavaType> getParameters() {
+    return parameters;
+  }
+  
+  /**
    * Gets the return type of this method.
    *
    * @return The return type.
    */
   public JavaType getReturnType() {
     return returnType;
-  }
-
-  /**
-   * Gets the variables declared in the method.
-   *
-   * @return The variables.
-   */
-  public Map<String, JavaType> getVariables() {
-    return variables;
-  }
-
-  /**
-   * Gets the type of the specified variable.
-   *
-   * @param name The name of the variable.
-   *
-   * @return The type if the variable exists;
-   * <code>null</code> otherwise.
-   */
-  public JavaType getVariableType(String name) {
-    return variables.get(name);
   }
 
   /**
@@ -159,16 +150,6 @@ public class JavaMethod extends Visitor implements Translatable {
   }
 
   /**
-   * Checks if a variable was declared in this method.
-   *
-   * @return <code>True</code> if the variable was declared
-   * in the method; <code>false</code> otherwise.
-   */
-  public boolean hasVariable(String name) {
-    return variables.containsKey(name);
-  }
-
-  /**
    * Returns <code>true</code> if this method is abstract.
    *
    * @return <code>true</code> if this method is abstract; 
@@ -176,16 +157,6 @@ public class JavaMethod extends Visitor implements Translatable {
    */
   public boolean isAbstract() {
     return isAbstract;
-  }
-
-  /**
-   * Returns <code>false</code> by default; overridden in
-   * the constructor subclass.
-   *
-   * @return <code>false</code>.
-   */
-  public boolean isConstructor() {
-    return false;
   }
 
   /**
@@ -219,19 +190,6 @@ public class JavaMethod extends Visitor implements Translatable {
   }
 
 
-  // ============================ Set Methods =======================
-  
-  /**
-   * Adds a variable to the method scope.
-   *
-   * @param name The name of the variable.
-   * @param type The type of the variable.
-   */
-  public void addVariable(String name, JavaType type) {
-    variables.put(name, type);
-  }
-
-
   // =========================== Visit Methods ======================
 
   /**
@@ -240,7 +198,7 @@ public class JavaMethod extends Visitor implements Translatable {
    * @param n The block node.
    */
   public void visitBlock(GNode n) {
-    body = new JavaStatement(n, this);
+    // Already initialized
   }
 
   /**
@@ -265,11 +223,10 @@ public class JavaMethod extends Visitor implements Translatable {
         j = 1;
       else
         j = 2;
-      paramTypes.add(new JavaType(param.getGeneric(j++)));
-      paramNames.add("$" + param.getString(++j));
-      if (++j < param.size() - 1)
-        paramTypes.get(paramTypes.size() - 1).setDimensions(param.getNode(j).size());
-      variables.put(paramNames.get(paramNames.size()-1),paramTypes.get(paramTypes.size()-1));
+      JavaType paramType = new JavaType(param.getGeneric(j));
+      if (null != param.getNode(j).get(1))
+        paramType.setDimensions(param.getNode(j).getNode(1).size());
+      parameters.put("$" + param.getString(j + 2), paramType);
     }
   }
 
@@ -344,16 +301,18 @@ public class JavaMethod extends Visitor implements Translatable {
     out.p(" ").p(name).p("(");
     if (!isStatic) {
       out.p(cls.getName());
-      if (paramNames.size() > 0)
+      if (parameters.size() > 0)
         out.p(", ");
     }
-    int size = paramNames.size();
-    for (int i = 0; i < size; i++) {
-      paramTypes.get(i).translate(out);
-      if (paramTypes.get(i).isArray())
+    Set<String> params = parameters.keySet();
+    int count = 0;
+    for (String param : params) {
+      parameters.get(param).translate(out);
+      if (parameters.get(param).isArray())
         out.p("*");
-      if (i < size - 1)
+      if (count < params.size() - 1)
         out.p(", ");
+      count++;
     }
     return out.pln(");");
   }
@@ -370,10 +329,11 @@ public class JavaMethod extends Visitor implements Translatable {
   public Printer translateVTableDeclaration(Printer out, JavaClass caller) {
     out.indent().p(returnType.getType()).p(" (*")
       .p(name).p(")(").p(caller.getName());
-    for (JavaType param : paramTypes) {
+    Set<String> params = parameters.keySet();
+    for (String param : params) {
       out.p(", ");
-      param.translate(out);
-      if (param.isArray())
+      parameters.get(param).translate(out);
+      if (parameters.get(param).isArray())
         out.p("*");
     }
     return out.pln(");");
@@ -392,10 +352,11 @@ public class JavaMethod extends Visitor implements Translatable {
     out.indent().p(name).p("(");
     if (caller != cls) {
       out.p("(").p(returnType.getType()).p("(*)(").p(caller.getName());
-      for (JavaType param : paramTypes) {
+      Set<String> params = parameters.keySet();
+      for (String param : params) {
         out.p(",");
-        param.translate(out);
-        if (param.isArray())
+        parameters.get(param).translate(out);
+        if (parameters.get(param).isArray())
           out.p("*");
       }
       out.p("))");
@@ -418,17 +379,19 @@ public class JavaMethod extends Visitor implements Translatable {
     out.p("__").p(cls.getName()).p("::").p(name).p("(");
     if (!isStatic) {
       out.p(cls.getName()).p(" __this");
-      if (paramNames.size() > 0)
+      if (parameters.size() > 0)
         out.p(", ");
     }
-    int size = paramNames.size();
-    for (int i = 0; i < size; i++) {
-      paramTypes.get(i).translate(out);
-      if (paramTypes.get(i).isArray())
+    Set<String> params = parameters.keySet();
+    int count = 0;
+    for (String param : params) {
+      parameters.get(param).translate(out);
+      if (parameters.get(param).isArray())
         out.p("*");
-      out.p(" ").p(paramNames.get(i));
-      if (i < size - 1)
+      out.p(" ").p(param);
+      if (count < params.size() - 1)
         out.p(", ");
+      count++;
     }
     out.pln(") {").incr();
     body.translate(out);

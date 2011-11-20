@@ -155,6 +155,7 @@ public class Translator extends Tool {
         // Print the header files to the console
         Set<String> keys = Global.packages.keySet();
         for (String key : keys) {
+          Global.packages.get(key).orderFiles();
           printHeader(runtime.console(), Global.packages.get(key));
           runtime.console().pln();
           printBody(runtime.console(), Global.packages.get(key));
@@ -393,7 +394,7 @@ public class Translator extends Tool {
         String className = cls.getName();
         out.indent().p("struct __").p(className).pln(";");
         out.indent().p("struct __").p(className).pln("_VT;");
-        out.pln().indent().p("typedef __").p(className).p("* ")
+        out.pln().indent().p("typedef __rt::Ptr<__").p(className).p("> ")
           .p(className).pln(";").pln();
       }
     }
@@ -492,15 +493,14 @@ public class Translator extends Tool {
     // If this package contains the main file, print the main method here
     if (isMain) {
       out.pln("int main(int argc, char *argv[]) {").incr();
-      out.indent().pln("__rt::Array<String>* args;");
-      out.indent().pln("args = new __rt::Array<String>(argc);");
-      out.indent().pln("for (int i = 0; i < argc; i++) {").incr();
-      out.indent().pln("(*args)[i] = __rt::literal(argv[i]);");
+      out.indent().pln("__rt::Array<String>* args = new __rt::Array<String>(argc-1);");
+      out.indent().pln("for (int i = 1; i < argc; i++) {").incr();
+      out.indent().pln("(*args)[i-1] = __rt::literal(argv[i]);");
       out.decr().indent().pln("}");
       out.indent();
       if (!pkg.getNamespace().equals(""))
         out.p(pkg.getNamespace()).p("::");
-      out.p("__").p(Global.files.get(classpath + main.getName()).getPublicClass().getName()).pln("::main(args);");
+      out.p("__").p(Global.files.get(classpath + main.getName()).getPublicClass().getName()).pln("::main$array1_String(args);");
       out.decr().pln("}");
     }
   }

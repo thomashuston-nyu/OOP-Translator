@@ -19,6 +19,7 @@ package pcp.translator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,17 +39,15 @@ import xtc.tree.Visitor;
  *
  * @version 1.1
  */
-public class JavaConstructor extends JavaMethod implements Translatable {
+public class JavaConstructor extends Visitor implements Translatable {
 
-  private JavaStatement body;
+  private JavaBlock body;
   private JavaClass cls;
   //private ThrowsClause exception;
   private Map<String, JavaExpression> initialize;
   private boolean isAbstract, isFinal, isStatic;
   private String name;
-  private List<String> paramNames;
-  private List<JavaType> paramTypes;
-  private Map<String, JavaType> variables;
+  private LinkedHashMap<String, JavaType> parameters;
   private JavaVisibility visibility;
 
 
@@ -65,17 +64,13 @@ public class JavaConstructor extends JavaMethod implements Translatable {
 
     // Initialize the maps
     initialize = new HashMap<String, JavaExpression>();
-    variables = new HashMap<String, JavaType>();
+    parameters = new LinkedHashMap<String, JavaType>();
     
     // Set the default visibility
     visibility = JavaVisibility.PACKAGE_PRIVATE;
 
-    // Initialize the parameter lists
-    paramNames = new ArrayList<String>();
-    paramTypes = new ArrayList<JavaType>();
-
     // Get the name
-    name= n.getString(2);
+    name = n.getString(2);
 
     // Dispatch over the child nodes
     for (Object o : n) {
@@ -83,6 +78,9 @@ public class JavaConstructor extends JavaMethod implements Translatable {
         dispatch((Node)o);
       }
     }
+
+    // Create the body of the constructor
+    body = new JavaBlock(n.getGeneric(5), cls, this);
   }
 
 
@@ -98,24 +96,12 @@ public class JavaConstructor extends JavaMethod implements Translatable {
   }
 
   /**
-   * Gets the variables declared in the constructor.
+   * Gets the parameters of the constructor.
    *
-   * @return The variables.
+   * @return The parameters.
    */
-  public Map<String, JavaType> getVariables() {
-    return variables;
-  }
-
-  /**
-   * Gets the type of the specified variable.
-   *
-   * @param name The name of the variable.
-   *
-   * @return The type if the variable exists;
-   * <code>null</code> otherwise.
-   */
-  public JavaType getVariableType(String name) {
-    return variables.get(name);
+  public LinkedHashMap<String, JavaType> getParameters() {
+    return parameters;
   }
 
   /**
@@ -125,25 +111,6 @@ public class JavaConstructor extends JavaMethod implements Translatable {
    */
   public JavaVisibility getVisibility() {
     return visibility;
-  }
-
-  /**
-   * Checks if a variable was declared in this method.
-   *
-   * @return <code>True</code> if the variable was declared
-   * in the method; <code>false</code> otherwise.
-   */
-  public boolean hasVariable(String name) {
-    return variables.containsKey(name);
-  }
-
-  /**
-   * Returns <code>true</code>.
-   *
-   * @return <code>true</code>.
-   */
-  public boolean isConstructor() {
-    return true;
   }
 
 
@@ -159,16 +126,6 @@ public class JavaConstructor extends JavaMethod implements Translatable {
     initialize.put(name, value);
   }
 
-  /**
-   * Adds a variable to the method scope.
-   *
-   * @param name The name of the variable.
-   * @param type The type of the variable.
-   */
-  public void addVariable(String name, JavaType type) {
-    variables.put(name, type);
-  }
-
 
   // =========================== Visit Methods ======================
 
@@ -178,7 +135,7 @@ public class JavaConstructor extends JavaMethod implements Translatable {
    * @param n The block node.
    */
   public void visitBlock(GNode n) {
-    body = new JavaStatement(n, this);
+    // Already initialized
   }
 
   /**
@@ -203,10 +160,10 @@ public class JavaConstructor extends JavaMethod implements Translatable {
         j = 1;
       else
         j = 2;
-      paramTypes.add(new JavaType(param.getGeneric(j++)));
-      paramNames.add("$" + param.getString(++j));
-      if (++j < param.size() - 1)
-        paramTypes.get(paramTypes.size() - 1).setDimensions(param.getNode(j).size());
+      JavaType paramType = new JavaType(param.getGeneric(j));
+      if (null != param.getNode(j).get(1))
+        paramType.setDimensions(param.getNode(j).getNode(1).size());
+      parameters.put("$" + param.getString(j + 2), paramType);
     }
   }
 
@@ -251,14 +208,16 @@ public class JavaConstructor extends JavaMethod implements Translatable {
    */
   public Printer translateHeaderDeclaration(Printer out) {
     out.indent().p("__").p(cls.getName()).p("(");
-    int size = paramNames.size();
-    for (int i = 0; i < size; i++) {
-      paramTypes.get(i).translate(out);
-      if (paramTypes.get(i).isArray())
+    Set<String> params = parameters.keySet();
+    int count = 0;
+    for (String param : params) {
+      parameters.get(param).translate(out);
+      if (parameters.get(param).isArray())
         out.p("*");
-      out.p(" ").p(paramNames.get(i));
-      if (i < size - 1)
+      out.p(" ").p(param);
+      if (count < params.size() - 1)
         out.p(", ");
+      count++;
     }
     return out.pln(");");
   }
@@ -273,14 +232,16 @@ public class JavaConstructor extends JavaMethod implements Translatable {
    */
   public Printer translate(Printer out) {
     out.indent().p("__").p(name).p("::__").p(name).p("(");
-    int size = paramNames.size();
-    for (int i = 0; i < size; i++) {
-      paramTypes.get(i).translate(out);
-      if (paramTypes.get(i).isArray())
+    Set<String> params = parameters.keySet();
+    int count = 0;
+    for (String param : params) {
+      parameters.get(param).translate(out);
+      if (parameters.get(param).isArray())
         out.p("*");
-      out.p(" ").p(paramNames.get(i));
-      if (i < size - 1)
+      out.p(" ").p(param);
+      if (count < params.size() - 1)
         out.p(", ");
+      count++;
     }
     out.pln(")");
     out.indent().p(": __vptr(&__vtable)");

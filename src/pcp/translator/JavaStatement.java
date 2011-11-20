@@ -1,6 +1,6 @@
 /*
  * pcp - The Producer of C++ Programs
- * Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, parent.getMethod()arta Wilgan
+ * Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,11 +40,10 @@ import xtc.tree.Visitor;
  */
 public class JavaStatement extends Visitor implements Translatable {
 
-  private JavaClass c;
-  private JavaMethod m;
-  private JavaStatement s;
   private GNode node;
   private Set<String> objects;
+  private JavaScope parent;
+  private JavaStatement s;
 
 
   // =========================== Constructors =======================
@@ -59,50 +58,18 @@ public class JavaStatement extends Visitor implements Translatable {
    * and sets the class the statement is in.
    *
    * @param n The statement node.
-   * @param cls The class the statement is in.
+   * @param parent The scope the statement is in.
    */
-  public JavaStatement(GNode n, JavaClass cls) {
+  public JavaStatement(GNode n, JavaScope parent) {
     this.node = n;
+    this.parent = parent;
     objects = new HashSet<String>();
-    c = cls;
-    dispatch(n);
-  }
-
-  /**
-   * Dispatches on the specified statement node
-   * and sets the method the statement is in.
-   *
-   * @param n The statement node.
-   * @param method The method the statement is in.
-   */
-  public JavaStatement(GNode n, JavaMethod method) {
-    this.node = n;
-    objects = new HashSet<String>();
-    m = method;
     dispatch(n);
   }
 
 
   // ============================ Get Methods =======================
   
-  /**
-   * Gets the class the statement is in.
-   * 
-   * @return The class.
-   */
-  public JavaClass getClassFrom() {
-    return c;
-  }
-  
-  /**
-   * Gets the method the statement is in.
-   *
-   * @return The method.
-   */
-  public JavaMethod getMethod() {
-    return m;
-  }
-
   /**
    * Checks if the statement has the specified name.
    *
@@ -113,6 +80,15 @@ public class JavaStatement extends Visitor implements Translatable {
    */
   public boolean hasName(String name) {
     return node.hasName(name);
+  }
+
+  /**
+   * Gets the scope the statement is in.
+   *
+   * @return The variable scope.
+   */
+  public JavaScope getScope() {
+    return parent;
   }
 
 
@@ -130,15 +106,6 @@ public class JavaStatement extends Visitor implements Translatable {
 
   // =========================== Visit Methods ======================
   
-  /**
-   * Creates a new block.
-   *
-   * @param n The block node.
-   */
-  public void visitBlock(GNode n) {
-    s = new Block(n, this);
-  }
-
   /**
    * Creates a new block declaration.
    *
@@ -268,41 +235,6 @@ public class JavaStatement extends Visitor implements Translatable {
   // ========================== Nested Classes ======================
 
   /**
-   * A block.
-   */
-  private class Block extends JavaStatement {
-    
-    private List<JavaStatement> statements;
-
-    /**
-     * Creates a new block.
-     *
-     * @param n The block node.
-     */
-    public Block(GNode n, JavaStatement parent) {
-      statements = new ArrayList<JavaStatement>();
-      for (Object o : n) {
-        statements.add(new JavaStatement((GNode)o, parent.getMethod()));
-      }
-    }
-
-    /**
-     * Translates the statement and adds it 
-     * to the output stream.
-     *
-     * @param out The output stream.
-     *
-     * @return The output stream.
-     */
-    public Printer translate(Printer out) {
-      for (JavaStatement s : statements)
-        s.translate(out);
-      return out;
-    }
-
-  }
-
-  /**
    * A block declaration.
    */
   private class BlockDeclaration extends JavaStatement {
@@ -362,8 +294,8 @@ public class JavaStatement extends Visitor implements Translatable {
   private class ConditionalStatement extends JavaStatement {
 
     private JavaExpression e;
-    private JavaStatement ifStatement;
-    private JavaStatement elseStatement;
+    private JavaBlock ifStatement;
+    private JavaBlock elseStatement;
 
     /**
      * Creates a new conditional statement.
@@ -372,9 +304,9 @@ public class JavaStatement extends Visitor implements Translatable {
      */
     public ConditionalStatement(GNode n, JavaStatement parent) {
       e = new JavaExpression(n.getGeneric(0), parent);
-      ifStatement = new JavaStatement(n.getGeneric(1), parent.getMethod());
+      ifStatement = new JavaBlock(n.getGeneric(1), parent.getScope());
       if (null != n.get(2))
-        elseStatement = new JavaStatement(n.getGeneric(2), parent.getMethod());
+        elseStatement = new JavaBlock(n.getGeneric(2), parent.getScope());
     }
 
     /**
@@ -390,12 +322,8 @@ public class JavaStatement extends Visitor implements Translatable {
       e.translate(out).pln(") {").incr();
       ifStatement.translate(out).decr().indent().p("}");
       if (null != elseStatement) {
-        out.p(" else ");
-        if (!elseStatement.hasName("ConditionalStatement"))
-          out.pln("{").incr();
-        elseStatement.translate(out);
-        if (!elseStatement.hasName("ConditionalStatement"))
-          out.decr().indent().pln("}");
+        out.p(" else ").pln("{").incr();
+        elseStatement.translate(out).decr().indent().pln("}");
       } else {
         out.pln();
       }
@@ -470,7 +398,7 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The do-while statement node.
      */
     public DoWhileStatement(GNode n, JavaStatement parent) {
-      s = new JavaStatement(n.getGeneric(0), parent.getMethod());
+      s = new JavaStatement(n.getGeneric(0), parent.getScope());
       e = new JavaExpression(n.getGeneric(1), parent);
     }
 
@@ -506,16 +434,16 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The expression statement node.
      */
     public ExpressionStatement(GNode n, JavaStatement parent) {
-      if (null != parent.getMethod() && parent.getMethod().isConstructor()) {
+      if (parent.getScope().hasName("JavaConstructor")) {
         if (n.getNode(0).hasName("Expression") && n.getNode(0).getString(1).equals("=")) {
           String name = "";
           if (n.getNode(0).getNode(0).hasName("PrimaryIdentifier"))
-            name = n.getNode(0).getNode(0).getString(0);
+            name = "$" + n.getNode(0).getNode(0).getString(0);
           else if (n.getNode(0).getNode(0).hasName("SelectionExpression")
               && n.getNode(0).getNode(0).getNode(0).hasName("ThisExpression"))
-            name = n.getNode(0).getNode(0).getString(1);
-          if (!name.equals("") && !parent.getMethod().hasVariable(name)) {
-            ((JavaConstructor)parent.getMethod()).addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
+            name = "$" + n.getNode(0).getNode(0).getString(1);
+          if (!name.equals("") && !parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
+            ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
             isInitializer = true;
           }
         }
@@ -594,10 +522,7 @@ public class JavaStatement extends Visitor implements Translatable {
       for (Object o : n.getNode(2)) {
         Node declarator = (Node)o;
         names.add("$" + declarator.getString(0));
-        if (null != parent.getMethod())
-          parent.getMethod().addVariable(declarator.getString(0), type);
-        else if (null != parent.getClassFrom())
-          parent.getClassFrom().addVariable(declarator.getString(0), type);
+        parent.getScope().addVariable("$" + declarator.getString(0), type);
         if (null != declarator.get(2)) {
           if (declarator.getNode(2).hasName("ArrayInitializer"))
             isArrayInitializer.add(declarator.getGeneric(2));
@@ -662,7 +587,7 @@ public class JavaStatement extends Visitor implements Translatable {
     private JavaExpression condition;
     private List<Integer> dimensions;
     private boolean isFinal;
-    private JavaStatement body;
+    private JavaBlock body;
     private JavaType type;
     private List<JavaExpression> updates;
     private List<JavaExpression> values;
@@ -698,12 +623,6 @@ public class JavaStatement extends Visitor implements Translatable {
         }
       }
 
-      if (null != parent.getMethod()) {
-        for (String var : vars) {
-          parent.getMethod().addVariable(var, type);
-        }
-      }
-
       // Get the condition
       if (null != n.getNode(0).get(3))
         condition = new JavaExpression(n.getNode(0).getGeneric(3), parent);
@@ -716,8 +635,13 @@ public class JavaStatement extends Visitor implements Translatable {
         }
       }
 
-      // Get the body of the foor loop
-      body = new JavaStatement(n.getGeneric(1), parent.getMethod());
+      // Get the body of the for loop
+      body = new JavaBlock(n.getGeneric(1), parent.getScope());
+
+      // Add any variables to the scope of the for loop
+      for (String var : vars) {
+        body.addVariable(var, type);
+      }
     }
 
     /**
@@ -845,7 +769,7 @@ public class JavaStatement extends Visitor implements Translatable {
         if (start < node.size()) {
           for (int j = start; j < node.size(); j++) {
             if (!node.getNode(j).hasName("BreakStatement"))
-              caseActions.add(new JavaStatement(node.getGeneric(j), parent.getMethod()));
+              caseActions.add(new JavaStatement(node.getGeneric(j), parent.getScope()));
             else
               breaks.add(true);
           }
@@ -962,7 +886,7 @@ public class JavaStatement extends Visitor implements Translatable {
      */
     public WhileStatement(GNode n, JavaStatement parent) {
       e = new JavaExpression(n.getGeneric(0), parent);
-      s = new JavaStatement(n.getGeneric(1), parent.getMethod());
+      s = new JavaStatement(n.getGeneric(1), parent.getScope());
     }
 
     /**
@@ -995,7 +919,7 @@ public class JavaStatement extends Visitor implements Translatable {
   public Printer translate(Printer out) {
     if (null == s)
       return out;
-    if (null != m && !m.isConstructor()){
+    if (parent instanceof JavaMethod){
       for (String obj : objects)
         out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
     }

@@ -39,7 +39,7 @@ import xtc.tree.Visitor;
  *
  * @version 1.1
  */
-public class JavaClass extends Visitor implements Translatable {
+public class JavaClass extends Visitor implements JavaScope, Translatable {
   
   private List<JavaConstructor> constructors;
   private JavaType extension;
@@ -123,11 +123,8 @@ public class JavaClass extends Visitor implements Translatable {
   public JavaMethod getMethod(String name) {
     if (null == vtable)
       initializeVTable();
-    Set<String> keys = vtable.keySet();
-    for (String key : keys) {
-      if (key.startsWith(name + "_"))
-        return vtable.get(key);
-    }
+    if (vtable.containsKey(name))
+      return vtable.get(name);
     for (JavaMethod m : methods) {
       if (m.getName().equals(name))
         return m;
@@ -152,14 +149,29 @@ public class JavaClass extends Visitor implements Translatable {
   public JavaClass getParent() {
     return parent;
   }
+  
+  /**
+   * Gets the parent scope; always <code>null</code> because
+   * JavaClass is the highest level scope.
+   *
+   * @return The parent scope.
+   */
+  public JavaScope getParentScope() {
+    return null;
+  }
 
   /**
-   * Gets the class variables.
+   * Gets the scope in which the specified variable is declared.
    *
-   * @return The variables.
+   * @param name The name of the variable.
+   *
+   * @return The scope of the variable if it exists;
+   * <code>null</code> otherwise.
    */
-  public Map<String, JavaType> getVariables() {
-    return variables;
+  public JavaScope getVariableScope(String name) {
+    if (variables.containsKey(name))
+      return this;
+    return null;
   }
 
   /**
@@ -194,6 +206,18 @@ public class JavaClass extends Visitor implements Translatable {
       initializeVTable();
     return vtable;
   }
+
+  /**
+   * Checks if the current scope is of the specified type.
+   *
+   * @param type The type of the scope.
+   *
+   * @return <code>True</code> if the scope is of the specified
+   * type; <code>false</code> otherwise.
+   */
+  public boolean hasName(String type) {
+    return type.equals("JavaClass");
+  }
   
   /**
    * Tests whether the class has a superclass.
@@ -203,16 +227,6 @@ public class JavaClass extends Visitor implements Translatable {
    */
   public boolean hasParent() {
     return extension != null;
-  }
-
-  /**
-   * Checks if a variable was declared in this class.
-   *
-   * @return <code>True</code> if the variable was declared
-   * in this class; <code>false</code> otherwise.
-   */
-  public boolean hasVariable(String name) {
-    return variables.containsKey(name);
   }
 
   /**
@@ -235,6 +249,16 @@ public class JavaClass extends Visitor implements Translatable {
     return isFinal;
   }
   
+  /**
+   * Checks if a variable is currently in scope.
+   *
+   * @return <code>True</code> if the variable is in scope;
+   * <code>false</code> otherwise.
+   */
+  public boolean isInScope(String name) {
+    return variables.containsKey(name);
+  }
+
 
   // ============================ Set Methods =======================
   
@@ -355,9 +379,8 @@ public class JavaClass extends Visitor implements Translatable {
 
     // Add/override methods
     for (JavaMethod m : methods) {
-      if ((m.getVisibility() == JavaVisibility.PUBLIC || m.getVisibility() == JavaVisibility.PROTECTED) 
-          && !m.isFinal() && !m.isStatic())
-        vtable.put(m.getName() + "_" + m.getReturnType().getType(), m);
+      if (m.isVirtual())
+        vtable.put(m.getName(), m);
     }
   }
 
@@ -392,6 +415,9 @@ public class JavaClass extends Visitor implements Translatable {
       out.indent().p("__").p(name).pln("();");
     }
 
+    // Destructor
+    out.pln().indent().p("static void __delete(__").p(name).pln("*);");
+
     // Declare all methods
     if (methods.size() > 0)
       out.pln();
@@ -409,13 +435,14 @@ public class JavaClass extends Visitor implements Translatable {
     out.indent().pln("Class __isa;");
 
     // Declare all the methods in the vtable
+    out.indent().p("void (*__delete)(__").p(name).pln("*);");
     out.indent().p("int32_t (*hashCode)(").p(name).pln(");");
     out.indent().p("bool (*equals$Object)(").p(name).pln(", Object);");
     out.indent().p("Class (*getClass)(").p(name).pln(");");
     out.indent().p("String (*toString)(").p(name).pln(");");
     Set<String> keys = vtable.keySet();
     for (String key : keys) {
-      if (key.equals("hashCode_int32_t") || key.equals("equals_bool") || key.equals("toString_String"))
+      if (key.equals("hashCode") || key.equals("equals$Object") || key.equals("toString"))
         continue;
       vtable.get(key).translateVTableDeclaration(out, this);
     }
@@ -423,26 +450,27 @@ public class JavaClass extends Visitor implements Translatable {
     // Construct the vtable with pointers to the methods
     out.pln().indent().p("__").p(name).pln("_VT()");
     out.indent().p(": __isa(__").p(name).pln("::__class()),");
-    if (vtable.containsKey("hashCode_int32_t")) {
-      vtable.get("hashCode_int32_t").translateVTableReference(out, this);
+    out.indent().pln("__delete(&__Object::__delete),");
+    if (vtable.containsKey("hashCode")) {
+      vtable.get("hashCode").translateVTableReference(out, this);
       out.pln(",");
     } else {
       out.indent().p("hashCode((int32_t(*)(").p(name).pln("))&__Object::hashCode),");
     }   
-    if (vtable.containsKey("equals_bool")) {
-      vtable.get("equals_bool").translateVTableReference(out, this);
+    if (vtable.containsKey("equals$Object")) {
+      vtable.get("equals$Object").translateVTableReference(out, this);
       out.pln(",");
     } else {
-      out.indent().p("equals((bool(*)(").p(name).pln(",Object))&__Object::equals),");
+      out.indent().p("equals$Object((bool(*)(").p(name).pln(",Object))&__Object::equals$Object),");
     }
     out.indent().p("getClass((Class(*)(").p(name).pln("))&__Object::getClass),");
-    if (vtable.containsKey("toString_String")) {
-      vtable.get("toString_String").translateVTableReference(out, this);
+    if (vtable.containsKey("toString")) {
+      vtable.get("toString").translateVTableReference(out, this);
     } else {
       out.indent().p("toString((String(*)(").p(name).p("))&__Object::toString)");
     }
     for (String key : keys) {
-      if (key.equals("hashCode_int32_t") || key.equals("equals_bool") || key.equals("toString_String"))
+      if (key.equals("hashCode") || key.equals("equals") || key.equals("toString"))
         continue;
       out.pln(",");
       vtable.get(key).translateVTableReference(out, this);
@@ -471,6 +499,9 @@ public class JavaClass extends Visitor implements Translatable {
       out.indent().p("__").p(name).p("::__").p(name).pln("()");
       out.indent().pln(": __vptr(&__vtable) {}").pln();
     }
+    out.indent().p("void __").p(name).p("::__delete(__").p(name).pln(" __this) {").incr();
+    out.indent().pln("delete __this;");
+    out.decr().indent().pln("}").pln();
     for (JavaMethod m : methods) {
       m.translate(out);
       out.pln();
