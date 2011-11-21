@@ -1,6 +1,10 @@
 import demo.*;
 
 public class Sample {
+
+  public void test(Sample a, Object o, Sample b) {
+    return;
+  }
   
   public static void main(String[] args) {
     
@@ -54,6 +58,12 @@ public class Sample {
     System.out.println();
 
     System.out.println("test " + sup.toString());
+
+    Sample sam = new Sample();
+    sam.test(sam, sam, sam);
+
+    if (sam.equals(sub))
+      System.out.println("TRUE");
   }
 
 }

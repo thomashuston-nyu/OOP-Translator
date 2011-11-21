@@ -20,6 +20,7 @@ package pcp.translator;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import xtc.tree.GNode;
@@ -578,6 +579,9 @@ public class JavaExpression extends Visitor implements Translatable {
   private class CallExpression extends JavaExpression {
 
     private List<JavaExpression> args;
+    private List<String> argTypes;
+    private String classType;
+    private JavaClass cls;
     private List<Boolean> isObject;
     private boolean isConstructor, isPrint;
     private JavaMethod method;
@@ -642,25 +646,17 @@ public class JavaExpression extends Visitor implements Translatable {
           && (n.getString(2).equals("print") || n.getString(2).equals("println")))
         isPrint = true;
 
-      // Name mangling for method overloading
-      StringBuilder s = new StringBuilder();
-      s.append(n.getString(2));
-      if (!isPrint) {
-        for (JavaExpression e : args) {
-          s.append("$" + e.getType().getMangledType());
-        }
-      }
-      name = s.toString();
+      // Raw method name
+      name = n.getString(2);
     }
-    
+
     /**
-     * Determines the return type of the method call.
+     * Determines the class on which the method is being called.
      */
-    public void determineType() {
+    public void determineClass() {
       if (null != ref) {
         if (1 == ref.size()) {
-          // If it's a variable, figure out what type it is and find the method called
-          String classType;
+          // If it's a variable, figure out what type it is 
           if (parent.getStatement().getScope().isInScope("$" + ref.get(0)))
             classType = parent.getStatement().getScope().getVariableType("$" + ref.get(0)).getType();
           else
@@ -677,9 +673,7 @@ public class JavaExpression extends Visitor implements Translatable {
             List<JavaFile> files = pkg.getFiles();
             for (JavaFile f : files) {
               if (f.getPublicClass().getName().equals(classType)) {
-                JavaMethod m = f.getPublicClass().getMethod(name);
-                parent.setType(m.getReturnType());
-                method = m;
+                this.cls = f.getPublicClass();
                 return;
               }
             }
@@ -689,13 +683,144 @@ public class JavaExpression extends Visitor implements Translatable {
             List<JavaFile> files = imp.getFiles();
             for (JavaFile f : files) {
               if (f.getPublicClass().getName().equals(classType)) {
-                JavaMethod m = f.getPublicClass().getMethod(name);
-                parent.setType(m.getReturnType());
-                method = m;
+                this.cls = f.getPublicClass();
                 return;
               }
             }
           }
+        } else {
+          // TODO: fully qualified class locations
+        }
+      } else {
+        JavaScope temp = parent.getStatement().getScope();
+        while (!temp.hasName("JavaClass")) {
+          temp = temp.getParentScope();
+        }
+        this.cls = (JavaClass)temp;
+        classType = this.cls.getName();
+      }
+    }
+
+    /**
+     * Locates the closest available method and performs name mangling
+     * for method overloading.
+     */
+    public void determineMethod() {
+      if (isPrint)
+        return;
+      boolean finished = false;
+      int level = 0, maxLevel = 0;
+      List<String> newArgTypes = new ArrayList<String>();
+      Map<String, String> hierarchy = JavaType.getHierarchy();
+      for (JavaExpression e : args) {
+        if (!e.getType().isPrimitive() && 0 == e.getType().getDimensions()) {
+          String type = e.getType().getClassType();
+          int depth = 0;
+          while (null != hierarchy.get(type)) {
+            depth++;
+            type = hierarchy.get(type);
+          }
+          if (depth > maxLevel)
+            maxLevel = depth;
+          newArgTypes.add(e.getType().getClassType());
+        } else {
+          newArgTypes.add(null);
+        }
+      }
+      while (!finished) {
+        if (0 == newArgTypes.size()) {
+          if (null != cls)
+            method = cls.getMethod(name);
+          return;
+        }
+        for (int i = 0; i < newArgTypes.size(); i++) {
+          StringBuilder s = new StringBuilder();
+          s.append(name);
+          argTypes = new ArrayList<String>();
+          for (int j = 0; j < newArgTypes.size(); j++) {
+            if (null == newArgTypes.get(j)) {
+              String t = args.get(j).getType().getMangledType();
+              s.append("$" + t);
+              argTypes.add(t);
+            } else {
+              String type = newArgTypes.get(j);
+              for (int k = 1; k < level; k++) {
+                if (null == hierarchy.get(type))
+                  return;
+                type = hierarchy.get(type);
+              }
+              if (0 < level && i == j && null != hierarchy.get(type))
+                type = hierarchy.get(type);
+              s.append("$" + type);
+              argTypes.add(type);
+            }
+          }
+          String temp = s.toString();
+          if (temp.equals("equals$Object") ||
+              temp.equals("charAt$int32_t")) {
+            name = temp;
+            return;
+          }
+          if (null != cls.getMethod(temp)) {
+            name = temp;
+            method = cls.getMethod(temp);
+            return;
+          }
+        }
+        level++;
+        if (level > maxLevel)
+          return;
+      }
+    }
+    
+    /**
+     * Determines the return type of the method call.
+     */
+    public void determineType() {
+      if (null == cls)
+        determineClass();
+      if (null == method)
+        determineMethod();
+      if (null == method) {
+        if (name.equals("hashCode")) {
+          parent.setType(new JavaType("int"));
+          return;
+        } else if (name.equals("equals$Object")) {
+          parent.setType(new JavaType("boolean"));
+          return;
+        } else if (name.equals("getClass")) {
+          parent.setType(new JavaType("Class"));
+          return;
+        } else if (name.equals("toString")) {
+          parent.setType(new JavaType("String"));
+          return;
+        } else if (name.equals("length")) {
+          parent.setType(new JavaType("int"));
+          return;
+        } else if (name.equals("charAt$int32_t")) {
+          parent.setType(new JavaType("char"));
+          return;
+        } else if (name.equals("getName")) {
+          parent.setType(new JavaType("String"));
+          return;
+        } else if (name.equals("getSuperclass")) {
+          parent.setType(new JavaType("Class"));
+          return;
+        } else if (name.equals("isPrimitive")) {
+          parent.setType(new JavaType("boolean"));
+          return;
+        } else if (name.equals("isArray")) {
+          parent.setType(new JavaType("boolean"));
+          return;
+        } else if (name.equals("getComponentType")) {
+          parent.setType(new JavaType("Class"));
+          return;
+        }
+      }
+      if (null != ref) {
+        if (1 == ref.size()) {
+          if (null != method)
+            parent.setType(method.getReturnType());
         } else if (2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
             && (name.equals("print") || name.equals("println"))) {
           parent.setType(new JavaType("void"));
@@ -714,13 +839,7 @@ public class JavaExpression extends Visitor implements Translatable {
             f = Global.files.get(path);
         }
       } else {
-        JavaScope temp = parent.getStatement().getScope();
-        while (!temp.hasName("JavaClass")) {
-          temp = temp.getParentScope();
-        }
-        JavaMethod m = ((JavaClass)temp).getMethod(name);
-        parent.setType(m.getReturnType());
-        method = m;
+        parent.setType(method.getReturnType());
       }
     }
 
@@ -762,37 +881,35 @@ public class JavaExpression extends Visitor implements Translatable {
           } else {
             namespace = "$" + ref.get(0);
           }
-          if (!method.isStatic()) {
+          if (null == method || !method.isStatic()) {
             out.p(namespace).p("->");
-            if (method.isVirtual())
+            if (null == method || method.isVirtual())
               out.p("__vptr->");
           } else {
             out.p("__").p(method.getClassFrom().getName()).p("::");
           }
           out.p(name).p("(");
-          if (!method.isStatic())
+          if (null == method || !method.isStatic())
             out.p(namespace);
           int argsize = args.size();
           for (int i = 0; i < argsize; i++) {
             out.p(", ");
-            args.get(i).translate(out);
-            if (isObject.get(i)) {
-              out.p("->__vptr->toString(");
-              args.get(i).translate(out);
-              out.p(")");
+            if (argTypes != null && !args.get(i).getType().getType().equals(argTypes.get(i))) {
+              out.p("(").p(argTypes.get(i)).p(")");
             }
+            args.get(i).translate(out);
           }
           out.p(")");
         }
       } else {
-        if (null == ref && method.isStatic())
+        if (null == ref && null != method && method.isStatic())
           out.p("__").p(method.getClassFrom().getName()).p("::");
         else if (!isConstructor)
           out.p("__this->");
-        if (method.isVirtual())
+        if (null == method || method.isVirtual())
           out.p("__vptr->");
         out.p(name).p("(");
-        if (!method.isStatic()) {
+        if (null == method || !method.isStatic()) {
           out.p("__this");
           if (0 < args.size());
             out.p(", ");

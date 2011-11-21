@@ -55,6 +55,13 @@ public class JavaType extends Visitor implements Translatable {
     primitives.put("void", "void");
   }
 
+  private static Map<String, String> hierarchy = new HashMap<String, String>();
+  static {
+    hierarchy.put("Object", null);
+    hierarchy.put("Class", "Object");
+    hierarchy.put("String", "Object");
+  }
+
   private int dimensions;
   private JavaPackage pkg;
   private String classType, primitiveType;
@@ -113,6 +120,15 @@ public class JavaType extends Visitor implements Translatable {
     }
     t.setDimensions(dimensions - 1);
     return t;
+  }
+
+  /**
+   * Gets the unqualified class type.
+   *
+   * @return The class type.
+   */
+  public String getClassType() {
+    return classType;
   }
 
   /**
@@ -330,6 +346,28 @@ public class JavaType extends Visitor implements Translatable {
     */
   public Printer translate(Printer out) {
     return out.p(getType());
+  }
+
+
+  // ========================== Static Methods ======================
+
+  /**
+   * Adds a type to the hierarchy.
+   *
+   * @param type The name of the class.
+   * @param parent The name of its parent class.
+   */
+  public static void addType(String type, String parent) {
+    hierarchy.put(type, parent);
+  }
+
+  /**
+   * Gets the class hierarchy.
+   *
+   * @return The class hierarchy.
+   */
+  public static Map<String, String> getHierarchy() {
+    return hierarchy;
   }
 
 }

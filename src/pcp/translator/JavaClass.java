@@ -72,6 +72,9 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     // Get the class name
     name = n.getString(1);
 
+    // Add the class to the hierarchy
+    JavaType.addType(name, "Object");
+
     // Initialize the modifiers to default values
     isAbstract = false;
     isFinal = false;
@@ -313,6 +316,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    */
   public void visitExtension(GNode n) {
     extension = new JavaType(n.getGeneric(0));
+    JavaType.addType(name, extension.getClassType());
   }
 
   /**
