@@ -51,14 +51,8 @@
   </target>
 
   <!-- Run the distribution jar to translate a file -->
-	<target name="translate" depends="jar" description="run the distribution">
+	<target name="translate" depends="jar,clean-output" description="run the distribution">
 	  <mkdir dir="${output}"/>
-	  <delete>
-      <fileset dir="${output}">
-        <include name="*.cc"/>
-        <include name="*.h"/>
-      </fileset>
-	  </delete>
     <java fork="true" classname="pcp.Translator">
       <classpath>
         <path refid="classpath"/>
@@ -98,16 +92,21 @@
 		</javadoc>
 	</target>	
 
-	<!-- Clean up the classes and distribution directories -->
-	<target name="clean" description="clean up">
-		<delete dir="${classes}"/>
-		<delete dir="${dist}"/>
+  <!-- Clean up the output directory -->
+  <target name="clean-output" description="clean up">
 	  <delete>
       <fileset dir="${output}">
         <include name="*.cc"/>
         <include name="*.h"/>
+        <include name="a.out"/>
       </fileset>
 	  </delete>
+  </target>
+
+	<!-- Clean up the classes and distribution directories -->
+	<target name="clean" depends="clean-output" description="clean up">
+		<delete dir="${classes}"/>
+		<delete dir="${dist}"/>
 	</target>
 	
 </project>
