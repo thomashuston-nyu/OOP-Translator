@@ -36,7 +36,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.1
+ * @version 1.2
  */
 public class JavaStatement extends Visitor implements Translatable {
 
@@ -442,7 +442,12 @@ public class JavaStatement extends Visitor implements Translatable {
           else if (n.getNode(0).getNode(0).hasName("SelectionExpression")
               && n.getNode(0).getNode(0).getNode(0).hasName("ThisExpression"))
             name = "$" + n.getNode(0).getNode(0).getString(1);
-          if (!name.equals("") && !parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
+          if (!name.equals("") && parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
+            if (parent.getScope().getVariableScope(name).getParentScope().isInScope(name)) {
+              ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
+              isInitializer = true;
+            }
+          } else if (!name.equals("") && !parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
             ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
             isInitializer = true;
           }

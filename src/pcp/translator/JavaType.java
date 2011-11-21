@@ -36,7 +36,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.1
+ * @version 1.2
  */
 public class JavaType extends Visitor implements Translatable {
   

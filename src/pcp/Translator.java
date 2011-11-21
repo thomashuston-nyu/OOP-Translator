@@ -17,9 +17,11 @@
  */
 package pcp;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 
@@ -53,13 +55,17 @@ import xtc.util.Tool;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.1
+ * @version 1.2
  */
 public class Translator extends Tool {
   
-  // Keeps track of which files have been printed 
-  private Map<JavaFile, Boolean> printed;
+  // The output directory
+  private static final String OUTPUT_DIR = "output/";
+
+  // The path to the main file
   private String classpath;
+
+  // The main file
   private File main;
 
 
@@ -100,7 +106,7 @@ public class Translator extends Tool {
    * @return The version.
    */
   public String getVersion() {
-    return "1.1";
+    return "1.2";
   }
 
 
@@ -130,9 +136,6 @@ public class Translator extends Tool {
     // Translates Java to C++
     if (runtime.test("translateJava")) {
       try {
-        // Instantiate the hash
-        printed = new HashMap<JavaFile, Boolean>();
-
         // Find the classpath for the program
         JavaFile c = new JavaFile((GNode)node);
         JavaPackage pkg = c.getPackage();
@@ -150,22 +153,24 @@ public class Translator extends Tool {
         }
 
         // Resolve dependencies
+        c.setMain();
         resolve(main, c);
-
-        // Print the header files to the console
-        Set<String> keys = Global.packages.keySet();
-        for (String key : keys) {
-          Global.packages.get(key).orderFiles();
-          printHeader(runtime.console(), Global.packages.get(key));
-          runtime.console().pln();
-          printBody(runtime.console(), Global.packages.get(key));
-          runtime.console().pln();
-        }
-        runtime.console().flush();
       } catch (IOException i) {
         runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();
       } catch (ParseException p) {
         runtime.errConsole().p("Error parsing file: ").p(main.getPath()).pln().flush();
+      } finally {
+        try {
+          // Write the translated C++ code to files
+          Set<String> keys = Global.packages.keySet();
+          for (String key : keys) {
+            Global.packages.get(key).orderFiles();
+            writeHeader(Global.packages.get(key));
+            writeBody(Global.packages.get(key));
+          }
+        } catch (IOException i) {
+          runtime.errConsole().p("Error writing file: ").pln(i.toString()).flush();
+        }
       }
     }
   }
@@ -202,8 +207,15 @@ public class Translator extends Tool {
    * @throws ParseException Signals a parse error.
    */
   public Node parse(Reader in, File file) throws IOException, ParseException {
+    // If this is the first file being read, mark it as the main file
     if (main == null)
       main = file;
+
+    // Do not allow files with $ in the name as it may conflict with our naming scheme
+    if (file.getName().contains("$"))
+      throw new ParseException("Filenames may not contain a $: " + file.getName());
+
+    // Parse the file
     JavaFiveParser parser = new JavaFiveParser(in, file.toString(), (int)file.length());
     Result result = parser.pCompilationUnit(0);
     return (Node)parser.value(result);
@@ -312,9 +324,6 @@ public class Translator extends Tool {
       if (!found)
         runtime.errConsole().p("Superclass not found: ").p(ext).pln().flush();
     }
-
-    // Initialize printed to false for this compilation unit
-    printed.put(c, false); 
   }
 
 
@@ -331,7 +340,8 @@ public class Translator extends Tool {
     * @param dir The file directory.
     * @param name The name of the file.
     *
-    * @return True if it is a Java file; false otherwise.
+    * @return <code>True</code> if it is a Java file;
+    * <code>false</code> otherwise.
     */
     public boolean accept(File dir, String name) {
       return name.endsWith(".java");
@@ -343,166 +353,61 @@ public class Translator extends Tool {
   // ======================= Translation Methods ====================
 
   /**
-   * Writes the C++ header file for the specified package
-   * to the output stream.
+   * Writes the C++ body for the specified package
+   * to a file.
    *
-   * @param out The output stream.
    * @param pkg The package.
+   *
+   * @throws IOException Signals an I/O error.
    */
-  public void printHeader(Printer out, JavaPackage pkg) {
-    // Get the files in the package
-    List<JavaFile> files = pkg.getFiles();
-
-    // Print the name of the current header file
-    runtime.console().p("### HEADER: ").p(pkg.getFilename()).pln(".h ###").pln().flush();
-
-    // Get any imports
-    Set<JavaPackage> using = new HashSet<JavaPackage>();
-    for (JavaFile file : files) {
-      Set<JavaPackage> imports = file.getImports();
-      for (JavaPackage i : imports) {
-        if (null == pkg || !i.getPath().equals(pkg.getPath()))
-          using.add(i);
-      }
+  public void writeBody(JavaPackage pkg) throws IOException {
+    // Get the name of the cc file
+    String name = pkg.getFilename() + ".cc";
+    
+    // Create the cc file
+    File file = new File(OUTPUT_DIR + name);
+    if (file.exists()) {
+      file.delete();
     }
+    file.createNewFile();
+    BufferedWriter output = new BufferedWriter(new FileWriter(file));
 
-    // Include any imported headers
-    out.pln("#pragma once").pln();
-    out.pln("#include <iostream>");
-    out.pln("#include <sstream>").pln();
-    out.pln("#include \"java_lang.h\"");
-    for (JavaPackage i : using) {
-      out.p("#include \"").p(i.getFilename()).pln(".h\"");
-    }
+    // Translate the body of the package
+    Printer printer = new Printer(output);
+    pkg.translate(printer);
 
-    // Declare namespaces being used
-    out.pln().pln("using namespace java::lang;");
-    for (JavaPackage i : using) {
-      out.p("using namespace ").p(i.getNamespace()).pln(";");
-    }
-    out.pln();
-
-    // Add the namespace
-    List<String> pkgparts = pkg.getPackage();
-    for (String part : pkgparts) {
-      out.indent().p("namespace ").p(part).pln(" {").incr();
-    }
-
-    // Declare the class structs
-    for (JavaFile file : files) {
-      for (JavaClass cls : file.getClasses()) {
-        String className = cls.getName();
-        out.indent().p("struct __").p(className).pln(";");
-        out.indent().p("struct __").p(className).pln("_VT;");
-        out.pln().indent().p("typedef __rt::Ptr<__").p(className).p("> ")
-          .p(className).pln(";").pln();
-      }
-    }
-
-    // Print header structs
-    for (JavaFile file : files) {
-      for (JavaClass cls : file.getClasses()) {
-        cls.translateHeader(out);
-      }
-      out.pln();
-    } 
-
-    // Close the namespace
-    for (int i = 0; i < pkgparts.size(); i++) {
-      out.decr().indent().pln("}");
-    }
-
-    // Flush the output
-    out.flush();
+    // Save the translated code into the file
+    output.flush();
+    output.close();
   }
 
   /**
-  * Recursively writes the vtables to the output stream in order
-  * based on their dependencies.
-  *
-  * @param c The compilation unit to print.
-  */
-  public void printHeaderVTable(Printer out, JavaFile c) {
-    // Make sure that all dependencies have been printed first
-    if (c.getPublicClass().hasParent()) {
-      JavaFile d = c.getPublicClass().getParent().getFile();
-    	if (null != c.getPackage() && null != d.getPackage()) {
-    		if (!c.getPackage().equals(d.getPackage()))
-    			return;
-    		if (!printed.get(d)) {
-    			printHeaderVTable(out, d);
-          out.pln();
-        }
-    	} else if (null != c.getPackage() || null != d.getPackage()) {
-    		return;
-    	} else {
-    		if (!printed.get(d)) {
-    			printHeaderVTable(out, d);
-    			out.pln();
-        }
-    	}
-    }
-
-    // Print the structs
-    for (JavaClass cls : c.getClasses()) {
-      cls.translateHeader(out);
-    }
-
-    // Mark this file as printed
-    printed.put(c, true);
-  }
-
-  /**
-   * Writes the body of the specified package to the output stream.
+   * Writes the C++ header for the specified package
+   * to a file.
    *
-   * @param out The output stream.
    * @param pkg The package.
+   *
+   * @throws IOException Signals an I/O error.
    */
-  public void printBody(Printer out, JavaPackage pkg) {
-    // Get the files in the package
-    List<JavaFile> files = pkg.getFiles();
+  public void writeHeader(JavaPackage pkg) throws IOException {
+    // Get the name of the file
+    String name = pkg.getFilename() + ".h";
 
-    // Print the name of the current cc file
-    runtime.console().p("### BODY: ").p(pkg.getFilename()).pln(".cc ###").pln().flush();
-
-    // Include the header file
-    out.p("#include \"").p(pkg.getFilename()).pln(".h\"").pln();
-
-    // Add the namespace
-    List<String> pkgparts = pkg.getPackage();
-    for (String part : pkgparts) {
-      out.indent().p("namespace ").p(part).pln(" {").incr();
+    // Create the header file
+    File file = new File(OUTPUT_DIR + name);
+    if (file.exists()) {
+      file.delete();
     }
+    file.createNewFile();
+    BufferedWriter output = new BufferedWriter(new FileWriter(file));
 
-    // Print all the files in the package
-    boolean isMain = false;
-    for (JavaFile f : pkg.getFiles()) {
-      if (Global.files.get(classpath + main.getName()) == f)
-        isMain = true;
-      for (JavaClass cls : f.getClasses()) {
-        cls.translate(out);
-        out.pln();
-      }
-    }
+    // Translate the header of the package
+    Printer printer = new Printer(output);
+    pkg.translateHeader(printer);
 
-    // Close the namespace
-    for (int i = 0; i < pkgparts.size(); i++) {
-      out.decr().indent().pln("}");
-    }
-
-    // If this package contains the main file, print the main method here
-    if (isMain) {
-      out.pln("int main(int argc, char *argv[]) {").incr();
-      out.indent().pln("__rt::Array<String>* args = new __rt::Array<String>(argc-1);");
-      out.indent().pln("for (int i = 1; i < argc; i++) {").incr();
-      out.indent().pln("(*args)[i-1] = __rt::literal(argv[i]);");
-      out.decr().indent().pln("}");
-      out.indent();
-      if (!pkg.getNamespace().equals(""))
-        out.p(pkg.getNamespace()).p("::");
-      out.p("__").p(Global.files.get(classpath + main.getName()).getPublicClass().getName()).pln("::main$array1_String(args);");
-      out.decr().pln("}");
-    }
+    // Save the translated code into the file
+    output.flush();
+    output.close();
   }
 
 

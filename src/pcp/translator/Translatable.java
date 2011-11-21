@@ -28,7 +28,7 @@ import xtc.tree.Printer;
  * @author Mike Morreale
  * @author Marta Wilgan
  * 
- * @version 1.1
+ * @version 1.2
  */
 public interface Translatable {
 

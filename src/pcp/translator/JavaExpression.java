@@ -36,7 +36,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.1
+ * @version 1.2
  */
 public class JavaExpression extends Visitor implements Translatable {
 
@@ -481,11 +481,12 @@ public class JavaExpression extends Visitor implements Translatable {
         return out;
       } else {
         out.pln("({");
-        out.incr().indent().pln("std::ostringsteam sout;");
+        out.incr().indent().pln("std::ostringstream sout;");
         out.indent().p("sout << ");
         left.translate(out).p(" << ");
         right.translate(out).pln(";");
-        out.indent().pln("new __String(sout.str());");
+        out.indent().pln("String $s$ = new __String(sout.str());");
+        out.indent().pln("$s$;");
         out.decr().indent().p("})");
         return out;
       }
@@ -630,7 +631,7 @@ public class JavaExpression extends Visitor implements Translatable {
         // TODO: Just use args.getType()
         if (node.hasName("PrimaryIdentifier") &&
             parent.getStatement().getScope().isInScope("$" + node.getString(0)) &&
-            parent.getStatement().getScope().getVariableType("$" + node.getString(0)).isPrimitive())
+            !parent.getStatement().getScope().getVariableType("$" + node.getString(0)).isPrimitive())
             isObject.add(true);
         else
           isObject.add(false);
@@ -1301,6 +1302,8 @@ public class JavaExpression extends Visitor implements Translatable {
       if (!n.getNode(0).hasName("ThisExpression"))
         identifier = new JavaExpression(n.getGeneric(0), parent.getStatement());
       selection = n.getString(1);
+      if (parent.getStatement().getScope().isInScope("$" + selection))
+        selection = "$" + selection;
     }
 
     /**
@@ -1312,7 +1315,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
-      if (null != identifier)
+      if (null == identifier)
         return out.p("__this->").p(selection);
       else
         return identifier.translate(out).p("::").p(selection);

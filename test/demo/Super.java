@@ -9,7 +9,7 @@ public class Super {
   }
 
   public Super(int x) {
-    int x = 5;
+    this.x = x;
   }
 
   public int getX() {

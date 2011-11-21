@@ -1,13 +1,9 @@
-xtc
 .DS_Store
+a.out
 *.class
-*.xcworkspace
 build
 dist
-.project
-.externalToolBuilders
-.metadata
-.settings
 docs
 classes
-old
+output/*.cc
+output/*.h

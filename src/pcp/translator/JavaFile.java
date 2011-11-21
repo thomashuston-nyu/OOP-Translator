@@ -37,12 +37,13 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.1
+ * @version 1.2
  */
 public class JavaFile extends Visitor implements Translatable {
   
   private List<JavaClass> allClasses;
   private Set<JavaPackage> imports;
+  private boolean isMain;
   private JavaPackage pkg;
   private JavaClass publicClass;
 
@@ -117,6 +118,27 @@ public class JavaFile extends Visitor implements Translatable {
    */
   public JavaClass getPublicClass() {
     return publicClass;
+  }
+
+  /**
+   * Checks if this file contains the main method
+   * for the program.
+   *
+   * @return <code>True</code> if it contains the main method;
+   * <code>false</code> otherwise.
+   */
+  public boolean isMain() {
+    return isMain;
+  }
+
+
+  // ============================ Set Methods =======================
+
+  /**
+   * Marks this as the main file for the program.
+   */
+  public void setMain() {
+    isMain = true;
   }
 
 

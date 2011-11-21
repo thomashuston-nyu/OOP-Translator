@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import xtc.tree.GNode;
+import xtc.tree.Printer;
 import xtc.tree.Visitor;
 
 /**
@@ -37,21 +38,24 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.1
+ * @version 1.2
  */
-public class JavaPackage {
+public class JavaPackage implements Translatable {
 
   // The default package name
-  final private static String DEFAULT = "__main__";
+  final private static String DEFAULT = "$main";
   
   // The parts of the package name
   private List<String> pkg;
 
   // Caches of the filename, namespace, and path
-  private String filename, namespace, path;
+  private String filename, namespace, packagename, path;
 
   // The files in the package
   private List<JavaFile> files;
+
+  // The main file for the package
+  private JavaFile main;
 
 
   // =========================== Constructors =======================
@@ -154,6 +158,18 @@ public class JavaPackage {
   }
 
   /**
+   * Gets the package as a Java package.
+   *
+   * @return The package name.
+   */
+  public String getPackagename() {
+    // Only create the package string if it doesn't already exist
+    if (null == packagename)
+      packagename = getString(".");
+    return packagename;
+  }
+
+  /**
    * Gets the package as a path.
    *
    * @return The package path.
@@ -202,6 +218,8 @@ public class JavaPackage {
   public void orderFiles() {
     List<JavaFile> ordered = new ArrayList<JavaFile>();
     for (JavaFile file : files) {
+      if (file.isMain())
+        main = file;
       if (ordered.contains(file))
         continue;
       if (!file.getPublicClass().hasParent()) {
@@ -238,6 +256,123 @@ public class JavaPackage {
    */
   public boolean equals(JavaPackage o) {
     return o.getPath().equals(getPath());
+  }
+
+
+  // ======================= Translation Methods ====================
+
+  /**
+   * Writes the C++ header for the package to
+   * the specified output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
+  public Printer translateHeader(Printer out) {
+    // Get any imports
+    Set<JavaPackage> using = new HashSet<JavaPackage>();
+    for (JavaFile file : files) {
+      Set<JavaPackage> imports = file.getImports();
+      for (JavaPackage i : imports) {
+        if (!i.getPath().equals(getPath()))
+          using.add(i);
+      }
+    }
+
+    // Include any imported headers
+    out.pln("#pragma once").pln();
+    out.pln("#include <iostream>");
+    out.pln("#include <sstream>").pln();
+    out.pln("#include \"include/java_lang.h\"");
+    for (JavaPackage i : using) {
+      out.p("#include \"").p(i.getFilename()).pln(".h\"");
+    }
+
+    // Declare namespaces being used
+    out.pln().pln("using namespace java::lang;");
+    for (JavaPackage i : using) {
+      out.p("using namespace ").p(i.getNamespace()).pln(";");
+    }
+    out.pln();
+
+    // Add the namespace
+    for (String part : pkg) {
+      out.indent().p("namespace ").p(part).pln(" {").incr();
+    }
+
+    // Declare the class structs
+    for (JavaFile file : files) {
+      for (JavaClass cls : file.getClasses()) {
+        String className = cls.getName();
+        out.indent().p("struct __").p(className).pln(";");
+        out.indent().p("struct __").p(className).pln("_VT;");
+        out.pln().indent().p("typedef __rt::Ptr<__").p(className).p("> ")
+          .p(className).pln(";").pln();
+      }
+    }
+
+    // Print header structs
+    for (JavaFile file : files) {
+      for (JavaClass cls : file.getClasses()) {
+        cls.translateHeader(out);
+      }
+      out.pln();
+    } 
+
+    // Close the namespace
+    for (int i = 0; i < pkg.size(); i++) {
+      out.decr().indent().pln("}");
+    }
+
+    return out;
+  }
+
+  /**
+   * Translates the body of the package and
+   * writes it to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
+  public Printer translate(Printer out) {
+    // Include the header file
+    out.p("#include \"").p(getFilename()).pln(".h\"").pln();
+
+    // Add the namespace
+    for (String part : pkg) {
+      out.indent().p("namespace ").p(part).pln(" {").incr();
+    }
+
+    // Print all the files in the package
+    for (JavaFile f : files) {
+      for (JavaClass cls : f.getClasses()) {
+        cls.translate(out);
+        out.pln();
+      }
+    }
+
+    // Close the namespace
+    for (int i = 0; i < pkg.size(); i++) {
+      out.decr().indent().pln("}");
+    }
+
+    // If this package contains the main file, print the main method here
+    if (null != main) {
+      out.pln("int main(int argc, char *argv[]) {").incr();
+      out.indent().pln("__rt::Array<String>* args = new __rt::Array<String>(argc-1);");
+      out.indent().pln("for (int i = 1; i < argc; i++) {").incr();
+      out.indent().pln("(*args)[i-1] = __rt::literal(argv[i]);");
+      out.decr().indent().pln("}");
+      out.indent();
+      if (!getNamespace().equals(""))
+        out.p(getNamespace()).p("::");
+      out.p("__").p(main.getPublicClass().getName()).pln("::main$array1_String(args);");
+      out.decr().pln("}");
+    }
+
+    return out;
   }
 
 }

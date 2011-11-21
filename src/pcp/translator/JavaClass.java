@@ -37,7 +37,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.1
+ * @version 1.2
  */
 public class JavaClass extends Visitor implements JavaScope, Translatable {
   
@@ -450,7 +450,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     // Construct the vtable with pointers to the methods
     out.pln().indent().p("__").p(name).pln("_VT()");
     out.indent().p(": __isa(__").p(name).pln("::__class()),");
-    out.indent().pln("__delete(&__Object::__delete),");
+    out.indent().p("__delete((void(*)(__").p(name).pln("*))&__Object::__delete),");
     if (vtable.containsKey("hashCode")) {
       vtable.get("hashCode").translateVTableReference(out, this);
       out.pln(",");
@@ -499,7 +499,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
       out.indent().p("__").p(name).p("::__").p(name).pln("()");
       out.indent().pln(": __vptr(&__vtable) {}").pln();
     }
-    out.indent().p("void __").p(name).p("::__delete(__").p(name).pln(" __this) {").incr();
+    out.indent().p("void __").p(name).p("::__delete(__").p(name).pln("* __this) {").incr();
     out.indent().pln("delete __this;");
     out.decr().indent().pln("}").pln();
     for (JavaMethod m : methods) {
@@ -507,7 +507,11 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
       out.pln();
     }
     out.indent().p("Class __").p(name).pln("::__class() {").incr();
-    out.indent().p("static Class k = new __Class(__rt::literal(\"").p(name).pln("\"), __Object::__class());");
+    out.indent().p("static Class k = new __Class(__rt::literal(\"");
+    String packagename = getFile().getPackage().getPackagename();
+    if (!packagename.equals(""))
+      out.p(packagename).p(".");
+    out.p(name).pln("\"), __Object::__class());");
     out.indent().pln("return k;");
     out.decr().indent().pln("}").pln();
     out.indent().p("__").p(name).p("_VT __").p(name).pln("::__vtable;");

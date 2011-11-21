@@ -8,6 +8,7 @@
   <property name="docs"  location="docs"/>
   <property name="dist"  location="dist"/>
   <property name="lib"  location="lib"/>
+  <property name="output" location="output"/>
 	<property name="src" location="src"/>
 	<property environment="env"/>
 
@@ -51,6 +52,13 @@
 
   <!-- Run the distribution jar to translate a file -->
 	<target name="translate" depends="jar" description="run the distribution">
+	  <mkdir dir="${output}"/>
+	  <delete>
+      <fileset dir="${output}">
+        <include name="*.cc"/>
+        <include name="*.h"/>
+      </fileset>
+	  </delete>
     <java fork="true" classname="pcp.Translator">
       <classpath>
         <path refid="classpath"/>
@@ -94,6 +102,12 @@
 	<target name="clean" description="clean up">
 		<delete dir="${classes}"/>
 		<delete dir="${dist}"/>
+	  <delete>
+      <fileset dir="${output}">
+        <include name="*.cc"/>
+        <include name="*.h"/>
+      </fileset>
+	  </delete>
 	</target>
 	
 </project>
