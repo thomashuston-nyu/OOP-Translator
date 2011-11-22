@@ -92,6 +92,9 @@ public class Sample {
     sss[4][3] = "THERE";
     System.out.println(sss[3][3] + " " + sss[4][3]);
 
+    int tt[][] = {{0, 1},{5, 4},{3, 1, 6}};
+    System.out.println(tt[2][0]);
+
   }
 
 }

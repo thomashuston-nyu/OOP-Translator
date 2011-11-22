@@ -524,7 +524,6 @@ public class JavaStatement extends Visitor implements Translatable {
   private class FieldDeclaration extends JavaStatement {
   
     private boolean isAbstract, isFinal, isStatic;
-    private List<GNode> isArrayInitializer;
     private List<String> names;
     private JavaType type;
     private List<JavaExpression> values;
@@ -567,18 +566,12 @@ public class JavaStatement extends Visitor implements Translatable {
       // Get the variable names and initialized values
       names = new ArrayList<String>();
       values = new ArrayList<JavaExpression>();
-      isArrayInitializer = new ArrayList<GNode>();
       for (Object o : n.getNode(2)) {
         Node declarator = (Node)o;
         names.add("$" + declarator.getString(0));
         parent.getScope().addVariable("$" + declarator.getString(0), type);
-        if (null != declarator.get(2)) {
-          if (declarator.getNode(2).hasName("ArrayInitializer"))
-            isArrayInitializer.add(declarator.getGeneric(2));
-          else
-            isArrayInitializer.add(null);
+        if (null != declarator.get(2))
           values.add(new JavaExpression(declarator.getGeneric(2), parent));
-        }
         else
           values.add(null);
       }
@@ -608,19 +601,7 @@ public class JavaStatement extends Visitor implements Translatable {
         out.p(" ").p(names.get(i));
         if (null != values.get(i)) {
           out.p(" = ");
-          if (null != isArrayInitializer.get(i)) {
-            List<JavaExpression> data = new ArrayList<JavaExpression>();
-            for (Object o : isArrayInitializer.get(i))
-              data.add(new JavaExpression((GNode)o, parent));
-            out.p("new ");
-            type.translate(out);
-            out.p("(").p(data.size()).pln(");");
-            for (int j = 0; j < data.size(); j++) {
-              out.indent().p("(*").p(names.get(i)).p(")[").p(j).p("] = ");
-              data.get(j).translate(out).pln(";");
-            }
-          } else
-            values.get(i).translate(out).pln(";");
+          values.get(i).translate(out).pln(";");
         } else {
           out.pln(";");
         }

@@ -553,7 +553,7 @@ public class JavaExpression extends Visitor implements Translatable {
       if (parent.hasType())
         return;
       JavaType type = new JavaType(variables.get(0).getType().getJavaType());
-      type.setDimensions(1); // doesn't work for multidimensional arrays
+      type.setDimensions(1 + variables.get(0).getType().getDimensions());
       parent.setType(type);
     }
 
@@ -567,7 +567,16 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      // TODO: translate array initializers to C++
+      out.pln("({").incr();
+      out.indent().p("__rt::Ptr<");
+      parent.getType().translate(out).p(" > $a$ = new ");
+      parent.getType().translate(out).p("(").p(variables.size()).pln(");");
+      for (int i = 0; i < variables.size(); i++) {
+        out.indent().p("(*$a$)[").p(i).p("] = ");
+        variables.get(i).translate(out).pln(";");
+      }
+      out.indent().pln("$a$;");
+      out.decr().indent().p("})");
       return out;
     }
 
