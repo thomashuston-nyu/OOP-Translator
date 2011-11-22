@@ -295,9 +295,11 @@ public class JavaMethod extends Visitor implements Translatable {
    */
   public Printer translateHeaderDeclaration(Printer out) {
     out.indent().p("static ");
+    if (returnType.isArray())
+      out.p("__rt::Ptr<");
     returnType.translate(out);
     if (returnType.isArray())
-      out.p("*");
+      out.p(" >");
     out.p(" ").p(name).p("(");
     if (!isStatic) {
       out.p(cls.getName());
@@ -307,9 +309,11 @@ public class JavaMethod extends Visitor implements Translatable {
     Set<String> params = parameters.keySet();
     int count = 0;
     for (String param : params) {
+      if (parameters.get(param).isArray())
+        out.p("__rt::Ptr<");
       parameters.get(param).translate(out);
       if (parameters.get(param).isArray())
-        out.p("*");
+        out.p(" >");
       if (count < params.size() - 1)
         out.p(", ");
       count++;
@@ -332,9 +336,11 @@ public class JavaMethod extends Visitor implements Translatable {
     Set<String> params = parameters.keySet();
     for (String param : params) {
       out.p(", ");
+      if (parameters.get(param).isArray())
+        out.p("__rt::Ptr<");
       parameters.get(param).translate(out);
       if (parameters.get(param).isArray())
-        out.p("*");
+        out.p(" >");
     }
     return out.pln(");");
   }
@@ -355,9 +361,11 @@ public class JavaMethod extends Visitor implements Translatable {
       Set<String> params = parameters.keySet();
       for (String param : params) {
         out.p(",");
+        if (parameters.get(param).isArray())
+          out.p("__rt::Ptr<");
         parameters.get(param).translate(out);
         if (parameters.get(param).isArray())
-          out.p("*");
+          out.p(" >");
       }
       out.p("))");
     }
@@ -385,9 +393,11 @@ public class JavaMethod extends Visitor implements Translatable {
     Set<String> params = parameters.keySet();
     int count = 0;
     for (String param : params) {
+      if (parameters.get(param).isArray())
+        out.p("__rt::Ptr<");
       parameters.get(param).translate(out);
       if (parameters.get(param).isArray())
-        out.p("*");
+        out.p(" >");
       out.p(" ").p(param);
       if (count < params.size() - 1)
         out.p(", ");

@@ -65,11 +65,32 @@ public class Sample {
     if (sam.equals(sam))
       System.out.println("TRUE");
 
-    int a[] = new int[5];
-    a[1] = 1;
+    Super[] ss = new Super[4];
+    ss[1] = new Super();
+    ss[2] = sup;
+    System.out.println(ss[1]);
 
-    String b[] = new String[3];
-    b[0] = "HEY";
+    for (int ii = 0; ii < args.length; ii++) {
+      System.out.println(args[ii]);     
+    }
+
+    System.out.println(ss);
+
+    int[][] iii = new int[3][4];
+    System.out.println(iii);
+    iii[0][0] = 5;
+    System.out.println(iii[0][0]);
+
+    long[][] l = new long[2][5];
+    System.out.println(l);
+    l[1][4] = 11;
+    System.out.println(l[1][4]);
+
+    String[][] sss = new String[5][4];
+    System.out.println(sss);
+    sss[3][3] = "HELLO";
+    sss[4][3] = "THERE";
+    System.out.println(sss[3][3] + " " + sss[4][3]);
 
   }
 

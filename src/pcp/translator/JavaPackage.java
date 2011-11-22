@@ -358,10 +358,20 @@ public class JavaPackage implements Translatable {
       out.decr().indent().pln("}");
     }
 
+    // Print the array template specializations for the classes in this package
+    out.pln("namespace __rt {").incr();
+    for (JavaFile f : files) {
+      for (JavaClass cls : f.getClasses()) {
+        cls.translateArrayTemplate(out);
+        out.pln();
+      }
+    }
+    out.decr().pln("}").pln();
+
     // If this package contains the main file, print the main method here
     if (null != main) {
       out.pln("int main(int argc, char *argv[]) {").incr();
-      out.indent().pln("__rt::Array<String>* args = new __rt::Array<String>(argc-1);");
+      out.indent().pln("__rt::Ptr<__rt::Array<String> > args = new __rt::Array<String>(argc-1);");
       out.indent().pln("for (int i = 1; i < argc; i++) {").incr();
       out.indent().pln("(*args)[i-1] = __rt::literal(argv[i]);");
       out.decr().indent().pln("}");

@@ -211,9 +211,11 @@ public class JavaConstructor extends Visitor implements Translatable {
     Set<String> params = parameters.keySet();
     int count = 0;
     for (String param : params) {
+      if (parameters.get(param).isArray())
+        out.p("__rt::Ptr<");
       parameters.get(param).translate(out);
       if (parameters.get(param).isArray())
-        out.p("*");
+        out.p(" >");
       out.p(" ").p(param);
       if (count < params.size() - 1)
         out.p(", ");
@@ -235,9 +237,11 @@ public class JavaConstructor extends Visitor implements Translatable {
     Set<String> params = parameters.keySet();
     int count = 0;
     for (String param : params) {
+      if (parameters.get(param).isArray())
+        out.p("__rt::Ptr<");
       parameters.get(param).translate(out);
       if (parameters.get(param).isArray())
-        out.p("*");
+        out.p(" >");
       out.p(" ").p(param);
       if (count < params.size() - 1)
         out.p(", ");

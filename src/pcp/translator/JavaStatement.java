@@ -182,10 +182,33 @@ public class JavaStatement extends Visitor implements Translatable {
     s = new ExpressionStatement(n, this);
     if (n.getNode(0).hasName("Expression") && 
         n.getNode(0).getNode(0).hasName("SubscriptExpression")) {
-      if (!n.getNode(0).getNode(2).getName().endsWith("Literal") ||
-          n.getNode(0).getNode(2).hasName("StringLiteral"))
-        stores.put("$" + n.getNode(0).getNode(0).getNode(0).getString(0),
-            new JavaExpression(n.getNode(0).getGeneric(2), this));
+      if ((!n.getNode(0).getNode(2).getName().endsWith("Literal") ||
+          n.getNode(0).getNode(2).hasName("StringLiteral")) &&      
+          !n.getNode(0).getNode(2).getName().startsWith("New")) {
+        GNode node = n.getNode(0).getGeneric(0);
+        if (node.getNode(0).hasName("SubscriptExpression")) {
+          List<Integer> indices = new ArrayList<Integer>();
+          while (node.getNode(0).hasName("SubscriptExpression")) {
+            indices.add(0, Integer.parseInt(node.getNode(0).getNode(1).getString(0)));
+            node = node.getGeneric(0);
+          }
+          StringBuilder name = new StringBuilder();
+          for (Integer i : indices) {
+            name.append("(*");
+          }
+          name.append("$" + node.getNode(0).getString(0));
+          for (Integer i : indices) {
+            name.append(")[");
+            name.append(i);
+            name.append("]");
+          }
+          stores.put(name.toString(),
+              new JavaExpression(n.getNode(0).getGeneric(2), this));
+        } else {
+          stores.put("$" + node.getNode(0).getString(0),
+              new JavaExpression(n.getNode(0).getGeneric(2), this));
+        }
+      }
     }
   }
 
@@ -844,7 +867,7 @@ public class JavaStatement extends Visitor implements Translatable {
    */
   private class ThrowStatement extends JavaStatement {
 
-    private JavaExpression e;
+    private String exception;
 
     /**
      * Creates a new throw statement.
@@ -852,7 +875,7 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The throw statement node.
      */
     public ThrowStatement(GNode n, JavaStatement parent) {
-      e = new JavaExpression(n.getGeneric(0), parent);
+      exception = n.getNode(0).getNode(2).getString(0);
     }
 
     /**
@@ -864,9 +887,7 @@ public class JavaStatement extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
-      out.indent().p("throw ");
-      e.translate(out);
-      return out.pln(";");
+      return out.indent().p("throw java::lang::").p(exception).pln("();");
     }
 
   }

@@ -616,10 +616,9 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      out.p("(");
-      castType.translate(out).p(")");
-      e.translate(out);
-      return out;
+      out.p("__rt::java_cast<");
+      castType.translate(out).p(">(");
+      return e.translate(out).p(")");
     }
 
   }
@@ -986,14 +985,37 @@ public class JavaExpression extends Visitor implements Translatable {
           int argsize = args.size();
           for (int i = 0; i < argsize; i++) {
             out.p(" << ");
-            args.get(i).translate(out);
-            // If the argument is an object, call toString()
-            if (0 == args.get(i).getType().getDimensions() && 
-                !args.get(i).getType().isPrimitive() &&
-                !args.get(i).getType().getClassType().equals("String")) {
-              out.p("->__vptr->toString(");
+            if (args.get(i).getType().getType().equals("float") ||
+                args.get(i).getType().getType().equals("double")) {
+              out.pln("({").incr();
+              out.indent().pln("std::ostringstream sout;");
+              out.indent().p("if (modf(");
+              args.get(i).translate(out).pln(", new double) == 0)");
+              out.indentMore().p("sout << ");
+              args.get(i).translate(out).pln(" << \".0\";");
+              out.indent().pln("else");
+              out.indentMore().p("sout << ");
+              args.get(i).translate(out).pln(";");
+              out.indent().pln("String $s$ = new __String(sout.str());");
+              out.indent().pln("$s$;");
+              out.decr().indent().p("})");
+            } else if (args.get(i).getType().getType().equals("bool")) {
+              out.p("(");
+              args.get(i).translate(out).p(" ? \"true\" : \"false\")");
+            } else if (args.get(i).getType().getType().equals("unsigned char")) {
+              out.p("(int16_t)");
               args.get(i).translate(out);
-              out.p(")");
+            } else {
+              args.get(i).translate(out);
+              // If the argument is an object, call toString()
+              if ((0 == args.get(i).getType().getDimensions() && 
+                  !args.get(i).getType().isPrimitive() &&
+                  !args.get(i).getType().getClassType().equals("String")) ||
+                  args.get(i).getType().isArray()) {
+                out.p("->__vptr->toString(");
+                args.get(i).translate(out);
+                out.p(")");
+              }
             }
           }
           // Append a newline if necessary
@@ -1024,9 +1046,6 @@ public class JavaExpression extends Visitor implements Translatable {
           int argsize = args.size();
           for (int i = 0; i < argsize; i++) {
             out.p(", ");
-            if (argTypes != null && !args.get(i).getType().getType().equals(argTypes.get(i))) {
-              out.p("(").p(argTypes.get(i)).p(")");
-            }
             args.get(i).translate(out);
           }
           out.p(")");
@@ -1096,7 +1115,7 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      return out.p("(").p(type.getType()).p(")");
+      return out.p("__rt::java_cast<").p(type.getType()).p(">");
     }
 
   }
@@ -1521,13 +1540,13 @@ public class JavaExpression extends Visitor implements Translatable {
       if (1 < dimensions.size()) {
         out.pln("({").incr();
         for (int i = 0; i < dimensions.size(); i++) {
-          out.indent();
+          out.indent().p("__rt::Ptr<");
           type.setDimensions(dimensions.size() - i);
-          type.translate(out).p("* $a").p(i).p("$ = new ");
+          type.translate(out).p(" > $a").p(i).p("$ = new ");
           type.translate(out).p("(");
           dimensions.get(i).translate(out).pln(");");
           if (i < dimensions.size() - 1) {
-            out.indent().p("for (int32_t $i").p(i).p("$; $i").p(i).p("$ < ");
+            out.indent().p("for (int32_t $i").p(i).p("$ = 0; $i").p(i).p("$ < ");
             dimensions.get(i).translate(out).p("; $i").p(i).pln("$++) {").incr();
           }
         }
@@ -1670,7 +1689,7 @@ public class JavaExpression extends Visitor implements Translatable {
   private class SelectionExpression extends JavaExpression {
 
     private JavaExpression identifier, parent;
-    private String selection;
+    private String selection, first;
 
     /**
      * Creates a new selection expression.
@@ -1679,8 +1698,12 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public SelectionExpression(GNode n, JavaExpression parent) {
       this.parent = parent;
-      if (!n.getNode(0).hasName("ThisExpression"))
-        identifier = new JavaExpression(n.getGeneric(0), parent.getStatement());
+      if (!n.getNode(0).hasName("ThisExpression")) {
+        if (n.getNode(0).hasName("PrimaryIdentifier"))
+          first = n.getNode(0).getString(0);
+        else
+          identifier = new JavaExpression(n.getGeneric(0), parent.getStatement());
+      }
       selection = n.getString(1);
       if (parent.getStatement().getScope().isInScope("$" + selection))
         selection = "$" + selection;
@@ -1705,10 +1728,14 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      if (null == identifier)
-        return out.p("__this->").p(selection);
-      else
+      if (null == identifier) {
+        if (null != first && parent.getStatement().getScope().isInScope("$" + first))
+          return out.p("$").p(first).p("->").p(selection);
+        else
+          return out.p("__this->").p(selection);
+      } else {
         return identifier.translate(out).p("::").p(selection);
+      }
     }
 
   }
@@ -1734,7 +1761,8 @@ public class JavaExpression extends Visitor implements Translatable {
       indices = new ArrayList<JavaExpression>();
       for (int i = 1; i < n.size(); i++)
         indices.add(new JavaExpression(n.getGeneric(i), parent.getStatement()));
-      if (n.getNode(0).hasName("PrimaryIdentifier"))
+      if (n.getNode(0).hasName("PrimaryIdentifier") &&
+          parent.getStatement().getScope().isInScope("$" + n.getNode(0).getString(0)))
         parent.getStatement().addObject(n.getNode(0).getString(0));
     }
 

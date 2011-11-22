@@ -488,6 +488,54 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
   }
 
   /**
+   * Translates the array template for the class
+   * and writes it to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
+  public Printer translateArrayTemplate(Printer out) {
+    out.indent().pln("template<>");
+    out.indent().p("java::lang::Class Array<");
+    if (!getFile().getPackage().getNamespace().equals(""))
+      out.p(getFile().getPackage().getNamespace()).p("::");
+    out.p(name).pln(">::__class() {").incr();
+    out.indent().pln("static java::lang::Class k = ");
+    out.indentMore().p("new java::lang::__Class(literal(\"[L");
+    if (!getFile().getPackage().getPackagename().equals(""))
+      out.p(getFile().getPackage().getPackagename()).p(".");
+    out.p(name).pln(";\"),").incr();
+    out.indentMore().pln("Array<java::lang::Object>::__class(),");
+    out.indentMore();
+    if (!getFile().getPackage().getNamespace().equals(""))
+      out.p(getFile().getPackage().getNamespace()).p("::");
+    out.p("__").p(name).pln("::__class());").decr();
+    out.indent().pln("return k;");
+    out.decr().indent().pln("}").pln();
+    out.indent().pln("template<>");
+    out.indent().p("java::lang::Class Array<Ptr<Array<");
+    if (!getFile().getPackage().getNamespace().equals(""))
+      out.p(getFile().getPackage().getNamespace()).p("::");
+    out.p(name).pln("> > >::__class() {").incr();
+    out.indent().pln("static java::lang::Class k = ");
+    out.indentMore().p("new java::lang::__Class(literal(\"[[L");
+    if (!getFile().getPackage().getPackagename().equals(""))
+      out.p(getFile().getPackage().getPackagename()).p(".");
+    out.p(name).pln(";\"),").incr();
+    out.indentMore().p("Array<");
+    if (!getFile().getPackage().getNamespace().equals(""))
+      out.p(getFile().getPackage().getNamespace()).p("::");
+    out.p(name).pln(">::__class(),");
+    out.indentMore();
+    if (!getFile().getPackage().getNamespace().equals(""))
+      out.p(getFile().getPackage().getNamespace()).p("::");
+    out.p("__").p(name).pln("::__class());").decr();
+    out.indent().pln("return k;");
+    return out.decr().indent().pln("}").pln();
+  }
+
+  /**
    * Translates the body of the class and
    * writes it to the output stream.
    *

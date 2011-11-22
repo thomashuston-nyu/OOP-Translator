@@ -44,7 +44,7 @@ public class JavaType extends Visitor implements Translatable {
   // Includes void for convenience
   public final static Map<String, String> primitives = new HashMap<String, String>();
   static {
-    primitives.put("byte", "int8_t");
+    primitives.put("byte", "unsigned char");
     primitives.put("short", "int16_t");
     primitives.put("int", "int32_t");
     primitives.put("long", "int64_t");
@@ -180,7 +180,7 @@ public class JavaType extends Visitor implements Translatable {
     StringBuilder s = new StringBuilder();
     s.append("array" + dimensions + "_");
     if (null != primitiveType)
-      s.append(primitives.get(primitiveType));
+      s.append(primitives.get(primitiveType).replace(' ','_'));
     else
       s.append(classType);
     return s.toString();
@@ -208,8 +208,11 @@ public class JavaType extends Visitor implements Translatable {
    */
   public String getType() {
     StringBuilder type = new StringBuilder();
-    for (int i = 0; i < dimensions; i++)
+    for (int i = 0; i < dimensions; i++) {
+      if (i > 0)
+        type.append("__rt::Ptr<");
       type.append("__rt::Array<");
+    }
     if (null != primitiveType) {
       type.append(primitives.get(primitiveType));
     } else {
@@ -218,9 +221,9 @@ public class JavaType extends Visitor implements Translatable {
       type.append(classType);
     }
     for (int i = 0; i < dimensions; i++) {
-      type.append(">");
+      type.append(" >");
       if (i < dimensions - 1)
-        type.append("*");
+        type.append(" >");
     }
     return type.toString();
   }

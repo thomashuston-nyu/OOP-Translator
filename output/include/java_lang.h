@@ -20,9 +20,11 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdio.h>
 #include <string>
 #include <iostream>
 #include <cstring>
+#include <math.h>
 
 #include "ptr.h"
 
@@ -236,6 +238,18 @@ namespace java {
 
     // ======================================================================
 
+	struct __Byte {
+		
+		static Class TYPE();
+		
+	};
+	
+	struct __Short {
+		
+		static Class TYPE();
+		
+	};
+
     // The completey incomplete data layout for java.lang.Integer.
     struct __Integer {
 
@@ -243,6 +257,36 @@ namespace java {
       static Class TYPE();
 
     };
+
+	struct __Long {
+		
+		static Class TYPE();
+		
+	};
+	
+	struct __Float {
+		
+		static Class TYPE();
+		
+	};
+	
+	struct __Double {
+		
+		static Class TYPE();
+		
+	};
+	
+	struct __Character {
+		
+		static Class TYPE();
+		
+	};
+	
+	struct __Boolean {
+		
+		static Class TYPE();
+		
+	};
 
     // ======================================================================
 
@@ -393,6 +437,20 @@ namespace __rt {
         throw java::lang::ArrayStoreException();
       }
     }
+  }
+
+  // ========================================================================
+
+  // Template function for translated Java casts.
+  template <typename T, typename U>
+  T java_cast(U object) {
+    java::lang::Class k = T::value_t::__class();
+
+    if (! k->__vptr->isInstance$Object(k, object)) {
+      throw java::lang::ClassCastException();
+    }
+
+    return T(object);
   }
 
 }
