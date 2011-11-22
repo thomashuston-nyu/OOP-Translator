@@ -41,6 +41,8 @@ import xtc.tree.Visitor;
  */
 public class JavaClass extends Visitor implements JavaScope, Translatable {
   
+  private static Map<String, JavaClass> classes = new HashMap<String, JavaClass>();
+
   private List<JavaConstructor> constructors;
   private JavaType extension;
   private List<JavaStatement> fields;
@@ -520,6 +522,30 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     out.decr().indent().pln("}").pln();
     out.indent().p("__").p(name).p("_VT __").p(name).pln("::__vtable;");
     return out;
+  }
+
+
+  // ========================== Static Methods ======================
+
+  /**
+   * Adds a class to the class map.
+   *
+   * @param name The fully qualified name of the class.
+   * @param cls The corresponding JavaClass object.
+   */
+  public static void addClass(String name, JavaClass cls) {
+    classes.put(name, cls);
+  }
+
+  /**
+   * Gets the JavaClass specified by the qualified class name.
+   *
+   * @param name The fully qualified name of the class.
+   * 
+   * @return The corresponding JavaClass object.
+   */
+  public static JavaClass getJavaClass(String name) {
+    return classes.get(name);
   }
 
 }

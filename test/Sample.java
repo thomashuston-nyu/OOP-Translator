@@ -62,8 +62,15 @@ public class Sample {
     Sample sam = new Sample();
     sam.test(sam, sam, sam);
 
-    if (sam.equals(sub))
+    if (sam.equals(sam))
       System.out.println("TRUE");
+
+    int a[] = new int[5];
+    a[1] = 1;
+
+    String b[] = new String[3];
+    b[0] = "HEY";
+
   }
 
 }

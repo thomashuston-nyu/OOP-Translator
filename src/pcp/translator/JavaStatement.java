@@ -18,8 +18,10 @@
 package pcp.translator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import xtc.tree.GNode;
@@ -42,6 +44,7 @@ public class JavaStatement extends Visitor implements Translatable {
 
   private GNode node;
   private Set<String> objects;
+  private Map<String, JavaExpression> stores;
   private JavaScope parent;
   private JavaStatement s;
 
@@ -64,6 +67,7 @@ public class JavaStatement extends Visitor implements Translatable {
     this.node = n;
     this.parent = parent;
     objects = new HashSet<String>();
+    stores = new HashMap<String, JavaExpression>();
     dispatch(n);
   }
 
@@ -95,12 +99,22 @@ public class JavaStatement extends Visitor implements Translatable {
   // ============================ Get Methods =======================
   
   /**
-   * Adds an object to the statement.
+   * Adds an object to the not null on.
    *
    * @param obj The object.
    */
   public void addObject(String obj) {
     objects.add(obj);
+  }
+  
+  /**
+   * Adds an array store expression to check.
+   *
+   * @param array The name of the array.
+   * @param exp The expression to store.
+   */
+  public void addStore(String array, JavaExpression exp) {
+    stores.put(array, exp);
   }
 
 
@@ -166,6 +180,13 @@ public class JavaStatement extends Visitor implements Translatable {
    */
   public void visitExpressionStatement(GNode n) {
     s = new ExpressionStatement(n, this);
+    if (n.getNode(0).hasName("Expression") && 
+        n.getNode(0).getNode(0).hasName("SubscriptExpression")) {
+      if (!n.getNode(0).getNode(2).getName().endsWith("Literal") ||
+          n.getNode(0).getNode(2).hasName("StringLiteral"))
+        stores.put("$" + n.getNode(0).getNode(0).getNode(0).getString(0),
+            new JavaExpression(n.getNode(0).getGeneric(2), this));
+    }
   }
 
   /**
@@ -556,9 +577,11 @@ public class JavaStatement extends Visitor implements Translatable {
       int size = names.size();
       for (int i = 0; i < size; i++) {
         out.indent();
+        if (type.isArray())
+          out.p("__rt::Ptr<");
         type.translate(out);
         if (type.isArray())
-          out.p("*");
+          out.p(" >");
         out.p(" ").p(names.get(i));
         if (null != values.get(i)) {
           out.p(" = ");
@@ -924,9 +947,16 @@ public class JavaStatement extends Visitor implements Translatable {
   public Printer translate(Printer out) {
     if (null == s)
       return out;
-    if (parent instanceof JavaMethod){
-      for (String obj : objects)
-        out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
+    if (!parent.hasName("JavaClass")) {
+      for (String obj : objects) {
+        if (parent.isInScope(obj) && !parent.getVariableScope(obj).hasName("JavaClass"))
+          out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
+      }
+      Set<String> keys = stores.keySet();
+      for (String key : keys) {
+        out.indent().p("__rt::checkStore(").p(key).p(", ");
+        stores.get(key).translate(out).pln(");");
+      }
     }
     return s.translate(out);
   }

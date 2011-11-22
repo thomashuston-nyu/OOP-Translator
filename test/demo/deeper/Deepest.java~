@@ -1,0 +1,13 @@
+package demo.deeper;
+
+public class Deepest extends Deep {
+
+  public static void printX() {
+    System.out.println("DEEEEEEEEP");
+  }
+
+  public Deepest() {
+
+  }
+
+}

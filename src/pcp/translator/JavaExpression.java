@@ -83,8 +83,8 @@ public class JavaExpression extends Visitor implements Translatable {
    * @return The type.
    */
   public JavaType getType() {
-    if (node.hasName("CallExpression"))
-      ((CallExpression)e).determineType();
+    if (null == type)
+      e.determineType();
     return type;
   }
 
@@ -100,8 +100,23 @@ public class JavaExpression extends Visitor implements Translatable {
     return node.hasName(name);
   }
 
+  /**
+   * Checks if the type of the expression has been set.
+   *
+   * @return <code>True</code> if the type is set;
+   * <code>false</code> otherwise.
+   */
+  public boolean hasType() {
+    return null != type;
+  }
+
 
   // ============================ Set Methods =======================
+
+  /**
+   * Determines the resulting type of the expression.
+   */
+  public void determineType() {}
 
   /**
    * Sets the resulting type of the expression.
@@ -443,27 +458,39 @@ public class JavaExpression extends Visitor implements Translatable {
     private JavaExpression left, right;
     private String operator;
     private boolean isString;
+    private JavaExpression parent;
 
     /**
      * Creates a new additive expression.
      *
      * @param n The additive or multiplicative expression node.
+     * @param parent The wrapper expression.
      */
     public AdditiveExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       left = new JavaExpression(n.getGeneric(0), parent.getStatement());
       operator = n.getString(1);
       right = new JavaExpression(n.getGeneric(2), parent.getStatement());
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       if (left.getType().hasType("String") || right.getType().hasType("String")) {
         isString = true;
         parent.setType(new JavaType("String"));
-      } else if (left.getType().hasType("double") || right.getType().hasType("double"))
+      } else if (left.getType().hasType("double") || right.getType().hasType("double")) {
         parent.setType(new JavaType("double"));
-      else if (left.getType().hasType("float") || right.getType().hasType("float"))
+      } else if (left.getType().hasType("float") || right.getType().hasType("float")) {
         parent.setType(new JavaType("float"));
-      else if (left.getType().hasType("long") || right.getType().hasType("long"))
+      } else if (left.getType().hasType("long") || right.getType().hasType("long")) {
         parent.setType(new JavaType("long"));
-      else
+      } else {
         parent.setType(new JavaType("int"));
+      }
     }
 
     /**
@@ -475,6 +502,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       if (!isString) {
         left.translate(out);
         out.p(" ").p(operator).p(" ");
@@ -502,17 +530,28 @@ public class JavaExpression extends Visitor implements Translatable {
   private class ArrayInitializer extends JavaExpression {
 
     private List<JavaExpression> variables;
+    private JavaExpression parent;
 
     /**
      * Creates a new array initializer.
      *
      * @param n The array initializer node.
+     * @param parent The wrapper expression.
      */
     public ArrayInitializer(GNode n, JavaExpression parent) {
+      this.parent = parent;
       variables = new ArrayList<JavaExpression>();
       for (Object o : n) {
         variables.add(new JavaExpression((GNode)o, parent.getStatement()));
       }
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       JavaType type = new JavaType(variables.get(0).getType().getJavaType());
       type.setDimensions(1); // doesn't work for multidimensional arrays
       parent.setType(type);
@@ -527,6 +566,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       // TODO: translate array initializers to C++
       return out;
     }
@@ -541,17 +581,28 @@ public class JavaExpression extends Visitor implements Translatable {
 
     private JavaExpression e;
     private JavaType castType;
+    private JavaExpression parent;
 
     /**
      * Creates a new basic cast expression.
      *
      * @param n The basic cast expression node.
+     * @param parent The wrapper expression.
      */
     public BasicCastExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       castType = new JavaType(n.getGeneric(0));
       if (null != n.get(1))
         castType.setDimensions(n.getNode(1).size());
       e = new JavaExpression(n.getGeneric(2), parent.getStatement());
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       parent.setType(castType);
     }
 
@@ -564,6 +615,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       out.p("(");
       castType.translate(out).p(")");
       e.translate(out);
@@ -578,32 +630,48 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class CallExpression extends JavaExpression {
 
+    // The arguments being passed
     private List<JavaExpression> args;
+
+    // The types of the method parameters
     private List<String> argTypes;
+
+    // The name of the class this method is being called on
     private String classType;
+
+    // The actual class this method is being called on
     private JavaClass cls;
-    private List<Boolean> isObject;
+
+    // Checks if the method is being called from inside a constructor
+    // and whether or not this is a print call
     private boolean isConstructor, isPrint;
+
+    // The method being called
     private JavaMethod method;
+
+    // The mangled name of the method
     private String name;
+
+    // The variable or class on which the method is called
     private List<String> ref;
+
+    // The expression wrapper object that created this instance
     private JavaExpression parent;
 
     /**
      * Creates a new call expression.
      *
      * @param n The call expression node.
+     * @param parent The wrapper expression.
      */
     public CallExpression(GNode n, JavaExpression parent) {
+      // Keep track of the parent expression
       this.parent = parent;
-
-      // Keep track of which arguments are object variables
-      isObject = new ArrayList<Boolean>();
 
       // Check if this expression is in the constructor
       isConstructor = parent.getStatement().getScope().hasName("JavaConstructor");
 
-      // Determine who is making the call
+      // Determine the variable or class that is making the call
       if (null != n.get(0)) {
         ref = new ArrayList<String>();
         int depth = 0;
@@ -625,6 +693,8 @@ public class JavaExpression extends Visitor implements Translatable {
         } else {
           ref.add(n.getNode(0).getString(0));
         }
+        if (1 == ref.size() && parent.getStatement().getScope().isInScope("$" + ref.get(0)))
+          parent.getStatement().addObject("$" + ref.get(0));
       }
 
       // Get the arguments passed to the method
@@ -632,13 +702,6 @@ public class JavaExpression extends Visitor implements Translatable {
       for (Object o : n.getNode(3)) {     
         GNode node = (GNode)o;
         args.add(new JavaExpression(node, parent.getStatement()));
-        // TODO: Just use args.getType()
-        if (node.hasName("PrimaryIdentifier") &&
-            parent.getStatement().getScope().isInScope("$" + node.getString(0)) &&
-            !parent.getStatement().getScope().getVariableType("$" + node.getString(0)).isPrimitive())
-            isObject.add(true);
-        else
-          isObject.add(false);
       }
 
       // Check if this is a print expression
@@ -654,11 +717,13 @@ public class JavaExpression extends Visitor implements Translatable {
      * Determines the class on which the method is being called.
      */
     public void determineClass() {
+      // If we are calling this method on some variable, figure out what type it is
       if (null != ref) {
         if (1 == ref.size()) {
           // If it's a variable, figure out what type it is 
           if (parent.getStatement().getScope().isInScope("$" + ref.get(0)))
             classType = parent.getStatement().getScope().getVariableType("$" + ref.get(0)).getType();
+          // Otherwise using the static class name
           else
             classType = ref.get(0);
           JavaScope temp = parent.getStatement().getScope();
@@ -666,31 +731,71 @@ public class JavaExpression extends Visitor implements Translatable {
             temp = temp.getParentScope();
           }
           JavaClass cls = (JavaClass)temp;
+          // Check the current package
           JavaPackage pkg = cls.getFile().getPackage();
+          if (null != JavaClass.getJavaClass(pkg.getPath() + classType)) {
+            this.cls = JavaClass.getJavaClass(pkg.getPath() + classType);
+            return;
+          }
+          // Then check the imported packages
           Set<JavaPackage> imports = cls.getFile().getImports();
-          // Check the current package for the class
-          if (null != pkg) {
+          for (JavaPackage imp : imports) {
+            if (null != JavaClass.getJavaClass(imp.getPath() + classType)) {
+              this.cls = JavaClass.getJavaClass(imp.getPath() + classType);
+              return;
+            }
+          }
+        // Either a qualified class name or a static variable in a class
+        } else {
+          // First, check if this is a fully qualified class name
+          StringBuilder temp = new StringBuilder();
+          for (int i = 0; i < ref.size() - 1; i++) {
+            temp.append(ref.get(i));
+            if (i < ref.size() - 2)
+              temp.append("/");
+          }
+          String full = temp.toString();
+          if (Global.packages.containsKey(full)) {
+            JavaPackage pkg = Global.packages.get(full);
             List<JavaFile> files = pkg.getFiles();
             for (JavaFile f : files) {
-              if (f.getPublicClass().getName().equals(classType)) {
+              if (f.getPublicClass().getName().equals(ref.get(ref.size() - 1))) {
                 this.cls = f.getPublicClass();
+                classType = ref.get(ref.size() - 1);
                 return;
               }
             }
           }
-          // Then check the imported packages for the class
-          for (JavaPackage imp : imports) {
-            List<JavaFile> files = imp.getFiles();
-            for (JavaFile f : files) {
-              if (f.getPublicClass().getName().equals(classType)) {
-                this.cls = f.getPublicClass();
-                return;
+          // Next, check if this is a fully qualified class name with a static variable
+          if (2 < ref.size()) {
+            temp = new StringBuilder();
+            for (int i = 0; i < ref.size() - 2; i++) {
+              temp.append(ref.get(i));
+              if (i < ref.size() - 3)
+                temp.append("/");
+            }
+            String partial = temp.toString();
+            if (Global.packages.containsKey(partial)) {
+              JavaPackage pkg = Global.packages.get(partial);
+              List<JavaFile> files = pkg.getFiles();
+              for (JavaFile f : files) {
+                if (f.getPublicClass().getName().equals(ref.get(ref.size() - 2))) {
+                  JavaClass varClass = f.getPublicClass();
+                  if (varClass.isInScope("$" + ref.get(ref.size() - 1))) {
+                    JavaType varType = varClass.getVariableType("$" + ref.get(ref.size() - 1));
+                    if (0 == varType.getDimensions() && !varType.isPrimitive()) {
+                      classType = varType.getClassType();
+                      this.cls = JavaClass.getJavaClass(partial + "/" + classType);
+                      return;
+                    }
+                  }
+                }
               }
             }
           }
-        } else {
-          // TODO: fully qualified class locations
+          // Finally, check if this is an unqualified class name with a static variable
         }
+      // Otherwise we are calling this method from the current class
       } else {
         JavaScope temp = parent.getStatement().getScope();
         while (!temp.hasName("JavaClass")) {
@@ -706,12 +811,20 @@ public class JavaExpression extends Visitor implements Translatable {
      * for method overloading.
      */
     public void determineMethod() {
+      // If this is a print call, there's no method to locate
       if (isPrint)
         return;
-      boolean finished = false;
+
+      // Used for performing a breadth-first search
       int level = 0, maxLevel = 0;
+
+      // Keep track of the types of the arguments passed
       List<String> newArgTypes = new ArrayList<String>();
+
+      // Get the class hierarchy
       Map<String, String> hierarchy = JavaType.getHierarchy();
+
+      // Get the types of the arguments and the depth of the type furthest from Object
       for (JavaExpression e : args) {
         if (!e.getType().isPrimitive() && 0 == e.getType().getDimensions()) {
           String type = e.getType().getClassType();
@@ -727,28 +840,41 @@ public class JavaExpression extends Visitor implements Translatable {
           newArgTypes.add(null);
         }
       }
-      while (!finished) {
+
+      // Loop until a match is found or we have tried every combination
+      while (true) {
+        // If there are no arguments, simply locate use the original method name
         if (0 == newArgTypes.size()) {
           if (null != cls)
             method = cls.getMethod(name);
           return;
         }
+
+        // The outer loop specifies the argument to climb one level higher in the hierarchy
         for (int i = 0; i < newArgTypes.size(); i++) {
+          // Create the mangled name
           StringBuilder s = new StringBuilder();
           s.append(name);
           argTypes = new ArrayList<String>();
+
+          // The middle loop adds the argument types to the name in order
           for (int j = 0; j < newArgTypes.size(); j++) {
+            // If this is a primitive type, we can't climb up the hierarchy so simply append it
             if (null == newArgTypes.get(j)) {
               String t = args.get(j).getType().getMangledType();
               s.append("$" + t);
               argTypes.add(t);
+            // Otherwise climb the tree as specified by the level
             } else {
+              // Start out with the original type of the argument
               String type = newArgTypes.get(j);
+              // Climb the tree level - 1 times
               for (int k = 1; k < level; k++) {
                 if (null == hierarchy.get(type))
                   return;
                 type = hierarchy.get(type);
               }
+              // If this is the argument specified by the outer loop, climb an extra level
               if (0 < level && i == j && null != hierarchy.get(type))
                 type = hierarchy.get(type);
               s.append("$" + type);
@@ -756,18 +882,24 @@ public class JavaExpression extends Visitor implements Translatable {
             }
           }
           String temp = s.toString();
+
+          // Special cases for methods defined in java_lang
           if (temp.equals("equals$Object") ||
               temp.equals("charAt$int32_t")) {
             name = temp;
             return;
           }
+          // Check if the specified method exists
           if (null != cls.getMethod(temp)) {
             name = temp;
             method = cls.getMethod(temp);
             return;
           }
         }
+
+        // If the method was not found, continue up another level in the hierarchy
         level++;
+        // Return if we have already reached the top of the hierarchy for all arguments
         if (level > maxLevel)
           return;
       }
@@ -777,51 +909,44 @@ public class JavaExpression extends Visitor implements Translatable {
      * Determines the return type of the method call.
      */
     public void determineType() {
-      if (null == cls)
-        determineClass();
-      if (null == method)
-        determineMethod();
+      if (parent.hasType())
+        return;
+
+      // Locate the exact method being called before continuing
+      determineClass();
+      determineMethod();
+
+      // Special cases for methods defined in java_lang
       if (null == method) {
-        if (name.equals("hashCode")) {
+        if (name.equals("hashCode") || name.equals("length")) {
           parent.setType(new JavaType("int"));
           return;
-        } else if (name.equals("equals$Object")) {
+        } else if (name.equals("equals$Object") || name.equals("isPrimitive") ||
+            name.equals("isArray")) {
           parent.setType(new JavaType("boolean"));
           return;
-        } else if (name.equals("getClass")) {
+        } else if (name.equals("getClass") || name.equals("getComponentType") ||
+            name.equals("getSuperclass")) {
           parent.setType(new JavaType("Class"));
           return;
-        } else if (name.equals("toString")) {
+        } else if (name.equals("toString") || name.equals("getName")) {
           parent.setType(new JavaType("String"));
-          return;
-        } else if (name.equals("length")) {
-          parent.setType(new JavaType("int"));
           return;
         } else if (name.equals("charAt$int32_t")) {
           parent.setType(new JavaType("char"));
           return;
-        } else if (name.equals("getName")) {
-          parent.setType(new JavaType("String"));
-          return;
-        } else if (name.equals("getSuperclass")) {
-          parent.setType(new JavaType("Class"));
-          return;
-        } else if (name.equals("isPrimitive")) {
-          parent.setType(new JavaType("boolean"));
-          return;
-        } else if (name.equals("isArray")) {
-          parent.setType(new JavaType("boolean"));
-          return;
-        } else if (name.equals("getComponentType")) {
-          parent.setType(new JavaType("Class"));
-          return;
         }
       }
+
+      // If found, simply use the return type of the method being called
+      if (null != method) {
+        parent.setType(method.getReturnType());
+      }
+
+      // If this method is being called on a variable or class
       if (null != ref) {
-        if (1 == ref.size()) {
-          if (null != method)
-            parent.setType(method.getReturnType());
-        } else if (2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
+        // If this is a print statement the resulting expression has no value
+        if (2 == ref.size() && ref.get(0).equals("System") && ref.get(1).equals("out")
             && (name.equals("print") || name.equals("println"))) {
           parent.setType(new JavaType("void"));
         } else {
@@ -838,8 +963,6 @@ public class JavaExpression extends Visitor implements Translatable {
           if (Global.files.containsKey(path))
             f = Global.files.get(path);
         }
-      } else {
-        parent.setType(method.getReturnType());
       }
     }
 
@@ -852,21 +975,28 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      // Determine the resulting type before continuing
       determineType();
       if (null != ref) {
-        if ((name.equals("print") || name.equals("println"))) {
+        // Special case for print statements
+        if (isPrint) {
           if ((name.equals("print") && args.size() > 0) || name.equals("println"))
             out.p("std::cout");
+          // Inject each argument into the output stream
           int argsize = args.size();
           for (int i = 0; i < argsize; i++) {
             out.p(" << ");
             args.get(i).translate(out);
-            if (isObject.get(i)) {
+            // If the argument is an object, call toString()
+            if (0 == args.get(i).getType().getDimensions() && 
+                !args.get(i).getType().isPrimitive() &&
+                !args.get(i).getType().getClassType().equals("String")) {
               out.p("->__vptr->toString(");
               args.get(i).translate(out);
               out.p(")");
             }
           }
+          // Append a newline if necessary
           if (name.equals("println"))
             out.p(" << std::endl");
         } else {
@@ -934,14 +1064,25 @@ public class JavaExpression extends Visitor implements Translatable {
   private class CastExpression extends JavaExpression {
 
     private JavaType type;
+    private JavaExpression parent;
      
     /**
      * Creates a new cast expression.
      *
      * @param n The cast expression node.
+     * @param parent The wrapper expression.
      */
     public CastExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       type = new JavaType(n.getGeneric(0));
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       parent.setType(type);
     }
 
@@ -954,6 +1095,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       return out.p("(").p(type.getType()).p(")");
     }
 
@@ -966,14 +1108,26 @@ public class JavaExpression extends Visitor implements Translatable {
   private class ClassLiteralExpression extends JavaExpression {
 
     private JavaType type;
+    private JavaExpression parent;
 
     /**
      * Creates a new class literal expression.
      *
      * @param n The class literal expression node.
+     * @param parent The wrapper expression.
      */
     public ClassLiteralExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       type = new JavaType(n.getGeneric(0));
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
+      parent.setType(type);
     }
 
     /**
@@ -985,6 +1139,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       // TODO: figure out what a class literal expression is
       return out;
     }
@@ -997,17 +1152,26 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class ConditionalExpression extends JavaExpression {
 
-    private JavaExpression test, ifTrue, ifFalse;
+    private JavaExpression test, ifTrue, ifFalse, parent;
 
     /**
      * Creates a new conditional expression.
      *
      * @param n The conditional expression node.
+     * @param parent The wrapper expression.
      */
     public ConditionalExpression(GNode n, JavaExpression parent) {
       test = new JavaExpression(n.getGeneric(0), parent.getStatement());
       ifTrue = new JavaExpression(n.getGeneric(1), parent.getStatement());
       ifFalse = new JavaExpression(n.getGeneric(2), parent.getStatement());
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       parent.setType(ifTrue.getType());
     }
 
@@ -1020,6 +1184,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       test.translate(out).p(" ? ");
       ifTrue.translate(out).p(" : ");
       return ifFalse.translate(out);
@@ -1046,24 +1211,22 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class Expression extends JavaExpression {
 
-    private JavaExpression left, right;
+    private GNode n;
+    private JavaExpression left, right, parent;
     private String operator;
 
     /**
      * Creates a new expression or equality expression.
      *
      * @param n The expression node.
+     * @param parent The wrapper expression.
      */
     public Expression(GNode n, JavaExpression parent) {
+      this.n = n;
+      this.parent = parent;
       left = new JavaExpression(n.getGeneric(0), parent.getStatement());
       operator = n.getString(1);
       right = new JavaExpression(n.getGeneric(2), parent.getStatement());
-      if (n.hasName("Expression"))
-        parent.setType(left.getType());
-      else if (n.hasName("EqualityExpression") || n.hasName("RelationalExpression"))
-        parent.setType(new JavaType("boolean"));
-      else if (n.hasName("ShiftExpression"))
-        parent.setType(left.getType());
     }
 
     /**
@@ -1073,17 +1236,33 @@ public class JavaExpression extends Visitor implements Translatable {
      * @param operator The operator.
      */
     public Expression(GNode n, String operator, JavaExpression parent) {
+      this.n = n;
+      this.parent = parent;
       left = new JavaExpression(n.getGeneric(0), parent.getStatement());
       this.operator = operator;
       if (!operator.equals("~") && !operator.equals("!"))
-        right = new JavaExpression(n.getGeneric(1), parent.getStatement());
-      if (n.getName().startsWith("Logical"))
+        right = new JavaExpression(n.getGeneric(1), parent.getStatement()); 
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
+      if (n.hasName("Expression")) {
+        parent.setType(left.getType());
+      } else if (n.hasName("EqualityExpression") || n.hasName("RelationalExpression") ||
+          n.getName().startsWith("Logical")) {
         parent.setType(new JavaType("boolean"));
-      else if (n.getName().startsWith("Bitwise"))
+      } else if (n.hasName("ShiftExpression")) {
+        parent.setType(left.getType());
+      } else if (n.getName().startsWith("Bitwise")) {
         if (left.getType().hasType("long") || (right != null && right.getType().hasType("long")))
           parent.setType(new JavaType("long"));
         else
           parent.setType(new JavaType("int"));
+      }
     }
 
     /**
@@ -1095,6 +1274,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       if (right != null) {
         left.translate(out).p(" ").p(operator).p(" ");
         return right.translate(out);
@@ -1112,17 +1292,27 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class InstanceOfExpression extends JavaExpression {
 
-    private JavaExpression object;
+    private JavaExpression object, parent;
     private JavaType type;
      
     /**
      * Creates a new instance of expression.
      *
      * @param n The instance of expression node.
+     * @param parent The wrapper expression.
      */
     public InstanceOfExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       object = new JavaExpression(n.getGeneric(0), parent.getStatement());
       type = new JavaType(n.getGeneric(1));
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       parent.setType(new JavaType("boolean"));
     }
 
@@ -1135,6 +1325,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       out.pln("({");
       out.incr().indent().p("Class k = __").p(type.getType()).pln("::__class();");
       out.indent().p("k->__vptr->isInstance(k, ");
@@ -1157,35 +1348,48 @@ public class JavaExpression extends Visitor implements Translatable {
     private String value;
     private boolean isString;
     private boolean isNull;
+    private GNode n;
+    private JavaExpression parent;
 
     /**
      * Creates a new literal.
      *
      * @param n The literal node.
+     * @param parent The wrapper expression.
      */
     public Literal(GNode n, JavaExpression parent) {
+      this.n = n;
+      this.parent = parent;
       if (n.size() == 0)
         isNull = true;
       else {
         value = n.getString(0);
-        if (n.hasName("BooleanLiteral"))
-          parent.setType(new JavaType("boolean"));
-        else if (n.hasName("CharacterLiteral"))
-          parent.setType(new JavaType("char"));
-        else if (n.hasName("FloatingPointLiteral"))
-          if (value.charAt(value.length() - 1) == 'F' || value.charAt(value.length() - 1) == 'f')
-            parent.setType(new JavaType("float"));
-          else
-            parent.setType(new JavaType("double"));
-        else if (n.hasName("IntegerLiteral"))
-          if (value.charAt(value.length() - 1) == 'L' || value.charAt(value.length() - 1) == 'l')
-            parent.setType(new JavaType("long"));
-          else
-            parent.setType(new JavaType("int"));
-        else if (n.hasName("StringLiteral")) {
-          isString = true;
-          parent.setType(new JavaType("String"));
-        }
+      }
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
+      if (n.hasName("BooleanLiteral")) {
+        parent.setType(new JavaType("boolean"));
+      } else if (n.hasName("CharacterLiteral")) {
+        parent.setType(new JavaType("char"));
+      } else if (n.hasName("FloatingPointLiteral")) {
+        if (value.charAt(value.length() - 1) == 'F' || value.charAt(value.length() - 1) == 'f')
+          parent.setType(new JavaType("float"));
+        else
+          parent.setType(new JavaType("double"));
+      } else if (n.hasName("IntegerLiteral")) {
+        if (value.charAt(value.length() - 1) == 'L' || value.charAt(value.length() - 1) == 'l')
+          parent.setType(new JavaType("long"));
+        else
+          parent.setType(new JavaType("int"));
+      } else if (n.hasName("StringLiteral")) {
+        isString = true;
+        parent.setType(new JavaType("String"));
       }
     }
 
@@ -1198,6 +1402,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       if (isNull)
         return out.p("__rt::null()");
       else if (isString)
@@ -1214,18 +1419,28 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class MultiplicativeExpression extends JavaExpression {
 
-    private JavaExpression left, right;
+    private JavaExpression left, right, parent;
     private String operator;
 
     /**
-     * Creates a new additive or multiplicative expression.
+     * Creates a new multiplicative expression.
      *
-     * @param n The additive or multiplicative expression node.
+     * @param n The multiplicative expression node.
+     * @param parent The wrapper expression.
      */
     public MultiplicativeExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       left = new JavaExpression(n.getGeneric(0), parent.getStatement());
       right = new JavaExpression(n.getGeneric(2), parent.getStatement());
       operator = n.getString(1);
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       if (left.getType().hasType("double") || right.getType().hasType("double"))
         parent.setType(new JavaType("double"));
       else if (left.getType().hasType("float") || right.getType().hasType("float"))
@@ -1245,6 +1460,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       left.translate(out);
       out.p(" ").p(operator).p(" ");
       right.translate(out);
@@ -1261,15 +1477,18 @@ public class JavaExpression extends Visitor implements Translatable {
 
     private List<JavaExpression> dimensions;
     private JavaType type;
-    private JavaStatement parent;
+    private JavaStatement statement;
+    private JavaExpression parent;
 
     /**
      * Creates a new new array expression.
      *
      * @param n The new array expression node.
+     * @param parent The wrapper expression.
      */
     public NewArrayExpression(GNode n, JavaExpression parent) {
-      this.parent = parent.getStatement();
+      this.parent = parent;
+      statement = parent.getStatement();
       type = new JavaType(n.getGeneric(0));
       dimensions = new ArrayList<JavaExpression>();
       for (Object o : n.getNode(1)) {
@@ -1278,6 +1497,14 @@ public class JavaExpression extends Visitor implements Translatable {
         dimensions.add(new JavaExpression((GNode)o, parent.getStatement()));
       }
       type.setDimensions(dimensions.size());
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       parent.setType(type);
     }
 
@@ -1290,6 +1517,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       if (1 < dimensions.size()) {
         out.pln("({").incr();
         for (int i = 0; i < dimensions.size(); i++) {
@@ -1327,13 +1555,16 @@ public class JavaExpression extends Visitor implements Translatable {
 
     private List<JavaExpression> arguments;
     private JavaType type;
+    private JavaExpression parent;
 
     /**
      * Creates a new new class expression.
      *
      * @param n The new class expression node.
+     * @param parent The wrapper expression.
      */
     public NewClassExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       type = new JavaType(n.getGeneric(2));
       arguments = new ArrayList<JavaExpression>();
       for (Object o : n.getNode(3)) {
@@ -1341,6 +1572,14 @@ public class JavaExpression extends Visitor implements Translatable {
           continue;
         arguments.add(new JavaExpression((GNode)o, parent.getStatement()));
       }
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       parent.setType(type);
     }
 
@@ -1353,6 +1592,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       out.p("new __");
       type.translate(out);
       out.p("(");
@@ -1375,14 +1615,35 @@ public class JavaExpression extends Visitor implements Translatable {
 
     private boolean isClassVar;
     private String name;
+    private JavaExpression parent;
 
+    /**
+     * Creates a new primary identifier.
+     *
+     * @param n The primary identifier node.
+     * @param parent The wrapper expression.
+     */
     public PrimaryIdentifier(GNode n, JavaExpression parent) {
+      this.parent = parent;
       name = "$" + n.getString(0);
       if (parent.getStatement().getScope().isInScope(name)) {
-        parent.setType(parent.getStatement().getScope().getVariableType(name));
+        if (!parent.getStatement().getScope().getVariableType(name).isPrimitive())
+          parent.getStatement().addObject(name);
         if (parent.getStatement().getScope().getVariableScope(name).hasName("JavaClass")) 
           isClassVar = true;
       }
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
+      if (parent.getStatement().getScope().isInScope(name))
+        parent.setType(parent.getStatement().getScope().getVariableType(name));
+      else
+        parent.setType(new JavaType("void"));
     }
 
     /**
@@ -1394,6 +1655,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       if (isClassVar)
         out.p("__this->");
       return out.p(name);
@@ -1407,7 +1669,7 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class SelectionExpression extends JavaExpression {
 
-    private JavaExpression identifier;
+    private JavaExpression identifier, parent;
     private String selection;
 
     /**
@@ -1416,11 +1678,21 @@ public class JavaExpression extends Visitor implements Translatable {
      * @param n The selection expression node.
      */
     public SelectionExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       if (!n.getNode(0).hasName("ThisExpression"))
         identifier = new JavaExpression(n.getGeneric(0), parent.getStatement());
       selection = n.getString(1);
       if (parent.getStatement().getScope().isInScope("$" + selection))
         selection = "$" + selection;
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
+      parent.setType(new JavaType("void"));
     }
 
     /**
@@ -1432,6 +1704,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       if (null == identifier)
         return out.p("__this->").p(selection);
       else
@@ -1446,20 +1719,44 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class SubscriptExpression extends JavaExpression {
 
-    private JavaExpression variable;
+    private JavaExpression variable, parent;
     private List<JavaExpression> indices;
 
+    /**
+     * Creates a new subscript expression.
+     *
+     * @param n The subscript expression node.
+     * @param parent The wrapper expression.
+     */
     public SubscriptExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       variable = new JavaExpression(n.getGeneric(0), parent.getStatement());
       indices = new ArrayList<JavaExpression>();
       for (int i = 1; i < n.size(); i++)
         indices.add(new JavaExpression(n.getGeneric(i), parent.getStatement()));
       if (n.getNode(0).hasName("PrimaryIdentifier"))
         parent.getStatement().addObject(n.getNode(0).getString(0));
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       parent.setType(variable.getType().getArrayType());
     }
 
+    /**
+     * Translates the expression and adds it 
+     * to the output stream.
+     *
+     * @param out The output stream.
+     *
+     * @return The output stream.
+     */
     public Printer translate(Printer out) {
+      determineType();
       for (JavaExpression e : indices)
         out.p("(*");
       variable.translate(out);
@@ -1480,15 +1777,17 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class UnaryExpression extends JavaExpression {
 
-    private JavaExpression identifier;
+    private JavaExpression identifier, parent;
     private String pre, post;
 
     /**
      * Creates a new postfix or unary expression.
      *
      * @param n The postfix or unary expression node.
+     * @param parent The wrapper expression.
      */
     public UnaryExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       if (n.get(0) instanceof String) {
         pre = n.getString(0);
         identifier = new JavaExpression(n.getGeneric(1), parent.getStatement());
@@ -1496,6 +1795,14 @@ public class JavaExpression extends Visitor implements Translatable {
         identifier = new JavaExpression(n.getGeneric(0), parent.getStatement());
         post = n.getString(1);
       }
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
       parent.setType(identifier.getType());
     }
 
@@ -1508,6 +1815,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       if (pre != null) {
         out.p(pre);
         return identifier.translate(out);
@@ -1524,13 +1832,24 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class VariableInitializer extends JavaExpression {
 
+    private JavaExpression parent;
+
     /**
     * Creats a new variable initializer.
     *
     * @param n The variable initializer.
     */
     public VariableInitializer(GNode n, JavaExpression parent) {
-      
+      this.parent = parent;
+    }
+
+    /**
+     * Determines the resulting type of the expression.
+     */
+    public void determineType() {
+      if (parent.hasType())
+        return;
+      parent.setType(new JavaType("void"));// TODO: fix this
     }
 
     /**
@@ -1542,6 +1861,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      determineType();
       return out;
     }
 

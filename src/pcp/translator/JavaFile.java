@@ -79,6 +79,9 @@ public class JavaFile extends Visitor implements Translatable {
 
     // Add this file to its package
     pkg.addFile(this);
+
+    // Add the public class to the classes map
+    JavaClass.addClass(pkg.getPath() + publicClass.getName(), publicClass);
   }
 
 
