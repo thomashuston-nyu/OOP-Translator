@@ -486,7 +486,10 @@ public class JavaStatement extends Visitor implements Translatable {
           else if (n.getNode(0).getNode(0).hasName("SelectionExpression")
               && n.getNode(0).getNode(0).getNode(0).hasName("ThisExpression"))
             name = "$" + n.getNode(0).getNode(0).getString(1);
-          if (!name.equals("") && parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
+          if (!name.equals("") && null == parent.getScope().getVariableScope(name)) {
+            ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
+            isInitializer = true;
+          } else if (!name.equals("") && parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
             if (parent.getScope().getVariableScope(name).getParentScope().isInScope(name)) {
               ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
               isInitializer = true;
@@ -593,6 +596,10 @@ public class JavaStatement extends Visitor implements Translatable {
       int size = names.size();
       for (int i = 0; i < size; i++) {
         out.indent();
+        if (isStatic)
+          out.p("static ");
+        if (isFinal)
+          out.p("const ");
         if (type.isArray())
           out.p("__rt::Ptr<");
         type.translate(out);
@@ -730,6 +737,7 @@ public class JavaStatement extends Visitor implements Translatable {
   private class ReturnStatement extends JavaStatement {
 
     private JavaExpression e;
+    private boolean isThis;
 
     /**
      * Creates a new return statement.
@@ -737,8 +745,12 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The return statement node.
      */
     public ReturnStatement(GNode n, JavaStatement parent) {
-      if (null != n.get(0))
-        e = new JavaExpression(n.getGeneric(0), parent);
+      if (null != n.get(0)) {
+        if (n.getNode(0).hasName("ThisExpression"))
+          isThis = true;
+        else
+          e = new JavaExpression(n.getGeneric(0), parent);
+      }
     }
 
     /**
@@ -754,6 +766,8 @@ public class JavaStatement extends Visitor implements Translatable {
       if (null != e) {
         out.p(" ");
         e.translate(out);
+      } else if (isThis) {
+        out.p(" __this");
       }
       return out.pln(";");
     }

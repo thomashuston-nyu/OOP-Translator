@@ -45,7 +45,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
 
   private List<JavaConstructor> constructors;
   private JavaType extension;
-  private List<JavaStatement> fields;
+  private List<JavaField> fields;
   private JavaFile file;
   private boolean isAbstract, isFinal, isStatic;
   private List<JavaMethod> methods;
@@ -84,7 +84,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     visibility = JavaVisibility.PACKAGE_PRIVATE;
 
     // Instantiate the lists
-    fields = new ArrayList<JavaStatement>();
+    fields = new ArrayList<JavaField>();
     constructors = new ArrayList<JavaConstructor>();
     methods = new ArrayList<JavaMethod>();
 
@@ -115,6 +115,15 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    */
   public JavaFile getFile() {
     return file;
+  }
+
+  /**
+   * Gets a list of the class fields.
+   *
+   * @return The class fields.
+   */
+  public List<JavaField> getFields() {
+    return fields;
   }
 
   /**
@@ -156,12 +165,15 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
   }
   
   /**
-   * Gets the parent scope; always <code>null</code> because
+   * Gets the parent scope; returns the superclass scope
+   * if it exists; otherwise <code>null</code> because
    * JavaClass is the highest level scope.
    *
    * @return The parent scope.
    */
   public JavaScope getParentScope() {
+    if (null != parent)
+      return (JavaScope)parent;
     return null;
   }
 
@@ -176,6 +188,8 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
   public JavaScope getVariableScope(String name) {
     if (variables.containsKey(name))
       return this;
+    if (null != parent)
+      return parent.getVariableScope(name);
     return null;
   }
 
@@ -188,7 +202,11 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * <code>null</code> otherwise.
    */
   public JavaType getVariableType(String name) {
-    return variables.get(name);
+    if (variables.containsKey(name))
+      return variables.get(name);
+    if (null != parent)
+      return parent.getVariableType(name);
+    return null;
   }
 
   /**
@@ -264,6 +282,23 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     return variables.containsKey(name);
   }
 
+  /**
+   * Checks if the specified class variable is static.
+   *
+   * @return <code>True</code> if the variable is static;
+   * <code>false</code> otherwise.
+   */
+  public boolean isVariableStatic(String name) {
+    for (JavaField f : fields) {
+      List<String> names = f.getNames();
+      for (String fieldName : names) {
+        if (name.equals(fieldName))
+          return f.isStatic();
+      }
+    }
+    return false;
+  }
+
 
   // ============================ Set Methods =======================
   
@@ -284,6 +319,19 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    */
   public void setParent(JavaClass parent) {
     this.parent = parent;
+    JavaClass temp = parent;
+    while (null != temp) {
+      List<JavaField> fields = temp.getFields();
+      for (JavaField f : fields) {
+        if (!f.isStatic()) {
+          List<String> names = f.getNames();
+          for (String name : names) {
+            variables.put(name, f.getType());
+          }
+        }
+      }
+      temp = temp.getParent();
+    }
   }
   
 
@@ -327,7 +375,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * @param n The AST node to visit.
    */
   public void visitFieldDeclaration(GNode n) {
-    fields.add(new JavaStatement(n, this));
+    fields.add(new JavaField(n, this));
   }
 
   /**
@@ -407,8 +455,17 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
 
     // Declare all the fields
     out.indent().p("__").p(name).pln("_VT* __vptr;");
-    for (JavaStatement f : fields) {
-      f.translate(out);
+    JavaClass temp = parent;
+    while (null != temp) {
+      List<JavaField> parentFields = temp.getFields();
+      for (JavaField f : parentFields) {
+        if (!f.isStatic())
+          f.translateDeclaration(out);
+      }
+      temp = temp.getParent();
+    }
+    for (JavaField f : fields) {
+      f.translateDeclaration(out);
     }
     out.pln();
 
@@ -496,6 +553,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * @return The output stream.
    */
   public Printer translateArrayTemplate(Printer out) {
+    // Single-dimensional array template
     out.indent().pln("template<>");
     out.indent().p("java::lang::Class Array<");
     if (!getFile().getPackage().getNamespace().equals(""))
@@ -513,6 +571,8 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     out.p("__").p(name).pln("::__class());").decr();
     out.indent().pln("return k;");
     out.decr().indent().pln("}").pln();
+
+    // Two-dimensional array template
     out.indent().pln("template<>");
     out.indent().p("java::lang::Class Array<Ptr<Array<");
     if (!getFile().getPackage().getNamespace().equals(""))
@@ -544,6 +604,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
+    // Print out the constructors
     if (0 != constructors.size()) {
       for (JavaConstructor c : constructors) {
         c.translate(out);
@@ -553,21 +614,44 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
       out.indent().p("__").p(name).p("::__").p(name).pln("()");
       out.indent().pln(": __vptr(&__vtable) {}").pln();
     }
+
+    // Initialize any static fields
+    for (JavaField f : fields) {
+      if (f.isStatic()) {
+        f.translate(out).pln();
+      }
+    }
+
+    // Add a delete method
     out.indent().p("void __").p(name).p("::__delete(__").p(name).pln("* __this) {").incr();
     out.indent().pln("delete __this;");
     out.decr().indent().pln("}").pln();
+
+    // Translate all the methods
     for (JavaMethod m : methods) {
       m.translate(out);
       out.pln();
     }
+
+    // Create the __class method
     out.indent().p("Class __").p(name).pln("::__class() {").incr();
     out.indent().p("static Class k = new __Class(__rt::literal(\"");
     String packagename = getFile().getPackage().getPackagename();
     if (!packagename.equals(""))
       out.p(packagename).p(".");
-    out.p(name).pln("\"), __Object::__class());");
+    out.p(name).p("\"), ");
+    if (null != parent) {
+      String parentpackage = parent.getFile().getPackage().getNamespace();
+      if (!parentpackage.equals(""))
+        out.p(parentpackage).p("::");
+      out.p("__").p(parent.getName()).pln("::__class());");
+    } else {
+      out.pln("__Object::__class());");
+    }
     out.indent().pln("return k;");
     out.decr().indent().pln("}").pln();
+
+    // Declare the vtable
     out.indent().p("__").p(name).p("_VT __").p(name).pln("::__vtable;");
     return out;
   }

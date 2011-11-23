@@ -663,6 +663,9 @@ public class JavaExpression extends Visitor implements Translatable {
     // The variable or class on which the method is called
     private List<String> ref;
 
+    // Another method on which this method is chained
+    private JavaExpression start;
+
     // The expression wrapper object that created this instance
     private JavaExpression parent;
 
@@ -698,6 +701,8 @@ public class JavaExpression extends Visitor implements Translatable {
               ref.add(temp.getNode(0).getString(0));
             ref.add(temp.getString(1));
           }
+        } else if (temp.hasName("CastExpression") || temp.hasName("CallExpression")) {
+          start = new JavaExpression(temp, parent.getStatement());
         } else {
           ref.add(n.getNode(0).getString(0));
         }
@@ -754,7 +759,7 @@ public class JavaExpression extends Visitor implements Translatable {
             }
           }
         // Either a qualified class name or a static variable in a class
-        } else {
+        } else if (1 < ref.size()) {
           // First, check if this is a fully qualified class name
           StringBuilder temp = new StringBuilder();
           for (int i = 0; i < ref.size() - 1; i++) {
@@ -763,7 +768,7 @@ public class JavaExpression extends Visitor implements Translatable {
               temp.append("/");
           }
           String full = temp.toString();
-          if (Global.packages.containsKey(full)) {
+          if (0 < ref.size() && Global.packages.containsKey(full)) {
             JavaPackage pkg = Global.packages.get(full);
             List<JavaFile> files = pkg.getFiles();
             for (JavaFile f : files) {
@@ -802,7 +807,30 @@ public class JavaExpression extends Visitor implements Translatable {
             }
           }
           // Finally, check if this is an unqualified class name with a static variable
+        // Next see if this method is being chained
+        } else if (null != start) {
+          classType = start.getType().getClassType();
+          JavaScope temp = parent.getStatement().getScope();
+          while (!temp.hasName("JavaClass")) {
+            temp = temp.getParentScope();
+          }
+          JavaClass cls = (JavaClass)temp;
+          // Check the current package
+          JavaPackage pkg = cls.getFile().getPackage();
+          if (null != JavaClass.getJavaClass(pkg.getPath() + classType)) {
+            this.cls = JavaClass.getJavaClass(pkg.getPath() + classType);
+            return;
+          }
+          // Then check the imported packages
+          Set<JavaPackage> imports = cls.getFile().getImports();
+          for (JavaPackage imp : imports) {
+            if (null != JavaClass.getJavaClass(imp.getPath() + classType)) {
+              this.cls = JavaClass.getJavaClass(imp.getPath() + classType);
+              return;
+            }
+          }
         }
+
       // Otherwise we are calling this method from the current class
       } else {
         JavaScope temp = parent.getStatement().getScope();
@@ -898,7 +926,7 @@ public class JavaExpression extends Visitor implements Translatable {
             return;
           }
           // Check if the specified method exists
-          if (null != cls.getMethod(temp)) {
+          if (null != cls && null != cls.getMethod(temp)) {
             name = temp;
             method = cls.getMethod(temp);
             return;
@@ -1030,6 +1058,27 @@ public class JavaExpression extends Visitor implements Translatable {
           // Append a newline if necessary
           if (name.equals("println"))
             out.p(" << std::endl");
+        } else if (null != start) {
+          start.translate(out);
+          if (null != method && method.isStatic())
+            out.p("::");
+          else
+            out.p("->");
+          if (null == method || method.isVirtual())
+            out.p("__vptr->");
+          out.p(name).p("(");
+          if (null == method || !method.isStatic()) {
+            out.p("__this");
+            if (0 < args.size());
+              out.p(", ");
+          }
+          int size = args.size();
+          for (int i = 0; i < size; i++) {
+            args.get(i).translate(out);
+            if (i < size - 1)
+              out.p(", ");
+          }
+          out.p(")");
         } else {
           String namespace = "";
           int refsize = ref.size();
@@ -1039,7 +1088,7 @@ public class JavaExpression extends Visitor implements Translatable {
                 namespace += "::";
               namespace += ref.get(i);
             }
-          } else {
+          } else if (1 == refsize) {
             namespace = "$" + ref.get(0);
           }
           if (null == method || !method.isStatic()) {
@@ -1064,6 +1113,8 @@ public class JavaExpression extends Visitor implements Translatable {
           out.p("__").p(method.getClassFrom().getName()).p("::");
         else if (!isConstructor)
           out.p("__this->");
+        else if (null != method && method.isStatic())
+          out.p("::");
         if (null == method || method.isVirtual())
           out.p("__vptr->");
         out.p(name).p("(");
@@ -1356,7 +1407,7 @@ public class JavaExpression extends Visitor implements Translatable {
       determineType();
       out.pln("({");
       out.incr().indent().p("Class k = __").p(type.getType()).pln("::__class();");
-      out.indent().p("k->__vptr->isInstance(k, ");
+      out.indent().p("k->__vptr->isInstance$Object(k, ");
       object.translate(out).pln(");");
       out.decr().indent().p("})");
       return out;
@@ -1654,12 +1705,9 @@ public class JavaExpression extends Visitor implements Translatable {
     public PrimaryIdentifier(GNode n, JavaExpression parent) {
       this.parent = parent;
       name = "$" + n.getString(0);
-      if (parent.getStatement().getScope().isInScope(name)) {
-        if (!parent.getStatement().getScope().getVariableType(name).isPrimitive())
+      if (parent.getStatement().getScope().isInScope(name) &&
+        !parent.getStatement().getScope().getVariableType(name).isPrimitive())
           parent.getStatement().addObject(name);
-        if (parent.getStatement().getScope().getVariableScope(name).hasName("JavaClass")) 
-          isClassVar = true;
-      }
     }
 
     /**
@@ -1684,8 +1732,17 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      if (isClassVar)
-        out.p("__this->");
+      if (parent.getStatement().getScope().isInScope(name) &&
+          parent.getStatement().getScope().getVariableScope(name).hasName("JavaClass")) {
+        JavaClass scope = (JavaClass)parent.getStatement().getScope().getVariableScope(name);
+        if (scope.isVariableStatic(name)) {
+          if (!scope.getFile().getPackage().getNamespace().equals(""))
+            out.p(scope.getFile().getPackage().getNamespace()).p("::");
+          out.p("__").p(scope.getName()).p("::");
+        } else {
+          out.p("__this->");
+        }
+      }
       return out.p(name);
     }
 

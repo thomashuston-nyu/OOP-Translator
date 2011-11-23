@@ -5,8 +5,6 @@ import demo.deeper.Deep;
 public class Sub extends Super {
 
 
-  int x;
-
   // Constructor
   public Sub(int x1) {
     // Set x

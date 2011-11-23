@@ -2,8 +2,16 @@ import demo.*;
 
 public class Sample {
 
+  public static int stat_int = 11;
+  public static final Object oo = new Object();
+
   public void test(Sample a, Object o, Sample b) {
+    System.out.println(a);
     return;
+  }
+
+  public Sample test() {
+    return this;
   }
   
   public static void main(String[] args) {
@@ -94,6 +102,8 @@ public class Sample {
 
     int tt[][] = {{0, 1},{5, 4},{3, 1, 6}};
     System.out.println(tt[2][0]);
+
+    System.out.println(oo);   
 
   }
 
