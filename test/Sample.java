@@ -10,6 +10,10 @@ public class Sample {
     return;
   }
 
+  public Sample test2() {
+    return this;
+  }
+
   public Sample test() {
     return this;
   }
@@ -105,6 +109,12 @@ public class Sample {
 
     System.out.println(oo);   
 
+    String dj = "DJ";
+
+    ((Object)dj).toString();
+
+    sam.test().test2().test(sam, sam, sam);
+    
   }
 
 }

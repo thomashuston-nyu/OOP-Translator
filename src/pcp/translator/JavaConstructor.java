@@ -113,6 +113,16 @@ public class JavaConstructor extends Visitor implements Translatable {
     return visibility;
   }
 
+  /**
+   * Checks if the specified variable is static.
+   *
+   * @return <code>True</code> if the variable is static;
+   * <code>false</code> otherwise.
+   */
+  public boolean isVariableStatic(String name) {
+    return cls.isVariableStatic(name);
+  }
+
 
   // ============================ Set Methods =======================
   

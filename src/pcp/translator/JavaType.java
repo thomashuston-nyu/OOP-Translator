@@ -63,6 +63,7 @@ public class JavaType extends Visitor implements Translatable {
   }
 
   private int dimensions;
+  private boolean isStatic;
   private JavaPackage pkg;
   private String classType, primitiveType;
   
@@ -262,17 +263,18 @@ public class JavaType extends Visitor implements Translatable {
     return 0 == dimensions && null != primitiveType;
   }
 
+  /**
+   * Checks if the type is static.
+   *
+   * @return <code>True</code> if it is static;
+   * <code>false</code> otherwise.
+   */
+  public boolean isStatic() {
+    return isStatic;
+  }
+
 
   // ============================ Set Methods =======================
-
-  /**
-   * Set the package of the class.
-   *
-   * @param pkg The package.
-   */
-  public void setPackage(JavaPackage pkg) {
-    this.pkg = pkg;
-  }
 
   /**
    * Set the dimensions of the array.
@@ -284,6 +286,22 @@ public class JavaType extends Visitor implements Translatable {
       dimensions = dim;
     else
       Global.runtime.errConsole().p("Invalid array dimensions: ").pln(dim).flush();
+  }
+
+  /**
+   * Set the package of the class.
+   *
+   * @param pkg The package.
+   */
+  public void setPackage(JavaPackage pkg) {
+    this.pkg = pkg;
+  }
+
+  /**
+   * Marks this as a static type.
+   */
+  public void setStatic() {
+    isStatic = true;
   }
 
 

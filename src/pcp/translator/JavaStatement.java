@@ -218,7 +218,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The field declaration node.
    */
   public void visitFieldDeclaration(GNode n) {
-    s = new FieldDeclaration(n, this);
+    s = new JavaField(n, parent);
   }
   
   /**
@@ -517,103 +517,6 @@ public class JavaStatement extends Visitor implements Translatable {
       out.indent();
       e.translate(out);
       return out.pln(";");
-    }
-
-  }
-
-  /**
-   * A field declaration.
-   */
-  private class FieldDeclaration extends JavaStatement {
-  
-    private boolean isAbstract, isFinal, isStatic;
-    private List<String> names;
-    private JavaType type;
-    private List<JavaExpression> values;
-    private JavaVisibility visibility;
-    private JavaStatement parent;
-
-    /**
-     * Creates a new field declaration.
-     *
-     * @param n The field declaration node.
-     * @param parent The parent statement.
-     */
-    public FieldDeclaration(GNode n, JavaStatement parent) {
-      // Save the statement parent
-      this.parent = parent;
-
-      // Set the default visibility
-      visibility = JavaVisibility.PACKAGE_PRIVATE;
-
-      // Determine the modifiers
-      for (Object o : n.getNode(0)) {
-        String m = ((GNode)o).getString(0);
-        if (m.equals("public"))
-          visibility = JavaVisibility.PUBLIC;
-        else if (m.equals("private"))
-          visibility = JavaVisibility.PRIVATE;
-        else if (m.equals("protected"))
-          visibility = JavaVisibility.PROTECTED;
-        else if (m.equals("abstract"))
-          isAbstract = true;
-        else if (m.equals("static"))
-          isStatic = true;
-        else if (m.equals("final"))
-          isFinal = true;
-      }
-
-      // Get the type
-      type = new JavaType(n.getGeneric(1));
-
-      // Get the variable names and initialized values
-      names = new ArrayList<String>();
-      values = new ArrayList<JavaExpression>();
-      for (Object o : n.getNode(2)) {
-        Node declarator = (Node)o;
-        names.add("$" + declarator.getString(0));
-        parent.getScope().addVariable("$" + declarator.getString(0), type);
-        if (null != declarator.get(2))
-          values.add(new JavaExpression(declarator.getGeneric(2), parent));
-        else
-          values.add(null);
-      }
-
-      // Get the dimensions if it's an array
-      if (null != n.getNode(2).getNode(0).get(1))
-        type.setDimensions(n.getNode(2).getNode(0).getNode(1).size());
-    }
-
-    /**
-     * Translates the statement and adds it 
-     * to the output stream.
-     *
-     * @param out The output stream.
-     *
-     * @return The output stream.
-     */
-    public Printer translate(Printer out) {
-      int size = names.size();
-      for (int i = 0; i < size; i++) {
-        out.indent();
-        if (isStatic)
-          out.p("static ");
-        if (isFinal)
-          out.p("const ");
-        if (type.isArray())
-          out.p("__rt::Ptr<");
-        type.translate(out);
-        if (type.isArray())
-          out.p(" >");
-        out.p(" ").p(names.get(i));
-        if (null != values.get(i)) {
-          out.p(" = ");
-          values.get(i).translate(out).pln(";");
-        } else {
-          out.pln(";");
-        }
-      }
-      return out;
     }
 
   }
@@ -964,10 +867,11 @@ public class JavaStatement extends Visitor implements Translatable {
     if (null == s)
       return out;
     if (!parent.hasName("JavaClass")) {
-      for (String obj : objects) {
-        if (parent.isInScope(obj) && !parent.getVariableScope(obj).hasName("JavaClass"))
+      /*for (String obj : objects) {
+        if (parent.isInScope(obj) && !parent.getVariableScope(obj).hasName("JavaClass") &&
+            parent.isVariableInitialized(obj))
           out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
-      }
+      } */
       Set<String> keys = stores.keySet();
       for (String key : keys) {
         out.indent().p("__rt::checkStore(").p(key).p(", ");

@@ -43,12 +43,10 @@ public class JavaMethod extends Visitor implements Translatable {
 
   private JavaBlock body;
   private JavaClass cls;
-  //private ThrowsClause exception;
   private boolean isAbstract, isFinal, isStatic;
   private String name;
   private LinkedHashMap<String, JavaType> parameters; 
   private JavaType returnType;
-  private Map<String, JavaType> variables;
   private JavaVisibility visibility;
 
 
@@ -177,6 +175,16 @@ public class JavaMethod extends Visitor implements Translatable {
    */
   public boolean isStatic() {
     return isStatic;
+  }
+
+  /**
+   * Checks if the specified variable is static.
+   *
+   * @return <code>True</code> if the variable is static;
+   * <code>false</code> otherwise.
+   */
+  public boolean isVariableStatic(String name) {
+    return cls.isVariableStatic(name);
   }
 
   /**

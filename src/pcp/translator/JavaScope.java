@@ -33,10 +33,14 @@ import java.util.Map;
 public interface JavaScope {
 
   public void addVariable(String name, JavaType type);
+  public void addVariable(String name, JavaType type, boolean init);
   public JavaScope getParentScope();
   public JavaScope getVariableScope(String name);
   public JavaType getVariableType(String name);
   public boolean hasName(String name);
   public boolean isInScope(String name);
+  public boolean isVariableInitialized(String name);
+  public boolean isVariableStatic(String name);
+  public void setInitialize(String name, boolean init);
 
 }

@@ -58,7 +58,10 @@ public class JavaField extends JavaStatement implements Translatable {
    */
   public JavaField(GNode n, JavaScope parent) {
     // Set the parent class
-    this.parent = (JavaClass)parent;
+    JavaScope temp = parent;
+    while (!temp.hasName("JavaClass"))
+      temp = temp.getParentScope();
+    this.parent = (JavaClass)temp;
 
     // Set the default visibility
     visibility = JavaVisibility.PACKAGE_PRIVATE;
@@ -82,6 +85,8 @@ public class JavaField extends JavaStatement implements Translatable {
 
     // Get the type
     type = new JavaType(n.getGeneric(1));
+    if (isStatic)
+      type.setStatic();
 
     // Get the variable names and initialized values
     names = new ArrayList<String>();
@@ -89,11 +94,17 @@ public class JavaField extends JavaStatement implements Translatable {
     for (Object o : n.getNode(2)) {
       Node declarator = (Node)o;
       names.add("$" + declarator.getString(0));
-      parent.addVariable("$" + declarator.getString(0), type);
-      if (null != declarator.get(2))
+      if (null != declarator.get(2) && !declarator.getNode(2).hasName("NullLiteral"))
         values.add(new JavaExpression(declarator.getGeneric(2), this));
       else
         values.add(null);
+    }
+
+    for (int i = 0; i < names.size(); i++) {
+      if (null != values.get(i))
+        parent.addVariable(names.get(i), type);
+      else
+        parent.addVariable(names.get(i), type, false);
     }
 
     // Get the dimensions if it's an array
