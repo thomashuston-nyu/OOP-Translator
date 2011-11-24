@@ -37,7 +37,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.2
+ * @version 1.3
  */
 public class JavaExpression extends Visitor implements Translatable {
 
@@ -1232,7 +1232,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * Makes sure to call checkNotNull on this variable.
      */
     public void checkNotNull() {
-      if (!left.hasName("PrimaryIdentifier") && !(n.hasName("Expression") && left.hasName("SelectionExpression")))
+      if (!left.hasName("PrimaryIdentifier"))
         left.checkNotNull();
       if (null != right && !right.hasName("PrimaryIdentifier"))
         right.checkNotNull();
@@ -1773,8 +1773,6 @@ public class JavaExpression extends Visitor implements Translatable {
           return out.p("__").p(name);
         // Otherwise just print out the variable name
         } else {
-          if (name.equals("R3"))
-            Global.runtime.console().pln("FAILED for R3").flush();
           return out.p("$" + name);
         }
       }
@@ -1810,12 +1808,9 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public void checkNotNull() {
       determineType();
-      if (null != identifier && identifier.hasName("CallExpression"))
+      if (null != identifier && (identifier.hasName("CallExpression") || 
+          !identifier.getType().isArray() && isClass))
         identifier.checkNotNull();
-      if (null != identifier && !identifier.getType().isArray() && isClass) {
-        identifier.translate(Global.runtime.console()).pln().flush();
-        identifier.checkNotNull();
-      }
     }
 
     /**

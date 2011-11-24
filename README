@@ -1,5 +1,5 @@
 pcp - The Producer of C++ Programs
-Version 1.2
+Version 1.3
 Copyright (C) 2011 Nabil Hassein, Thomas Huston, Mike Morreale, Marta Wilgan
 
 Supported ant commands:
@@ -7,7 +7,7 @@ Supported ant commands:
 ant            : defaults to src
 ant src        : compiles the source code
 ant jar        : builds a jar file
-ant translate  : translates a file specified by the flag -Dfile=/path/to/file
-ant ast        : outputs the ast for a file specified by the flag -Dfile=/path/to/file
+ant translate  : translates the program at -Dfile=/path/to/file
+ant ast        : prints the AST for the file at -Dfile=/path/to/file
 ant docs       : generates javadocs
 ant clean      : deletes the classes and dist directories

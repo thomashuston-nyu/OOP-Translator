@@ -28,7 +28,7 @@ import java.util.List;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.2
+ * @version 1.3
  */
 public enum JavaVisibility {
 
