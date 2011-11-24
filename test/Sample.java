@@ -114,6 +114,12 @@ public class Sample {
     ((Object)dj).toString();
 
     sam.test().test2().test(sam, sam, sam);
+
+    try {
+      System.out.println("trying");
+    } catch (RuntimeException e) {
+      System.out.println("fail");
+    }
     
   }
 

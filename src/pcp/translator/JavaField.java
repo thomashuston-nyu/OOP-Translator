@@ -40,28 +40,33 @@ import xtc.tree.Visitor;
 public class JavaField extends JavaStatement implements Translatable {
 
   private boolean isAbstract, isFinal, isStatic;
+  private JavaClass cls;
   private List<String> names;
+  private JavaStatement parent;
   private JavaType type;
   private List<JavaExpression> values;
   private JavaVisibility visibility;
-  private JavaClass parent;
 
 
   // =========================== Constructors =======================
 
   /**
-   * Creates the specified field and sets the
-   * class the statement is in.
+   * Creates the specified field and sets the wrapper
+   * statement and the class the statement is in.
    *
    * @param n The field declaration node.
-   * @param parent The scope the field is in.
+   * @param parent The wrapper statement.
+   * @param scope The scope the field is in.
    */
-  public JavaField(GNode n, JavaScope parent) {
+  public JavaField(GNode n, JavaStatement parent, JavaScope scope) {
     // Set the parent class
-    JavaScope temp = parent;
+    JavaScope temp = scope;
     while (!temp.hasName("JavaClass"))
       temp = temp.getParentScope();
-    this.parent = (JavaClass)temp;
+    cls = (JavaClass)temp;
+    
+    // Set the statement wrapper
+    this.parent = parent;
 
     // Set the default visibility
     visibility = JavaVisibility.PACKAGE_PRIVATE;
@@ -94,22 +99,31 @@ public class JavaField extends JavaStatement implements Translatable {
     for (Object o : n.getNode(2)) {
       Node declarator = (Node)o;
       names.add("$" + declarator.getString(0));
+      if (null == this.parent)
+        cls.addVariable("$" + declarator.getString(0), type);
+      else
+        this.parent.getScope().addVariable("$" + declarator.getString(0), type);
       if (null != declarator.get(2) && !declarator.getNode(2).hasName("NullLiteral"))
-        values.add(new JavaExpression(declarator.getGeneric(2), this));
+        values.add(new JavaExpression(declarator.getGeneric(2), parent));
       else
         values.add(null);
-    }
-
-    for (int i = 0; i < names.size(); i++) {
-      if (null != values.get(i))
-        parent.addVariable(names.get(i), type);
-      else
-        parent.addVariable(names.get(i), type, false);
     }
 
     // Get the dimensions if it's an array
     if (null != n.getNode(2).getNode(0).get(1))
       type.setDimensions(n.getNode(2).getNode(0).getNode(1).size());
+    
+  }
+  
+  /**
+   * Creates the specified field and sets the
+   * class the statement is in.
+   *
+   * @param n The field declaration node.
+   * @param scope The scope the field is in.
+   */
+  public JavaField(GNode n, JavaScope scope) {
+    this(n, null, scope);
   }
   
 
@@ -130,7 +144,7 @@ public class JavaField extends JavaStatement implements Translatable {
    * @return The variable scope.
    */
   public JavaScope getScope() {
-    return parent;
+    return cls;
   }
 
   /**
@@ -150,6 +164,20 @@ public class JavaField extends JavaStatement implements Translatable {
    */
   public boolean isStatic() {
     return isStatic;
+  }
+
+
+  // ============================ Set Methods =======================
+
+  /**
+   * Makes sure to compile a full list of variables to check
+   * not null on.
+   */
+  public void checkNotNull() {
+    for (JavaExpression e : values) {
+      if (null != e && e.hasName("CallExpression"))
+        e.checkNotNull();
+    }
   }
 
 
@@ -201,10 +229,10 @@ public class JavaField extends JavaStatement implements Translatable {
       if (type.isArray())
         out.p(" >");
       out.p(" ");
-      if (isStatic && !parent.getFile().getPackage().getNamespace().equals(""))
-        out.p(parent.getFile().getPackage().getNamespace()).p("::");
+      if (isStatic && !cls.getFile().getPackage().getNamespace().equals(""))
+        out.p(cls.getFile().getPackage().getNamespace()).p("::");
       if (isStatic)
-        out.p("__").p(parent.getName()).p("::");
+        out.p("__").p(cls.getName()).p("::");
       out.p(names.get(i));
       if (null != values.get(i)) {
         out.p(" = ");

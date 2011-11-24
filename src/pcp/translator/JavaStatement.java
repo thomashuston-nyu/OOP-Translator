@@ -54,7 +54,10 @@ public class JavaStatement extends Visitor implements Translatable {
   /**
    * Empty constructor for subclass use only.
    */
-  protected JavaStatement() {}
+  public JavaStatement() {
+    objects = new HashSet<String>();
+    stores = new HashMap<String, JavaExpression>();
+  }
 
   /**
    * Dispatches on the specified statement node
@@ -96,7 +99,7 @@ public class JavaStatement extends Visitor implements Translatable {
   }
 
 
-  // ============================ Get Methods =======================
+  // ============================ Set Methods =======================
   
   /**
    * Adds an object to the not null on.
@@ -104,7 +107,8 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param obj The object.
    */
   public void addObject(String obj) {
-    objects.add(obj);
+    if (null != obj)
+      objects.add(obj);
   }
   
   /**
@@ -116,6 +120,12 @@ public class JavaStatement extends Visitor implements Translatable {
   public void addStore(String array, JavaExpression exp) {
     stores.put(array, exp);
   }
+
+  /**
+   * Makes sure to compile a full list of variables to check
+   * not null on.
+   */
+  public void checkNotNull() {}
 
 
   // =========================== Visit Methods ======================
@@ -218,7 +228,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The field declaration node.
    */
   public void visitFieldDeclaration(GNode n) {
-    s = new JavaField(n, parent);
+    s = new JavaField(n, this, this.getScope());
   }
   
   /**
@@ -258,12 +268,12 @@ public class JavaStatement extends Visitor implements Translatable {
   }
   
   /**
-   * Creates a new try-catch-finally statement.
+   * Creates a new try-catch statement.
    *
-   * @param n The try-catch-finally statement node.
+   * @param n The try-catch statement node.
    */
   public void visitTryCatchFinallyStatement(GNode n) {
-    s = new TryCatchFinallyStatement(n, this);
+    s = new TryCatchStatement(n, this);
   }
 
   /**
@@ -351,6 +361,14 @@ public class JavaStatement extends Visitor implements Translatable {
       ifStatement = new JavaBlock(n.getGeneric(1), parent.getScope());
       if (null != n.get(2))
         elseStatement = new JavaBlock(n.getGeneric(2), parent.getScope());
+    }
+    
+    /**
+     * Makes sure to compile a full list of variables to check
+     * not null on.
+     */
+    public void checkNotNull() {
+      e.checkNotNull();
     }
 
     /**
@@ -447,6 +465,14 @@ public class JavaStatement extends Visitor implements Translatable {
     }
 
     /**
+     * Makes sure to compile a full list of variables to check
+     * not null on.
+     */
+    public void checkNotNull() {
+      e.checkNotNull();
+    }
+
+    /**
      * Translates the statement and adds it 
      * to the output stream.
      *
@@ -469,7 +495,7 @@ public class JavaStatement extends Visitor implements Translatable {
    */
   private class ExpressionStatement extends JavaStatement {
 
-    private JavaExpression e;
+    private JavaExpression e, initializer;
     private boolean isInitializer;
 
     /**
@@ -487,20 +513,31 @@ public class JavaStatement extends Visitor implements Translatable {
               && n.getNode(0).getNode(0).getNode(0).hasName("ThisExpression"))
             name = "$" + n.getNode(0).getNode(0).getString(1);
           if (!name.equals("") && null == parent.getScope().getVariableScope(name)) {
-            ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
             isInitializer = true;
           } else if (!name.equals("") && parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
             if (parent.getScope().getVariableScope(name).getParentScope().isInScope(name)) {
-              ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
               isInitializer = true;
             }
           } else if (!name.equals("") && !parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
-            ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, new JavaExpression(n.getNode(0).getGeneric(2), parent));
             isInitializer = true;
+          }
+          if (isInitializer) {
+            initializer = new JavaExpression(n.getNode(0).getGeneric(2), parent);                                                      
+            ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, initializer);
           }
         }
       }
       e = new JavaExpression(n.getGeneric(0), parent);
+    }
+
+    /**
+     * Makes sure to compile a full list of variables to check
+     * not null on.
+     */
+    public void checkNotNull() {
+      if (isInitializer)
+        return;
+      e.checkNotNull();
     }
 
     /**
@@ -587,6 +624,20 @@ public class JavaStatement extends Visitor implements Translatable {
     }
 
     /**
+     * Makes sure to compile a full list of variables to check
+     * not null on.
+     */
+    public void checkNotNull() {
+      condition.checkNotNull();
+      for (JavaExpression e : updates) {
+        e.checkNotNull();
+      }
+      for (JavaExpression e : values) {
+        e.checkNotNull();
+      }
+    }
+
+    /**
      * Translates the statement and adds it 
      * to the output stream.
      *
@@ -654,6 +705,15 @@ public class JavaStatement extends Visitor implements Translatable {
         else
           e = new JavaExpression(n.getGeneric(0), parent);
       }
+    }
+
+    /**
+     * Makes sure to compile a full list of variables to check
+     * not null on.
+     */
+    public void checkNotNull() {
+      if (null != e && e.hasName("CallExpression"))
+        e.checkNotNull();
     }
 
     /**
@@ -791,17 +851,26 @@ public class JavaStatement extends Visitor implements Translatable {
   }
 
   /**
-   * A try catch finally statement.
+   * A try-catch statement.
    */
-  private class TryCatchFinallyStatement extends JavaStatement {
+  private class TryCatchStatement extends JavaStatement {
+
+    JavaBlock tryBlock, catchBlock;
+    String exception;
 
     /**
-     * Creates a new try-catch-finally statement.
+     * Creates a new try-catch statement.
      *
-     * @param n The try-catch-finally statement node.
+     * @param n The try-catch statement node.
      */
-    public TryCatchFinallyStatement(GNode n, JavaStatement parent) {
-      // TODO: translate try-catch-finally statements
+    public TryCatchStatement(GNode n, JavaStatement parent) {
+      tryBlock = new JavaBlock(n.getGeneric(1), parent.getScope());
+      if (null != n.get(2)) {
+        exception = n.getNode(2).getNode(0).getNode(1).getNode(0).getString(0);
+        catchBlock = new JavaBlock(n.getNode(2).getGeneric(1), parent.getScope());
+      } else {
+        exception = "Exception";
+      }
     }
 
     /**
@@ -813,6 +882,16 @@ public class JavaStatement extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
+      out.indent().pln("try {").incr();
+      tryBlock.translate(out);
+      out.decr().indent().p("} catch (java::lang::").p(exception).p(" e) {");
+      if (null != catchBlock) {
+        out.pln().incr();
+        catchBlock.translate(out);
+        out.decr().indent().pln("}");
+      } else {
+        out.pln("}");
+      }
       return out;
     }
 
@@ -834,6 +913,14 @@ public class JavaStatement extends Visitor implements Translatable {
     public WhileStatement(GNode n, JavaStatement parent) {
       e = new JavaExpression(n.getGeneric(0), parent);
       s = new JavaStatement(n.getGeneric(1), parent.getScope());
+    }
+
+    /**
+     * Makes sure to compile a full list of variables to check
+     * not null on.
+     */
+    public void checkNotNull() {
+      e.checkNotNull();
     }
 
     /**
@@ -866,12 +953,11 @@ public class JavaStatement extends Visitor implements Translatable {
   public Printer translate(Printer out) {
     if (null == s)
       return out;
+    s.checkNotNull();
     if (!parent.hasName("JavaClass")) {
-      /*for (String obj : objects) {
-        if (parent.isInScope(obj) && !parent.getVariableScope(obj).hasName("JavaClass") &&
-            parent.isVariableInitialized(obj))
-          out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
-      } */
+      for (String obj : objects) {
+        out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
+      }
       Set<String> keys = stores.keySet();
       for (String key : keys) {
         out.indent().p("__rt::checkStore(").p(key).p(", ");

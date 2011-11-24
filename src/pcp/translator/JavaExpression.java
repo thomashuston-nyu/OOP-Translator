@@ -114,6 +114,15 @@ public class JavaExpression extends Visitor implements Translatable {
   // ============================ Set Methods =======================
 
   /**
+   * Adds the variables referenced in the expression to a list of 
+   * variables to check for null.
+   */
+  public void checkNotNull() {
+    if (null != e)
+      e.checkNotNull();
+  }
+
+  /**
    * Determines the resulting type of the expression.
    */
   public void determineType() {}
@@ -474,6 +483,16 @@ public class JavaExpression extends Visitor implements Translatable {
     }
 
     /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      if (left.hasName("CallExpression") || left.hasName("SelectionExpression"))
+        left.checkNotNull();
+      if (right.hasName("CallExpression") || left.hasName("SelectionExpression"))
+        right.checkNotNull();
+    }
+
+    /**
      * Determines the resulting type of the expression.
      */
     public void determineType() {
@@ -547,6 +566,16 @@ public class JavaExpression extends Visitor implements Translatable {
     }
 
     /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      for (JavaExpression e : variables) {
+        if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
+          e.checkNotNull();
+      }
+    }
+
+    /**
      * Determines the resulting type of the expression.
      */
     public void determineType() {
@@ -604,6 +633,14 @@ public class JavaExpression extends Visitor implements Translatable {
       if (null != n.get(1))
         castType.setDimensions(n.getNode(1).size());
       e = new JavaExpression(n.getGeneric(2), parent.getStatement());
+    }
+
+    /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
+        e.checkNotNull();
     }
 
     /**
@@ -678,6 +715,20 @@ public class JavaExpression extends Visitor implements Translatable {
       args = new ArrayList<JavaExpression>();
       for (Object o : n.getNode(3)) {     
         args.add(new JavaExpression((GNode)o, parent.getStatement()));
+      }
+    }
+
+    /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      determineType();
+      if (null != caller && null == method ||
+          (null != method && !method.isStatic()))
+        caller.checkNotNull();
+      for (JavaExpression e : args) {
+        if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
+          e.checkNotNull();
       }
     }
 
@@ -897,6 +948,7 @@ public class JavaExpression extends Visitor implements Translatable {
         out.indent();
         caller.getType().translate(out).p(" $c$ = ");
         caller.translate(out).pln(";");
+        out.indent().pln("__rt::checkNotNull($c$);");
         out.indent().p("$c$");
         if (null != method && method.isStatic())
           out.p("::");
@@ -979,6 +1031,14 @@ public class JavaExpression extends Visitor implements Translatable {
       this.parent = parent;
       castType = new JavaType(n.getGeneric(0));
       e = new JavaExpression(n.getGeneric(1), parent.getStatement());
+    }
+
+    /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
+        e.checkNotNull();
     }
 
     /**
@@ -1079,6 +1139,18 @@ public class JavaExpression extends Visitor implements Translatable {
     }
 
     /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      if (test.hasName("CallExpression") || test.hasName("SelectionExpression"))
+        test.checkNotNull();
+      if (ifTrue.hasName("CallExpression") || ifTrue.hasName("SelectionExpression"))
+        ifTrue.checkNotNull();
+      if (ifFalse.hasName("CallExpression") || ifFalse.hasName("SelectionExpression"))
+        ifFalse.checkNotNull();
+    }
+
+    /**
      * Determines the resulting type of the expression.
      */
     public void determineType() {
@@ -1157,6 +1229,16 @@ public class JavaExpression extends Visitor implements Translatable {
     }
 
     /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      if (!left.hasName("PrimaryIdentifier") && !(n.hasName("Expression") && left.hasName("SelectionExpression")))
+        left.checkNotNull();
+      if (null != right && !right.hasName("PrimaryIdentifier"))
+        right.checkNotNull();
+    }
+
+    /**
      * Determines the resulting type of the expression.
      */
     public void determineType() {
@@ -1218,6 +1300,14 @@ public class JavaExpression extends Visitor implements Translatable {
       this.parent = parent;
       object = new JavaExpression(n.getGeneric(0), parent.getStatement());
       type = new JavaType(n.getGeneric(1));
+    }
+
+    /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      if (object.hasName("CallExpression") || object.hasName("SelectionExpression"))
+        object.checkNotNull();
     }
 
     /**
@@ -1349,6 +1439,16 @@ public class JavaExpression extends Visitor implements Translatable {
     }
 
     /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      if (left.hasName("CallExpression") || left.hasName("SelectionExpression"))
+        left.checkNotNull();
+      if (right.hasName("CallExpression") || right.hasName("SelectionExpression"))
+        right.checkNotNull();
+    }
+
+    /**
      * Determines the resulting type of the expression.
      */
     public void determineType() {
@@ -1410,6 +1510,16 @@ public class JavaExpression extends Visitor implements Translatable {
         dimensions.add(new JavaExpression((GNode)o, parent.getStatement()));
       }
       type.setDimensions(dimensions.size());
+    }
+
+    /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      for (JavaExpression e : dimensions) {
+        if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
+          e.checkNotNull();
+      }
     }
 
     /**
@@ -1488,6 +1598,16 @@ public class JavaExpression extends Visitor implements Translatable {
     }
 
     /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      for (JavaExpression e : arguments) {
+        if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
+          e.checkNotNull();
+      }
+    }
+
+    /**
      * Determines the resulting type of the expression.
      */
     public void determineType() {
@@ -1542,10 +1662,32 @@ public class JavaExpression extends Visitor implements Translatable {
       this.parent = parent;
       // The name of the identifier
       name = n.getString(0);
-      // If this is an object, make sure to check not null before using it
-      if (parent.getStatement().getScope().isInScope("$" + name) &&
-        !parent.getStatement().getScope().getVariableType("$" + name).isPrimitive())
-          parent.getStatement().addObject("$" + name);
+    }
+
+    /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      determineType();
+      StringBuilder check = new StringBuilder();
+      if (parent.getStatement().getScope().isInScope("$" + name)) {
+        if (isClassVar) {
+          JavaClass scope = (JavaClass)parent.getStatement().getScope().getVariableScope("$" + name);
+          if (!scope.getFile().getPackage().getNamespace().equals(""))
+            check.append(scope.getFile().getPackage().getNamespace() + "::");
+          check.append("__" + scope.getName() + "::");
+        } else if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")) {
+          check.append("__this->");
+        }
+        check.append("$" + name);
+      } else {
+        if (isClass) {
+          return;
+        } else {
+          check.append("$" + name);
+        }
+      }
+      parent.getStatement().addObject(check.toString());
     }
 
     /**
@@ -1557,7 +1699,6 @@ public class JavaExpression extends Visitor implements Translatable {
       // Check if this is a variable currently in scope
       if (parent.getStatement().getScope().isInScope("$" + name)) {
         parent.setType(parent.getStatement().getScope().getVariableType("$" + name));
-        parent.getStatement().getScope().getVariableScope("$" + name).setInitialize("$" + name, true);
         // Check if it's a class variable
         if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")
             && parent.getStatement().getScope().getVariableType("$" + name).isStatic())
@@ -1662,6 +1803,19 @@ public class JavaExpression extends Visitor implements Translatable {
       else
         isThis = true;
       selection = n.getString(1);
+    }
+
+    /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      determineType();
+      if (null != identifier && identifier.hasName("CallExpression"))
+        identifier.checkNotNull();
+      if (null != identifier && !identifier.getType().isArray() && isClass) {
+        identifier.translate(Global.runtime.console()).pln().flush();
+        identifier.checkNotNull();
+      }
     }
 
     /**
@@ -1776,6 +1930,18 @@ public class JavaExpression extends Visitor implements Translatable {
     }
 
     /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      if (variable.hasName("CallExpression") || variable.hasName("SelectionExpression"))
+        variable.checkNotNull();
+      for (JavaExpression e : indices) {
+        if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
+          e.checkNotNull();
+      }
+    }
+
+    /**
      * Determines the resulting type of the expression.
      */
     public void determineType() {
@@ -1832,6 +1998,14 @@ public class JavaExpression extends Visitor implements Translatable {
         identifier = new JavaExpression(n.getGeneric(0), parent.getStatement());
         post = n.getString(1);
       }
+    }
+
+    /**
+     * Makes sure to call checkNotNull on this variable.
+     */
+    public void checkNotNull() {
+      if (identifier.hasName("CallExpression") || identifier.hasName("SelectionExpression"))
+        identifier.checkNotNull();
     }
 
     /**

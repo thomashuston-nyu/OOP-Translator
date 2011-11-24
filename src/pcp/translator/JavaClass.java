@@ -47,7 +47,6 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
   private JavaType extension;
   private List<JavaField> fields;
   private JavaFile file;
-  private Map<String, Boolean> initialized;
   private boolean isAbstract, isFinal, isStatic;
   private List<JavaMethod> methods;
   private String name;
@@ -71,7 +70,6 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
 
     // Initialize the variable table
     variables = new HashMap<String, JavaType>();
-    initialized = new HashMap<String, Boolean>();
 
     // Get the class name
     name = n.getString(1);
@@ -289,20 +287,6 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
   }
 
   /**
-   * Checks if the specified variable is initialized.
-   *
-   * @return <code>True</code> if the variable has been initialized;
-   * <code>false</code> otherwise.
-   */
-  public boolean isVariableInitialized(String name) {
-    if (initialized.containsKey(name))
-      return initialized.get(name);
-    if (null != parent)
-      return parent.isVariableInitialized(name);
-    return false;
-  }
-
-  /**
    * Checks if the specified class variable is static.
    *
    * @return <code>True</code> if the variable is static;
@@ -331,30 +315,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * @param type The type of the variable.
    */
   public void addVariable(String name, JavaType type) {
-    addVariable(name, type, true);
-  }
-
-  /**
-   * Adds a variable to the scope and sets its
-   * initialization status.
-   *
-   * @param name The name of the variable.
-   * @param type The type of the variable.
-   * @param init Whether the variable has been initialized.
-   */
-  public void addVariable(String name, JavaType type, boolean init) {
     variables.put(name, type);
-    initialized.put(name, init);
-  }
-
-  /**
-   * Sets the initialization status of the specified variable.
-   *
-   * @param name The name of the variable.
-   * @param init Whether the variable has been initialized.
-   */
-  public void setInitialize(String name, boolean init) {
-    initialized.put(name, init);
   }
 
   /**
