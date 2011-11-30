@@ -41,6 +41,8 @@ import xtc.tree.Visitor;
  */
 public class JavaFile extends Visitor implements Translatable {
   
+  private static Map<String, JavaFile> files = new HashMap<String, JavaFile>();
+
   private List<JavaClass> allClasses;
   private Set<JavaPackage> imports;
   private boolean isMain;
@@ -71,17 +73,19 @@ public class JavaFile extends Visitor implements Translatable {
 
     // If the file has no package, set it to the default package
     if (null == pkg) {
-      if (Global.packages.containsKey(""))
-        pkg = Global.packages.get("");
+      if (null != JavaPackage.getJavaPackage(""))
+        pkg = JavaPackage.getJavaPackage("");
       else
-        Global.packages.put("", pkg = new JavaPackage());
+        JavaPackage.addPackage("", pkg = new JavaPackage());
     }
 
     // Add this file to its package
     pkg.addFile(this);
 
     // Add the public class to the classes map
-    JavaClass.addClass(pkg.getPath() + publicClass.getName(), publicClass);
+    for (JavaClass c : allClasses) {
+      JavaClass.addClass(pkg.getPath() + c.getName(), c);
+    }
   }
 
 
@@ -166,7 +170,7 @@ public class JavaFile extends Visitor implements Translatable {
       if (null == publicClass)
         publicClass = c;
       else
-        Global.runtime.errConsole().pln("Multiple public classes in one file").flush();
+        pcp.Translator.errConsole.pln("Multiple public classes in one file").flush();
     }
   }
   
@@ -182,12 +186,12 @@ public class JavaFile extends Visitor implements Translatable {
     String pkgpath = imp.getPath();
 
     // If the package has already been created, use the existing one
-    if (Global.packages.containsKey(pkgpath))
-      imp = Global.packages.get(pkgpath);
+    if (null != JavaPackage.getJavaPackage(pkgpath))
+      imp = JavaPackage.getJavaPackage(pkgpath);
 
     // Otherwise add the package to the packages hash
     else
-      Global.packages.put(pkgpath, imp);
+      JavaPackage.addPackage(pkgpath, imp);
 
     // Add the package to the imports set
     imports.add(imp);
@@ -205,12 +209,12 @@ public class JavaFile extends Visitor implements Translatable {
     String pkgpath = pkg.getPath();
 
     // If the package has already been created, use the existing one instead
-    if (Global.packages.containsKey(pkgpath))
-      pkg = Global.packages.get(pkgpath);
+    if (null != JavaPackage.getJavaPackage(pkgpath))
+      pkg = JavaPackage.getJavaPackage(pkgpath);
 
     // Otherwise add the package to the hash
     else
-      Global.packages.put(pkgpath, pkg);
+      JavaPackage.addPackage(pkgpath, pkg);
   }
 
 
@@ -229,6 +233,39 @@ public class JavaFile extends Visitor implements Translatable {
       cls.translate(out);
     }
     return out;
+  }
+
+
+  // ========================== Static Methods ======================
+
+  /**
+   * Adds a file to the files map.
+   *
+   * @param path The path to the file.
+   * @param file The corresponding JavaFile object.
+   */
+  public static void addFile(String path, JavaFile file) {
+    files.put(path, file);
+  }
+
+  /**
+   * Gets the JavaFile specified by the filepath.
+   *
+   * @param path The path to the file.
+   * 
+   * @return The corresponding JavaFile object.
+   */
+  public static JavaFile getJavaFile(String path) {
+    return files.get(path);
+  }
+
+  /**
+   * Gets the list of Java files.
+   *
+   * @return The list of Java files.
+   */
+  public static Set<String> getJavaFileList() {
+    return files.keySet();
   }
   
 }

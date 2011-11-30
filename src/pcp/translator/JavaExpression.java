@@ -486,9 +486,11 @@ public class JavaExpression extends Visitor implements Translatable {
      * Makes sure to call checkNotNull on this variable.
      */
     public void checkNotNull() {
-      if (left.hasName("CallExpression") || left.hasName("SelectionExpression"))
+      if (left.hasName("CallExpression") || left.hasName("SelectionExpression") ||
+          left.hasName("SubscriptExpression"))
         left.checkNotNull();
-      if (right.hasName("CallExpression") || left.hasName("SelectionExpression"))
+      if (right.hasName("CallExpression") || left.hasName("SelectionExpression") ||
+          right.hasName("SubscriptExpression"))
         right.checkNotNull();
     }
 
@@ -694,7 +696,10 @@ public class JavaExpression extends Visitor implements Translatable {
       this.parent = parent;
       
       // Check if this expression is in the constructor
-      isConstructor = parent.getStatement().getScope().hasName("JavaConstructor");
+      if (parent.getStatement().getScope().hasName("JavaClass"))
+        isConstructor = true;
+      else
+        isConstructor = parent.getStatement().getScope().hasName("JavaConstructor");
 
       // The caller of the method
       if (null != n.get(0)) {
@@ -727,7 +732,8 @@ public class JavaExpression extends Visitor implements Translatable {
           (null != method && !method.isStatic()))
         caller.checkNotNull();
       for (JavaExpression e : args) {
-        if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
+        if (e.hasName("CallExpression") || e.hasName("SelectionExpression") ||
+            e.hasName("SelectionExpression"))
           e.checkNotNull();
       }
     }
@@ -796,48 +802,55 @@ public class JavaExpression extends Visitor implements Translatable {
 
         // The outer loop specifies the argument to climb one level higher in the hierarchy
         for (int i = 0; i < newArgTypes.size(); i++) {
-          // Create the mangled name
-          StringBuilder s = new StringBuilder();
-          s.append(name);
-          List<String> argTypes = new ArrayList<String>();
+          for (int j = level; j <= maxLevel; j++) {
+            // Create the mangled name
+            StringBuilder s = new StringBuilder();
+            s.append(name);
+            List<String> argTypes = new ArrayList<String>();
 
-          // The middle loop adds the argument types to the name in order
-          for (int j = 0; j < newArgTypes.size(); j++) {
-            // If this is a primitive type, we can't climb up the hierarchy so simply append it
-            if (null == newArgTypes.get(j)) {
-              String t = args.get(j).getType().getMangledType();
-              s.append("$" + t);
-              argTypes.add(t);
-            // Otherwise climb the tree as specified by the level
-            } else {
-              // Start out with the original type of the argument
-              String type = newArgTypes.get(j);
-              // Climb the tree level - 1 times
-              for (int k = 1; k < level; k++) {
-                if (null == hierarchy.get(type))
-                  return;
-                type = hierarchy.get(type);
+            // The middle loop adds the argument types to the name in order
+            for (int k = 0; k < newArgTypes.size(); k++) {
+              // If this is a primitive type, we can't climb up the hierarchy so simply append it
+              if (null == newArgTypes.get(k)) {
+                String t = args.get(k).getType().getMangledType();
+                s.append("$" + t);
+                argTypes.add(t);
+              // Otherwise climb the tree as specified by the level
+              } else {
+                // Start out with the original type of the argument
+                String type = newArgTypes.get(k);
+                // Climb the tree level - 1 times
+                for (int l = 1; l < level; l++) {
+                  if (null == hierarchy.get(type))
+                    break;
+                  type = hierarchy.get(type);
+                }
+                // If this is the argument specified by the outer loop, climb an extra level
+                if (i == k) {
+                  for (int m = level; m < j; m++) {
+                    if (null == hierarchy.get(type))
+                      break;
+                    type = hierarchy.get(type);
+                  }
+                }
+                s.append("$" + type);
+                argTypes.add(type);
               }
-              // If this is the argument specified by the outer loop, climb an extra level
-              if (0 < level && i == j && null != hierarchy.get(type))
-                type = hierarchy.get(type);
-              s.append("$" + type);
-              argTypes.add(type);
             }
-          }
-          String temp = s.toString();
+            String temp = s.toString();
 
-          // Special cases for methods defined in java_lang
-          if (temp.equals("equals$Object") ||
-              temp.equals("charAt$int32_t")) {
-            name = temp;
-            return;
-          }
-          // Check if the specified method exists
-          if (null != cls && null != cls.getMethod(temp)) {
-            name = temp;
-            method = cls.getMethod(temp);
-            return;
+            // Special cases for methods defined in java_lang
+            if (temp.equals("equals$Object") ||
+                temp.equals("charAt$int32_t")) {
+              name = temp;
+              return;
+            }
+            // Check if the specified method exists
+            if (null != cls && null != cls.getMethod(temp)) {
+              name = temp;
+              method = cls.getMethod(temp);
+              return;
+            }
           }
         }
 
@@ -982,16 +995,19 @@ public class JavaExpression extends Visitor implements Translatable {
       } else {
         if (null != method && method.isStatic())
           out.p("__").p(method.getClassFrom().getName()).p("::");
-        else if (!isConstructor)
+        else if (isConstructor)
+          out.p("$con$->");
+        else 
           out.p("__this->");
-        else if (null != method && method.isStatic())
-          out.p("::");
       }
       if (null == method || method.isVirtual())
         out.p("__vptr->");
       out.p(name).p("(");
       if (null == caller && (null == method || !method.isStatic())) {
-        out.p("__this");
+        if (isConstructor)
+          out.p("$con$");
+        else
+          out.p("__this");
         if (0 < args.size())
           out.p(", ");
       } else if (null != caller && (null == method || !method.isStatic())) {
@@ -1626,8 +1642,12 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      out.p("new __");
+      out.p("__");
+      type.translate(out).p("::$__");
       type.translate(out);
+      for (JavaExpression arg : arguments) {
+        out.p("$").p(arg.getType().getMangledType());
+      }
       out.p("(");
       int size = arguments.size();
       for (int i = 0; i < size; i++) {
@@ -1677,7 +1697,10 @@ public class JavaExpression extends Visitor implements Translatable {
             check.append(scope.getFile().getPackage().getNamespace() + "::");
           check.append("__" + scope.getName() + "::");
         } else if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")) {
-          check.append("__this->");
+          if (parent.getStatement().getScope().hasName("JavaConstructor"))
+            check.append("$con$->");
+          else
+            check.append("__this->");
         }
         check.append("$" + name);
       } else {
@@ -1762,7 +1785,10 @@ public class JavaExpression extends Visitor implements Translatable {
           out.p("__").p(scope.getName()).p("::");
         // Check if it's an instance variable
         } else if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")) {
-          out.p("__this->");
+          if (parent.getStatement().getScope().hasName("JavaConstructor"))
+            out.p("$con$->");
+          else
+            out.p("__this->");
         }
         return out.p("$").p(name);
       } else {
@@ -1809,7 +1835,7 @@ public class JavaExpression extends Visitor implements Translatable {
     public void checkNotNull() {
       determineType();
       if (null != identifier && (identifier.hasName("CallExpression") || 
-          !identifier.getType().isArray() && isClass))
+          (!identifier.getType().isArray() && isClass)))
         identifier.checkNotNull();
     }
 
@@ -1879,8 +1905,12 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      if (isThis)
-        return out.p("__this->").p(selection);
+      if (isThis) {
+        if (parent.getStatement().getScope().hasName("JavaConstructor"))
+          return out.p("$con$->$").p(selection);
+        else
+          return out.p("__this->$").p(selection);
+      }
       if (null != identifier) {
         if (identifier.getType().isArray()) {
           return identifier.translate(out).p("->").p(selection);
@@ -1904,6 +1934,7 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class SubscriptExpression extends JavaExpression {
 
+    private GNode n;
     private JavaExpression variable, parent;
     private List<JavaExpression> indices;
 
@@ -1914,24 +1945,35 @@ public class JavaExpression extends Visitor implements Translatable {
      * @param parent The wrapper expression.
      */
     public SubscriptExpression(GNode n, JavaExpression parent) {
+      this.n = n;
       this.parent = parent;
       variable = new JavaExpression(n.getGeneric(0), parent.getStatement());
       indices = new ArrayList<JavaExpression>();
       for (int i = 1; i < n.size(); i++)
         indices.add(new JavaExpression(n.getGeneric(i), parent.getStatement()));
-      if (n.getNode(0).hasName("PrimaryIdentifier") &&
-          parent.getStatement().getScope().isInScope("$" + n.getNode(0).getString(0)))
-        parent.getStatement().addObject(n.getNode(0).getString(0));
     }
 
     /**
      * Makes sure to call checkNotNull on this variable.
      */
     public void checkNotNull() {
-      if (variable.hasName("CallExpression") || variable.hasName("SelectionExpression"))
+      if (n.getNode(0).hasName("PrimaryIdentifier") &&
+          parent.getStatement().getScope().isInScope("$" + n.getNode(0).getString(0))) {
+        if (parent.getStatement().getScope().getVariableScope("$" + n.getNode(0).getString(0)).equals("JavaClass")) {
+          if (parent.getStatement().getScope().hasName("JavaConstructor") ||
+              parent.getStatement().getScope().hasName("JavaClass"))
+            parent.getStatement().addObject("$con$->$" + n.getNode(0).getString(0));
+          else
+            parent.getStatement().addObject("__this->$" + n.getNode(0).getString(0));
+        } else {
+          parent.getStatement().addObject("$" + n.getNode(0).getString(0));
+        }
+      }
+      if (variable.hasName("CallExpression") || variable.hasName("SelectionExpression") || 
+          variable.hasName("SubscriptExpression"))
         variable.checkNotNull();
       for (JavaExpression e : indices) {
-        if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
+        if (e.hasName("CallExpression") || e.hasName("SelectionExpression") || e.hasName("SubscriptExpression"))
           e.checkNotNull();
       }
     }

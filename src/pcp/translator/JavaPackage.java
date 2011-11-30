@@ -18,8 +18,10 @@
 package pcp.translator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import xtc.tree.GNode;
@@ -43,7 +45,10 @@ import xtc.tree.Visitor;
 public class JavaPackage implements Translatable {
 
   // The default package name
-  final private static String DEFAULT = "$main";
+  final private static String DEFAULT = "$main";  
+
+  // Mapping of package paths to the corresponding JavaPackage objects
+  private static Map<String, JavaPackage> packages = new HashMap<String, JavaPackage>();
   
   // The parts of the package name
   private List<String> pkg;
@@ -383,6 +388,39 @@ public class JavaPackage implements Translatable {
     }
 
     return out;
+  }
+
+
+  // ========================== Static Methods ======================
+
+  /**
+   * Adds a package to the packages map.
+   *
+   * @param path The path to the package.
+   * @param pkg The corresponding JavaPackage object.
+   */
+  public static void addPackage(String path, JavaPackage pkg) {
+    packages.put(path, pkg);
+  }
+
+  /**
+   * Gets the JavaPackage specified by the path.
+   *
+   * @param path The path to the package.
+   * 
+   * @return The corresponding JavaPackage object.
+   */
+  public static JavaPackage getJavaPackage(String path) {
+    return packages.get(path);
+  }
+
+  /**
+   * Gets the list of Java packages.
+   *
+   * @return The list of Java packages.
+   */
+  public static Set<String> getJavaPackageList() {
+    return packages.keySet();
   }
 
 }

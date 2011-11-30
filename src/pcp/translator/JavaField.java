@@ -103,10 +103,14 @@ public class JavaField extends JavaStatement implements Translatable {
         cls.addVariable("$" + declarator.getString(0), type);
       else
         this.parent.getScope().addVariable("$" + declarator.getString(0), type);
-      if (null != declarator.get(2) && !declarator.getNode(2).hasName("NullLiteral"))
-        values.add(new JavaExpression(declarator.getGeneric(2), parent));
-      else
+      if (null != declarator.get(2) && !declarator.getNode(2).hasName("NullLiteral")) {
+        if (null != parent)
+          values.add(new JavaExpression(declarator.getGeneric(2), parent));
+        else
+          values.add(new JavaExpression(declarator.getGeneric(2), this));
+      } else {
         values.add(null);
+      }
     }
 
     // Get the dimensions if it's an array
@@ -157,6 +161,20 @@ public class JavaField extends JavaStatement implements Translatable {
   }
 
   /**
+   * Checks if the field is initialized.
+   *
+   * @return <code>True</code> if it is initialized;
+   * false otherwise.
+   */
+  public boolean isInitialized() {
+    for (JavaExpression e : values) {
+      if (null != e)
+        return true;
+    }
+    return false;
+  }
+
+  /**
    * Checks if the field is static.
    *
    * @return <code>True</code> if it is static;
@@ -195,16 +213,47 @@ public class JavaField extends JavaStatement implements Translatable {
     int size = names.size();
     for (int i = 0; i < size; i++) {
       out.indent();
-      if (isStatic)
+      if (isStatic) {
         out.p("static ");
-      if (isFinal)
-        out.p("const ");
+        if (isFinal)
+          out.p("const ");
+      }
       if (type.isArray())
         out.p("__rt::Ptr<");
       type.translate(out);
       if (type.isArray())
         out.p(" >");
       out.p(" ").p(names.get(i)).pln(";");
+    }
+    return out;
+  }
+
+  /**
+   * Translates the field instantiation in the constructor
+   * and adds it to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
+  public Printer translateConstructor(Printer out) {
+    int size = names.size();
+    for (int i = 0; i < size; i++) {
+      if (isStatic)
+        continue;
+      out.indent().p("$con$->").p(names.get(i));
+      if (null != values.get(i)) {
+        out.p(" = ");
+        values.get(i).translate(out).pln(";");
+      } else if (null == parent) {
+        out.p(" = ");
+        if (type.isPrimitive())
+          out.pln("0;");
+        else
+          out.pln("__rt::null();");
+      } else {
+        out.pln(";");
+      }
     }
     return out;
   }
@@ -237,6 +286,12 @@ public class JavaField extends JavaStatement implements Translatable {
       if (null != values.get(i)) {
         out.p(" = ");
         values.get(i).translate(out).pln(";");
+      } else if (null == parent) {
+        out.p(" = ");
+        if (type.isPrimitive())
+          out.pln("0;");
+        else
+          out.pln("__rt::null();");
       } else {
         out.pln(";");
       }

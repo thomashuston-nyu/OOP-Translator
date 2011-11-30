@@ -197,26 +197,31 @@ public class JavaStatement extends Visitor implements Translatable {
           !n.getNode(0).getNode(2).getName().startsWith("New")) {
         GNode node = n.getNode(0).getGeneric(0);
         if (node.getNode(0).hasName("SubscriptExpression")) {
-          List<Integer> indices = new ArrayList<Integer>();
+          List<String> indices = new ArrayList<String>();
           while (node.getNode(0).hasName("SubscriptExpression")) {
-            indices.add(0, Integer.parseInt(node.getNode(0).getNode(1).getString(0)));
+            if (node.getNode(0).getNode(1).hasName("IntegerLiteral"))
+              indices.add(0, node.getNode(0).getNode(1).getString(0));
+            else
+              indices.add(0, "$" + node.getNode(0).getNode(1).getString(0));
             node = node.getGeneric(0);
           }
           StringBuilder name = new StringBuilder();
-          for (Integer i : indices) {
+          for (String i : indices) {
             name.append("(*");
           }
           name.append("$" + node.getNode(0).getString(0));
-          for (Integer i : indices) {
-            name.append(")[");
-            name.append(i);
-            name.append("]");
+          for (String i : indices) {
+            name.append(")[" + i + "]");
           }
-          stores.put(name.toString(),
-              new JavaExpression(n.getNode(0).getGeneric(2), this));
+          if (parent.isInScope("$" + node.getNode(0).getString(0)) &&
+              null != parent.getVariableType("$" + node.getNode(0).getString(0)).getClassType())
+            stores.put(name.toString(),
+                new JavaExpression(n.getNode(0).getGeneric(2), this));
         } else {
-          stores.put("$" + node.getNode(0).getString(0),
-              new JavaExpression(n.getNode(0).getGeneric(2), this));
+          if (parent.isInScope("$" + node.getNode(0).getString(0)) &&
+              null != parent.getVariableType("$" + node.getNode(0).getString(0)).getClassType())
+            stores.put("$" + node.getNode(0).getString(0),
+                new JavaExpression(n.getNode(0).getGeneric(2), this));
         }
       }
     }
@@ -228,7 +233,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The field declaration node.
    */
   public void visitFieldDeclaration(GNode n) {
-    s = new JavaField(n, this, this.getScope());
+    s = new JavaField(n, this, parent);
   }
   
   /**
@@ -452,7 +457,7 @@ public class JavaStatement extends Visitor implements Translatable {
   private class DoWhileStatement extends JavaStatement {
 
     private JavaExpression e;
-    private JavaStatement s;
+    private JavaBlock s;
 
     /**
      * Creates a new do-while statement.
@@ -460,7 +465,7 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The do-while statement node.
      */
     public DoWhileStatement(GNode n, JavaStatement parent) {
-      s = new JavaStatement(n.getGeneric(0), parent.getScope());
+      s = new JavaBlock(n.getGeneric(0), parent.getScope());
       e = new JavaExpression(n.getGeneric(1), parent);
     }
 
@@ -504,7 +509,7 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The expression statement node.
      */
     public ExpressionStatement(GNode n, JavaStatement parent) {
-      if (parent.getScope().hasName("JavaConstructor")) {
+     /* if (parent.getScope().hasName("JavaConstructor")) {
         if (n.getNode(0).hasName("Expression") && n.getNode(0).getString(1).equals("=")) {
           String name = "";
           if (n.getNode(0).getNode(0).hasName("PrimaryIdentifier"))
@@ -526,7 +531,7 @@ public class JavaStatement extends Visitor implements Translatable {
             ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, initializer);
           }
         }
-      }
+      } */
       e = new JavaExpression(n.getGeneric(0), parent);
     }
 
@@ -730,7 +735,10 @@ public class JavaStatement extends Visitor implements Translatable {
         out.p(" ");
         e.translate(out);
       } else if (isThis) {
-        out.p(" __this");
+        if (parent.hasName("JavaConstructor"))
+          out.p("$con$");
+        else
+          out.p(" __this");
       }
       return out.pln(";");
     }
@@ -903,7 +911,7 @@ public class JavaStatement extends Visitor implements Translatable {
   private class WhileStatement extends JavaStatement {
 
     private JavaExpression e;
-    private JavaStatement s;
+    private JavaBlock s;
 
     /**
      * Creates a new while statement.
@@ -912,7 +920,7 @@ public class JavaStatement extends Visitor implements Translatable {
      */
     public WhileStatement(GNode n, JavaStatement parent) {
       e = new JavaExpression(n.getGeneric(0), parent);
-      s = new JavaStatement(n.getGeneric(1), parent.getScope());
+      s = new JavaBlock(n.getGeneric(1), parent.getScope());
     }
 
     /**
@@ -954,7 +962,7 @@ public class JavaStatement extends Visitor implements Translatable {
     if (null == s)
       return out;
     s.checkNotNull();
-    if (!parent.hasName("JavaClass")) {
+    if (!parent.hasName("JavaClass") && !parent.hasName("JavaConstructor")) {
       for (String obj : objects) {
         out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
       }

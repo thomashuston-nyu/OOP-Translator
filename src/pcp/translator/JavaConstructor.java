@@ -205,7 +205,7 @@ public class JavaConstructor extends Visitor implements Translatable {
   }
 
 
-  // ======================== Translation Methods ===================
+  // r======================== Translation Methods ===================
 
   /**
    * Translates the constructor into a declaration for
@@ -235,16 +235,22 @@ public class JavaConstructor extends Visitor implements Translatable {
   }
 
   /**
-   * Translates the constructor into C++ and writes
+   * Translates the constructor helper method into a
+   * declaration for the C++ header struct and writes
    * it to the output stream.
    *
    * @param out The output stream.
    *
    * @return The output stream.
    */
-  public Printer translate(Printer out) {
-    out.indent().p("__").p(name).p("::__").p(name).p("(");
+  public Printer translateHelperDeclaration(Printer out) {
+    out.indent().p("static ").p(cls.getName()).p(" $__");
+    out.p(cls.getName());
     Set<String> params = parameters.keySet();
+    for (String param : params) {
+      out.p("$").p(parameters.get(param).getMangledType());
+    }
+    out.p("(");
     int count = 0;
     for (String param : params) {
       if (parameters.get(param).isArray())
@@ -257,16 +263,67 @@ public class JavaConstructor extends Visitor implements Translatable {
         out.p(", ");
       count++;
     }
+    return out.pln(");");
+  }
+
+  /**
+   * Translates the constructor into C++ and writes
+   * it to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
+  public Printer translate(Printer out) {
+   // out.indent().p("__").p(name).p("::__").p(name).p("(");
+    Set<String> params = parameters.keySet();
+  /*  int count = 0;
+    for (String param : params) {
+      if (parameters.get(param).isArray())
+        out.p("__rt::Ptr<");
+      parameters.get(param).translate(out);
+      if (parameters.get(param).isArray())
+        out.p(" >");
+      out.p(" ").p(param);
+      if (count < params.size() - 1)
+        out.p(", ");
+      count++;
+    }
     out.pln(")");
-    out.indent().p(": __vptr(&__vtable)");
-    Set<String> keys = initialize.keySet();
+    out.indent().pln(": __vptr(&__vtable) {}");
+    /*Set<String> keys = initialize.keySet();
     for (String key : keys) {
       out.pln(",").indent().p(key).p("(");
       initialize.get(key).translate(out);
       out.p(")");
     }
-    out.pln(" {").incr();
+    out.pln(" {").incr();*/
+    out.indent().p(name).p(" __").p(name).p("::$__").p(name);
+    for (String param : params) {
+      out.p("$").p(parameters.get(param).getMangledType());
+    }
+    out.p("(");
+    int count = 0;
+    for (String param : params) {
+      if (parameters.get(param).isArray())
+        out.p("__rt::Ptr<");
+      parameters.get(param).translate(out);
+      if (parameters.get(param).isArray())
+        out.p(" >");
+      out.p(" ").p(param);
+      if (count < params.size() - 1)
+        out.p(", ");
+      count++;
+    }
+    out.pln(") {").incr();
+    out.indent().p(name).p(" $con$ = new __").p(name).pln("();");
+    for (JavaField f : cls.getFields()) {
+      if (!f.isStatic()) {
+        f.translateConstructor(out);
+      }
+    }
     body.translate(out);
+    out.indent().pln("return $con$;");
     return out.decr().indent().pln("}");
   }
 

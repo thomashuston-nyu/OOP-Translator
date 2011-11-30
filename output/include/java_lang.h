@@ -79,6 +79,7 @@ namespace java {
 
       // The constructor.
       __Object();
+	  static Object $__Object();
 
       // The destructor.
       static void __delete(__Object*);

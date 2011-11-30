@@ -150,10 +150,10 @@ public class JavaType extends Visitor implements Translatable {
   public JavaFile getFile() {
     if (null == classType)
       return null;
-    if (Global.files.containsKey(getPath()))
-      return Global.files.get(getPath());
+    if (null != JavaFile.getJavaFile(getPath()))
+      return JavaFile.getJavaFile(getPath());
     else
-      Global.runtime.errConsole().p("File not found for type: ").pln(getPath()).flush();
+      pcp.Translator.errConsole.p("File not found for type: ").pln(getPath()).flush();
     return null;
   }
 
@@ -285,7 +285,7 @@ public class JavaType extends Visitor implements Translatable {
     if (dim >= 0)
       dimensions = dim;
     else
-      Global.runtime.errConsole().p("Invalid array dimensions: ").pln(dim).flush();
+      pcp.Translator.errConsole.p("Invalid array dimensions: ").pln(dim).flush();
   }
 
   /**

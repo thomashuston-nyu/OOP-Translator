@@ -476,12 +476,14 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     out.pln();
 
     // Declare the constructor
+    out.indent().p("__").p(name).pln("();").pln();
+
     if (0 != constructors.size()) {
       for (JavaConstructor con : constructors) {
-        con.translateHeaderDeclaration(out);
+        con.translateHelperDeclaration(out);
       }
     } else {
-      out.indent().p("__").p(name).pln("();");
+      out.indent().p("static ").p(name).p(" $__").p(name).pln("();");
     }
 
     // Destructor
@@ -610,22 +612,27 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
+    // Initialize any static fields
+    for (JavaField f : fields) {
+      if (f.isStatic()) {
+        f.translate(out).pln();
+      }
+    }
+
     // Print out the constructors
+    out.indent().p("__").p(name).p("::__").p(name).pln("()");
+    out.indent().pln(": __vptr(&__vtable) {}").pln();
     if (0 != constructors.size()) {
       for (JavaConstructor c : constructors) {
         c.translate(out);
         out.pln();
       }
     } else {
-      out.indent().p("__").p(name).p("::__").p(name).pln("()");
-      out.indent().pln(": __vptr(&__vtable) {}").pln();
-    }
-
-    // Initialize any static fields
-    for (JavaField f : fields) {
-      if (f.isStatic()) {
-        f.translate(out).pln();
-      }
+      out.indent().p(name).p(" __").p(name).p("::$__").p(name).pln("() {").incr();
+      out.indent().p(name).p(" $con$ = new __").p(name).pln("();");
+      // TODO: Initialize class fields
+      out.indent().pln("return $con$;");
+      out.decr().indent().pln("}").pln();
     }
 
     // Add a delete method

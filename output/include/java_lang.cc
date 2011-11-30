@@ -28,6 +28,11 @@ namespace java {
     __Object::__Object() : __vptr(&__vtable) {
     }
 
+	Object __Object::$__Object() {
+		Object $con$ = new __Object();
+		return $con$;
+	}
+
     // The destructor.
     void __Object::__delete(__Object* __this) {
       delete __this;
@@ -77,7 +82,7 @@ namespace java {
       : __vptr(&__vtable), 
         data(data) {
     }
-
+	
     // The destructor.
     void __String::__delete(__String* __this) {
       delete __this;

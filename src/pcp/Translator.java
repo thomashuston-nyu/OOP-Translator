@@ -62,6 +62,10 @@ public class Translator extends Tool {
   // The output directory
   private static final String OUTPUT_DIR = "output/";
 
+  // Make the runtime consoles available to all the pcp classes
+  public static Printer console;
+  public static Printer errConsole;
+
   // The path to the main file
   private String classpath;
 
@@ -76,7 +80,8 @@ public class Translator extends Tool {
    */
   public Translator() {
     // Make the runtime available globally
-    Global.runtime = runtime;
+    console = runtime.console();
+    errConsole = runtime.errConsole();
   }
 
 
@@ -106,7 +111,7 @@ public class Translator extends Tool {
    * @return The version.
    */
   public String getVersion() {
-    return "1.2";
+    return "1.3";
   }
 
 
@@ -162,11 +167,11 @@ public class Translator extends Tool {
       } finally {
         try {
           // Write the translated C++ code to files
-          Set<String> keys = Global.packages.keySet();
+          Set<String> keys = JavaPackage.getJavaPackageList();
           for (String key : keys) {
-            Global.packages.get(key).orderFiles();
-            writeHeader(Global.packages.get(key));
-            writeBody(Global.packages.get(key));
+            JavaPackage.getJavaPackage(key).orderFiles();
+            writeHeader(JavaPackage.getJavaPackage(key));
+            writeBody(JavaPackage.getJavaPackage(key));
           }
         } catch (IOException i) {
           runtime.errConsole().p("Error writing file: ").pln(i.toString()).flush();
@@ -234,7 +239,7 @@ public class Translator extends Tool {
   * @throws ParseException Signals a parse error.
   */
   public void resolve(File file) throws IOException, ParseException {
-    if (Global.files.containsKey(file.getAbsolutePath())) 
+    if (null != JavaFile.getJavaFile(file.getAbsolutePath())) 
       return;
     resolve(file, new JavaFile((GNode)parse(file)));
   }
@@ -249,12 +254,12 @@ public class Translator extends Tool {
   * @throws ParseException Signals a parse error.
   */
   public void resolve(File file, JavaFile c) throws IOException, ParseException {
-    if (Global.files.containsKey(file.getAbsolutePath())) 
+    if (null != JavaFile.getJavaFile(file.getAbsolutePath())) 
       return;
 
     // Add the file to the hash
     String filePath = file.getAbsolutePath();
-    Global.files.put(filePath, c);
+    JavaFile.addFile(filePath, c);
 
     // Add the file to the packages hash and
     // resolve dependencies for classes in the package
@@ -287,42 +292,49 @@ public class Translator extends Tool {
     }
 
     // Set the superclass
-    JavaClass cd = c.getPublicClass();
-    if (cd.hasParent()) {
-      String ext = cd.getExtension().getPath();
-      String extpath;
-      boolean found = false;
-      int index = ext.lastIndexOf("/");
-      // If the superclass path is given explicitly, use that path
-      if (-1 < index) {
-        extpath = classpath + ext;
-        if (Global.files.containsKey(extpath)) {
-          cd.setParent(Global.files.get(extpath).getPublicClass());
-          found = true;
-        }
-      } else {
-        // Check the package
-        if (null != pkg) {
-          extpath = classpath + pkg.getPath() + "/" + ext;
-          if (Global.files.containsKey(extpath)) {
-            cd.setParent(Global.files.get(extpath).getPublicClass());
+    for (JavaClass cd : c.getClasses()) {
+      if (cd.hasParent()) {
+        String ext = cd.getExtension().getPath();
+        String extpath;
+        boolean found = false;
+        int index = ext.lastIndexOf("/");
+        // If the superclass path is given explicitly, use that path
+        if (-1 < index) {
+          extpath = classpath + ext;
+          runtime.console().pln(extpath).flush();
+          if (null != JavaFile.getJavaFile(extpath)) {
+            cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
             found = true;
           }
-        }
-        // Check the imports
-        if (!found) {
-          for (JavaPackage i : imp) {
-            extpath = classpath + i.getPath();
-            if (Global.files.containsKey(extpath)) {
-              cd.setParent(Global.files.get(extpath).getPublicClass());
+        } else {
+          // Check the package
+          if (null != pkg) {
+            if (pkg.getPath().equals(""))
+              extpath = classpath + ext;
+            else
+              extpath = classpath + pkg.getPath() + "/" + ext;
+            runtime.console().pln(extpath).flush();
+            if (null != JavaFile.getJavaFile(extpath)) {
+              cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
               found = true;
-              break;
             }
           }
-        }
-      }                                         
-      if (!found)
-        runtime.errConsole().p("Superclass not found: ").p(ext).pln().flush();
+          // Check the imports
+          if (!found) {
+            for (JavaPackage i : imp) {
+              extpath = classpath + i.getPath();
+              runtime.console().pln(extpath).flush();
+              if (null != JavaFile.getJavaFile(extpath)) {
+                cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
+                found = true;
+                break;
+              }
+            }
+          }
+        }                                         
+        if (!found)
+          runtime.errConsole().p("Superclass not found: ").p(ext).pln().flush();
+      }
     }
   }
 
