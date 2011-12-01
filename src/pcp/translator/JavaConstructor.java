@@ -37,7 +37,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.3
+ * @version 1.4
  */
 public class JavaConstructor extends Visitor implements Translatable {
 
@@ -350,6 +350,15 @@ public class JavaConstructor extends Visitor implements Translatable {
 
     if (null == thisCall) {
       // Initialize any class instance variables
+      JavaClass temp = cls.getParent();
+      while (null != temp) {
+        List<JavaField> parentFields = temp.getFields();
+        for (JavaField f : parentFields) {
+          if (!f.isStatic())
+            f.translateConstructor(out);
+        }
+        temp = temp.getParent();
+      }
       for (JavaField f : cls.getFields()) {
         if (!f.isStatic()) {
           f.translateConstructor(out);

@@ -10,6 +10,7 @@ function check_exit() {
 
 # List of test files to run
 files=(
+
 )
 
 # Directories

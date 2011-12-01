@@ -55,7 +55,7 @@ import xtc.util.Tool;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.3
+ * @version 1.4
  */
 public class Translator extends Tool {
   
@@ -111,7 +111,7 @@ public class Translator extends Tool {
    * @return The version.
    */
   public String getVersion() {
-    return "1.3";
+    return "1.4";
   }
 
 
@@ -173,7 +173,7 @@ public class Translator extends Tool {
             writeHeader(JavaPackage.getJavaPackage(key));
             writeBody(JavaPackage.getJavaPackage(key));
           }
-        } catch (IOException i) {
+          } catch (IOException i) {
           runtime.errConsole().p("Error writing file: ").pln(i.toString()).flush();
         }
       }
@@ -301,7 +301,6 @@ public class Translator extends Tool {
         // If the superclass path is given explicitly, use that path
         if (-1 < index) {
           extpath = classpath + ext;
-          runtime.console().pln(extpath).flush();
           if (null != JavaFile.getJavaFile(extpath)) {
             cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
             found = true;
@@ -313,7 +312,6 @@ public class Translator extends Tool {
               extpath = classpath + ext;
             else
               extpath = classpath + pkg.getPath() + "/" + ext;
-            runtime.console().pln(extpath).flush();
             if (null != JavaFile.getJavaFile(extpath)) {
               cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
               found = true;
@@ -323,7 +321,6 @@ public class Translator extends Tool {
           if (!found) {
             for (JavaPackage i : imp) {
               extpath = classpath + i.getPath();
-              runtime.console().pln(extpath).flush();
               if (null != JavaFile.getJavaFile(extpath)) {
                 cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
                 found = true;

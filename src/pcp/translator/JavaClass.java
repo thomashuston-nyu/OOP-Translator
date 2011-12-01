@@ -37,7 +37,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.3
+ * @version 1.4
  */
 public class JavaClass extends Visitor implements JavaScope, Translatable {
   
@@ -508,7 +508,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
         con.translateHelperDeclaration(out);
       }
     } else {
-      out.indent().p("static ").p(name).p(" $__").p(name).pln("();");
+      out.indent().p("static ").p(name).p(" $__").p(name).pln("$void();");
     }
 
     // Destructor
@@ -640,9 +640,30 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
         out.pln();
       }
     } else {
-      out.indent().p(name).p(" __").p(name).p("::$__").p(name).pln("() {").incr();
+      out.indent().p(name).p(" __").p(name).p("::$__").p(name).pln("$void() {").incr();
       out.indent().p(name).p(" $con$ = new __").p(name).pln("();");
-      // TODO: Initialize class fields
+      out.indent().p("$con$->__super = ");
+      if (null == parent) {
+        out.pln("__Object::$__Object$void();");
+      } else {
+        if (!parent.getFile().getPackage().getNamespace().equals(""))
+          out.p(parent.getFile().getPackage().getNamespace()).p("::");
+        out.p("__").p(parent.getName()).p("::$__").p(parent.getName()).pln("$void();");
+      }
+      JavaClass temp = parent;
+      while (null != temp) {
+        List<JavaField> parentFields = temp.getFields();
+        for (JavaField f : parentFields) {
+          if (!f.isStatic())
+            f.translateConstructor(out);
+        }
+        temp = temp.getParent();
+      }
+      for (JavaField f : fields) {
+        if (!f.isStatic()) {
+          f.translateConstructor(out);
+        }
+      }
       out.indent().pln("return $con$;");
       out.decr().indent().pln("}").pln();
     }
