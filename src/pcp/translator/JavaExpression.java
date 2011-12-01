@@ -795,20 +795,22 @@ public class JavaExpression extends Visitor implements Translatable {
       while (true) {
         // If there are no arguments, simply locate use the original method name
         if (0 == newArgTypes.size()) {
+          name += "$void";
           if (null != cls)
             method = cls.getMethod(name);
           return;
         }
 
-        // The outer loop specifies the argument to climb one level higher in the hierarchy
+        // This loop specifies the argument to climb higher in the hierarchy
         for (int i = 0; i < newArgTypes.size(); i++) {
+          // This loop specifies how many levels further to climb for specified argument
           for (int j = level; j <= maxLevel; j++) {
             // Create the mangled name
             StringBuilder s = new StringBuilder();
             s.append(name);
             List<String> argTypes = new ArrayList<String>();
 
-            // The middle loop adds the argument types to the name in order
+            // This loop adds the argument types to the name in order
             for (int k = 0; k < newArgTypes.size(); k++) {
               // If this is a primitive type, we can't climb up the hierarchy so simply append it
               if (null == newArgTypes.get(k)) {
@@ -819,13 +821,13 @@ public class JavaExpression extends Visitor implements Translatable {
               } else {
                 // Start out with the original type of the argument
                 String type = newArgTypes.get(k);
-                // Climb the tree level - 1 times
+                // Climb the tree to the current level 
                 for (int l = 1; l < level; l++) {
                   if (null == hierarchy.get(type))
                     break;
                   type = hierarchy.get(type);
                 }
-                // If this is the argument specified by the outer loop, climb an extra level
+                // If this is the argument specified by the outer loop, climb extra levels
                 if (i == k) {
                   for (int m = level; m < j; m++) {
                     if (null == hierarchy.get(type))
@@ -872,18 +874,18 @@ public class JavaExpression extends Visitor implements Translatable {
 
       // Special cases for methods defined in java_lang
       if (null == method) {
-        if (name.equals("hashCode") || name.equals("length")) {
+        if (name.equals("hashCode$void") || name.equals("length$void")) {
           parent.setType(new JavaType("int"));
           return;
-        } else if (name.equals("equals$Object") || name.equals("isPrimitive") ||
+        } else if (name.equals("equals$Object") || name.equals("isPrimitive$void") ||
             name.equals("isArray")) {
           parent.setType(new JavaType("boolean"));
           return;
-        } else if (name.equals("getClass") || name.equals("getComponentType") ||
-            name.equals("getSuperclass")) {
+        } else if (name.equals("getClass$void") || name.equals("getComponentType$void") ||
+            name.equals("getSuperclass$void")) {
           parent.setType(new JavaType("Class"));
           return;
-        } else if (name.equals("toString") || name.equals("getName")) {
+        } else if (name.equals("toString$void") || name.equals("getName$void")) {
           parent.setType(new JavaType("String"));
           return;
         } else if (name.equals("charAt$int32_t")) {
@@ -946,7 +948,7 @@ public class JavaExpression extends Visitor implements Translatable {
                 !args.get(i).getType().isPrimitive() &&
                 !args.get(i).getType().getClassType().equals("String")) ||
                 args.get(i).getType().isArray()) {
-              out.p("->__vptr->toString(");
+              out.p("->__vptr->toString$void(");
               args.get(i).translate(out);
               out.p(")");
             }

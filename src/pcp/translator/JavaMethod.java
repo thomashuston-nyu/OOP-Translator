@@ -82,16 +82,14 @@ public class JavaMethod extends Visitor implements Translatable {
     }
 
     // Name mangling for method overloading
-    if (n.getString(3).contains("$")) {
-      pcp.Translator.errConsole.pln("$ is not allowed in method names: " + n.getString(3)).flush();
-      throw new RuntimeException();
-    }
     StringBuilder s = new StringBuilder();
     s.append(n.getString(3));
     Set<String> params = parameters.keySet();
     for (String param : params) {
       s.append("$" + parameters.get(param).getMangledType());
     }
+    if (0 == params.size())
+      s.append("$void");
     name = s.toString();
 
     // Create the body of the method
@@ -234,6 +232,8 @@ public class JavaMethod extends Visitor implements Translatable {
       JavaType paramType = new JavaType(param.getGeneric(j));
       if (null != param.getNode(j).get(1))
         paramType.setDimensions(param.getNode(j).getNode(1).size());
+      if (param.getString(j + 2).contains("$"))
+        throw new RuntimeException("Variable names may not contain a $-sign.");
       parameters.put("$" + param.getString(j + 2), paramType);
     }
   }

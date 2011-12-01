@@ -1,9 +1,8 @@
 .DS_Store
-a.out
 *.class
 build
 dist
 docs
 classes
-output/*.cc
-output/*.h
+temp
+output

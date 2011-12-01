@@ -39,7 +39,7 @@ namespace java {
     }
 
     // java.lang.Object.hashCode()
-    int32_t __Object::hashCode(Object __this) {
+    int32_t __Object::hashCode$void(Object __this) {
       return (int32_t)(intptr_t)__this.raw();
     }
 
@@ -49,17 +49,17 @@ namespace java {
     }
 
     // java.lang.Object.getClass()
-    Class __Object::getClass(Object __this) {
+    Class __Object::getClass$void(Object __this) {
       return __this->__vptr->__isa;
     }
 
     // java.lang.Object.toString()
-    String __Object::toString(Object __this) {
+    String __Object::toString$void(Object __this) {
       // Class k = this.getClass();
-      Class k = __this->__vptr->getClass(__this);
+      Class k = __this->__vptr->getClass$void(__this);
 
       std::ostringstream sout;
-      sout << k->__vptr->getName(k)->data
+      sout << k->__vptr->getName$void(k)->data
            << '@' << std::hex << (uintptr_t)__this.raw();
       return new __String(sout.str());
     }
@@ -89,7 +89,7 @@ namespace java {
     }
 
     // java.lang.String.hashCode()
-    int32_t __String::hashCode(String __this) {
+    int32_t __String::hashCode$void(String __this) {
       int32_t hash = 0;
 
       // Use a C++ iterator to access string's characters.
@@ -115,12 +115,12 @@ namespace java {
     }
 
     // java.lang.String.toString()
-    String __String::toString(String __this) {
+    String __String::toString$void(String __this) {
       return __this;
     }
 
     // java.lang.String.length()
-    int32_t __String::length(String __this) {
+    int32_t __String::length$void(String __this) {
       return __this->data.length();
     }
 
@@ -168,7 +168,7 @@ namespace java {
     }
 
     // java.lang.Class.toString()
-    String __Class::toString(Class __this) {
+    String __Class::toString$void(Class __this) {
       if (__this->primitive) {
         return __this->name;
       } else {
@@ -177,38 +177,38 @@ namespace java {
     }
 
     // java.lang.Class.getName()
-    String __Class::getName(Class __this) {
+    String __Class::getName$void(Class __this) {
       return __this->name;
     }
 
     // java.lang.Class.getSuperclass()
-    Class __Class::getSuperclass(Class __this) {
+    Class __Class::getSuperclass$void(Class __this) {
       return __this->parent;
     }
 
     // java.lang.Class.isPrimitive()
-    bool __Class::isPrimitive(Class __this) {
+    bool __Class::isPrimitive$void(Class __this) {
       return __this->primitive;
     }
 
     // java.lang.Class.isArray()
-    bool __Class::isArray(Class __this) {
+    bool __Class::isArray$void(Class __this) {
       return __rt::null() != __this->component;
     }
 
     // java.lang.Class.getComponentType()
-    Class __Class::getComponentType(Class __this) {
+    Class __Class::getComponentType$void(Class __this) {
       return __this->component;
     }
 
     // java.lang.Class.isInstance(Object)
     bool __Class::isInstance$Object(Class __this, Object o) {
-      Class k = o->__vptr->getClass(o);
+      Class k = o->__vptr->getClass$void(o);
 
       do {
         if (__this->__vptr->equals$Object(__this, k)) return true;
 
-        k = k->__vptr->getSuperclass(k);
+        k = k->__vptr->getSuperclass$void(k);
       } while (__rt::null() != k);
 
       return false;
@@ -296,206 +296,6 @@ namespace __rt {
     return value;
   }
 
-  // Template specialization for arrays of bytes.
-  template<>
-  Array<unsigned char>::Array(const int32_t length)
-  : __vptr(&__vtable), length(length), __data(new unsigned char[length]) {
-    std::memset(__data, 0, length * sizeof(unsigned char));
-  }
-
-  template<>
-  java::lang::Class Array<unsigned char>::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[B"),
-                              java::lang::__Object::__class(),
-                              java::lang::__Byte::TYPE());
-    return k;
-  }
-
-  template<>
-  java::lang::Class Array<Ptr<Array<unsigned char> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[B"),
-                              Array<unsigned char>::__class(),
-                              java::lang::__Byte::TYPE());
-    return k;
-  }
-
-  // Template specialization for arrays of shorts.
-  template<>
-  Array<int16_t>::Array(const int32_t length)
-  : __vptr(&__vtable), length(length), __data(new int16_t[length]) {
-    std::memset(__data, 0, length * sizeof(int16_t));
-  }
-
-  template<>
-  java::lang::Class Array<int16_t>::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[S"),
-                              java::lang::__Object::__class(),
-                              java::lang::__Short::TYPE());
-    return k;
-  }
-
-  template<>
-  java::lang::Class Array<Ptr<Array<int16_t> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[S"),
-                              Array<int16_t>::__class(),
-                              java::lang::__Short::TYPE());
-    return k;
-  }
-
-  // Template specialization for arrays of ints.
-  template<>
-  Array<int32_t>::Array(const int32_t length)
-  : __vptr(&__vtable), length(length), __data(new int32_t[length]) {
-    std::memset(__data, 0, length * sizeof(int32_t));
-  }
-
-  template<>
-  java::lang::Class Array<int32_t>::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[I"),
-                              java::lang::__Object::__class(),
-                              java::lang::__Integer::TYPE());
-    return k;
-  }
-
-  template<>
-  java::lang::Class Array<Ptr<Array<int32_t> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[I"),
-                              Array<int32_t>::__class(),
-                              java::lang::__Integer::TYPE());
-    return k;
-  }
-
-  // Template specialization for arrays of longs.
-  template<>
-  Array<int64_t>::Array(const int32_t length)
-  : __vptr(&__vtable), length(length), __data(new int64_t[length]) {
-    std::memset(__data, 0, length * sizeof(int64_t));
-  }
-
-  template<>
-  java::lang::Class Array<int64_t>::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[J"),
-                              java::lang::__Object::__class(),
-                              java::lang::__Long::TYPE());
-    return k;
-  }
-
-  template<>
-  java::lang::Class Array<Ptr<Array<int64_t> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[J"),
-                              Array<int64_t>::__class(),
-                              java::lang::__Long::TYPE());
-    return k;
-  }
-
-  // Template specialization for arrays of floats.
-  template<>
-  Array<float>::Array(const int32_t length)
-  : __vptr(&__vtable), length(length), __data(new float[length]) {
-    std::memset(__data, 0, length * sizeof(float));
-  }
-
-  template<>
-  java::lang::Class Array<float>::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[F"),
-                              java::lang::__Object::__class(),
-                              java::lang::__Float::TYPE());
-    return k;
-  }
-
-  template<>
-  java::lang::Class Array<Ptr<Array<float> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[F"),
-                              Array<float>::__class(),
-                              java::lang::__Float::TYPE());
-    return k;
-  }
-
-  // Template specialization for arrays of doubles.
-  template<>
-  Array<double>::Array(const int32_t length)
-  : __vptr(&__vtable), length(length), __data(new double[length]) {
-    std::memset(__data, 0, length * sizeof(double));
-  }
-
-  template<>
-  java::lang::Class Array<double>::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[D"),
-                              java::lang::__Object::__class(),
-                              java::lang::__Double::TYPE());
-    return k;
-  }
-
-  template<>
-  java::lang::Class Array<Ptr<Array<double> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[D"),
-                              Array<double>::__class(),
-                              java::lang::__Double::TYPE());
-    return k;
-  }
-
-  // Template specialization for arrays of chars.
-  template<>
-  Array<char>::Array(const int32_t length)
-  : __vptr(&__vtable), length(length), __data(new char[length]) {
-    std::memset(__data, 0, length * sizeof(char));
-  }
-
-  template<>
-  java::lang::Class Array<char>::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[C"),
-                              java::lang::__Object::__class(),
-                              java::lang::__Character::TYPE());
-    return k;
-  }
-
-  template<>
-  java::lang::Class Array<Ptr<Array<char> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[C"),
-                              Array<char>::__class(),
-                              java::lang::__Character::TYPE());
-    return k;
-  }
-
-  // Template specialization for arrays of booleans.
-  template<>
-  Array<bool>::Array(const int32_t length)
-  : __vptr(&__vtable), length(length), __data(new bool[length]) {
-    std::memset(__data, 0, length * sizeof(bool));
-  }
-
-  template<>
-  java::lang::Class Array<bool>::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[Z"),
-                              java::lang::__Object::__class(),
-                              java::lang::__Boolean::TYPE());
-    return k;
-  }
-
-  template<>
-  java::lang::Class Array<Ptr<Array<bool> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[Z"),
-                              Array<bool>::__class(),
-                              java::lang::__Boolean::TYPE());
-    return k;
-  }
-
   // Template specialization for arrays of objects.
   template<>
   java::lang::Class Array<java::lang::Object>::__class() {
@@ -506,32 +306,5 @@ namespace __rt {
     return k;
   }
 
-  template<>
-  java::lang::Class Array<Ptr<Array<java::lang::Object> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[Ljava.lang.Object;"),
-                              Array<java::lang::Object>::__class(),
-                              java::lang::__Object::__class());
-    return k;
-  }
-
-  // Template specialization for arrays of strings.
-  template<>
-  java::lang::Class Array<java::lang::String>::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[Ljava.lang.String;"),
-                              Array<java::lang::Object>::__class(),
-                              java::lang::__String::__class());
-    return k;
-  }
-
-  template<>
-  java::lang::Class Array<Ptr<Array<java::lang::String> > >::__class() {
-    static java::lang::Class k =
-      new java::lang::__Class(literal("[[Ljava.lang.String;"),
-                              Array<java::lang::String>::__class(),
-                              java::lang::__String::__class());
-    return k;
-  }
 
 }

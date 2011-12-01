@@ -507,13 +507,13 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
 
     // Declare all the methods in the vtable
     out.indent().p("void (*__delete)(__").p(name).pln("*);");
-    out.indent().p("int32_t (*hashCode)(").p(name).pln(");");
+    out.indent().p("int32_t (*hashCode$void)(").p(name).pln(");");
     out.indent().p("bool (*equals$Object)(").p(name).pln(", Object);");
-    out.indent().p("Class (*getClass)(").p(name).pln(");");
-    out.indent().p("String (*toString)(").p(name).pln(");");
+    out.indent().p("Class (*getClass$void)(").p(name).pln(");");
+    out.indent().p("String (*toString$void)(").p(name).pln(");");
     Set<String> keys = vtable.keySet();
     for (String key : keys) {
-      if (key.equals("hashCode") || key.equals("equals$Object") || key.equals("toString"))
+      if (key.equals("hashCode$void") || key.equals("equals$Object") || key.equals("toString$void"))
         continue;
       vtable.get(key).translateVTableDeclaration(out, this);
     }
@@ -522,11 +522,11 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     out.pln().indent().p("__").p(name).pln("_VT()");
     out.indent().p(": __isa(__").p(name).pln("::__class()),");
     out.indent().p("__delete((void(*)(__").p(name).pln("*))&__Object::__delete),");
-    if (vtable.containsKey("hashCode")) {
-      vtable.get("hashCode").translateVTableReference(out, this);
+    if (vtable.containsKey("hashCode$void")) {
+      vtable.get("hashCode$void").translateVTableReference(out, this);
       out.pln(",");
     } else {
-      out.indent().p("hashCode((int32_t(*)(").p(name).pln("))&__Object::hashCode),");
+      out.indent().p("hashCode$void((int32_t(*)(").p(name).pln("))&__Object::hashCode$void),");
     }   
     if (vtable.containsKey("equals$Object")) {
       vtable.get("equals$Object").translateVTableReference(out, this);
@@ -534,14 +534,14 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     } else {
       out.indent().p("equals$Object((bool(*)(").p(name).pln(",Object))&__Object::equals$Object),");
     }
-    out.indent().p("getClass((Class(*)(").p(name).pln("))&__Object::getClass),");
-    if (vtable.containsKey("toString")) {
-      vtable.get("toString").translateVTableReference(out, this);
+    out.indent().p("getClass$void((Class(*)(").p(name).pln("))&__Object::getClass$void),");
+    if (vtable.containsKey("toString$void")) {
+      vtable.get("toString$void").translateVTableReference(out, this);
     } else {
-      out.indent().p("toString((String(*)(").p(name).p("))&__Object::toString)");
+      out.indent().p("toString$void((String(*)(").p(name).p("))&__Object::toString$void)");
     }
     for (String key : keys) {
-      if (key.equals("hashCode") || key.equals("equals") || key.equals("toString"))
+      if (key.equals("hashCode$void") || key.equals("equals$Object") || key.equals("toString$void"))
         continue;
       out.pln(",");
       vtable.get(key).translateVTableReference(out, this);
@@ -561,46 +561,33 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * @return The output stream.
    */
   public Printer translateArrayTemplate(Printer out) {
-    // Single-dimensional array template
-    out.indent().pln("template<>");
-    out.indent().p("java::lang::Class Array<");
-    if (!getFile().getPackage().getNamespace().equals(""))
-      out.p(getFile().getPackage().getNamespace()).p("::");
-    out.p(name).pln(">::__class() {").incr();
-    out.indent().pln("static java::lang::Class k = ");
-    out.indentMore().p("new java::lang::__Class(literal(\"[L");
-    if (!getFile().getPackage().getPackagename().equals(""))
-      out.p(getFile().getPackage().getPackagename()).p(".");
-    out.p(name).pln(";\"),").incr();
-    out.indentMore().pln("Array<java::lang::Object>::__class(),");
-    out.indentMore();
-    if (!getFile().getPackage().getNamespace().equals(""))
-      out.p(getFile().getPackage().getNamespace()).p("::");
-    out.p("__").p(name).pln("::__class());").decr();
-    out.indent().pln("return k;");
-    out.decr().indent().pln("}").pln();
-
-    // Two-dimensional array template
-    out.indent().pln("template<>");
-    out.indent().p("java::lang::Class Array<Ptr<Array<");
-    if (!getFile().getPackage().getNamespace().equals(""))
-      out.p(getFile().getPackage().getNamespace()).p("::");
-    out.p(name).pln("> > >::__class() {").incr();
-    out.indent().pln("static java::lang::Class k = ");
-    out.indentMore().p("new java::lang::__Class(literal(\"[[L");
-    if (!getFile().getPackage().getPackagename().equals(""))
-      out.p(getFile().getPackage().getPackagename()).p(".");
-    out.p(name).pln(";\"),").incr();
-    out.indentMore().p("Array<");
-    if (!getFile().getPackage().getNamespace().equals(""))
-      out.p(getFile().getPackage().getNamespace()).p("::");
-    out.p(name).pln(">::__class(),");
-    out.indentMore();
-    if (!getFile().getPackage().getNamespace().equals(""))
-      out.p(getFile().getPackage().getNamespace()).p("::");
-    out.p("__").p(name).pln("::__class());").decr();
-    out.indent().pln("return k;");
-    return out.decr().indent().pln("}").pln();
+    Map<String, Integer> arrays = JavaType.getArrayDimensions();
+    if (arrays.containsKey(name)) {
+      int dim = arrays.get(name);
+      for (int i = 1; i <= dim; i++) {
+        JavaType t;
+        if (getFile().getPackage().getNamespace().equals(""))
+          t = new JavaType(name, i);
+        else
+          t = new JavaType(name, getFile().getPackage(), i);
+        t.translateArraySpecialization(out);
+      }
+    }
+    if (getFile().isMain()) {
+      Set<String> keys = arrays.keySet();
+      for (String key : keys) {
+        if (key.equals("Object") || key.equals("Class") ||
+            key.equals("String") || JavaType.isPrimitive(key)) {
+          int dim = arrays.get(key);
+          int i = key.equals("Object") ? 2 : 1;
+          for (; i <= dim; i++) {
+            JavaType t = new JavaType(key, i);
+            t.translateArraySpecialization(out);
+          }
+        }
+      }
+    }
+    return out;
   }
 
   /**

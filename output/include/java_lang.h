@@ -85,10 +85,10 @@ namespace java {
       static void __delete(__Object*);
 
       // The methods implemented by java.lang.Object.
-      static int32_t hashCode(Object);
+      static int32_t hashCode$void(Object);
       static bool equals$Object(Object, Object);
-      static Class getClass(Object);
-      static String toString(Object);
+      static Class getClass$void(Object);
+      static String toString$void(Object);
 
       // The function returning the class object representing
       // java.lang.Object.
@@ -102,18 +102,18 @@ namespace java {
     struct __Object_VT {
       Class __isa;
       void (*__delete)(__Object*);
-      int32_t (*hashCode)(Object);
+      int32_t (*hashCode$void)(Object);
       bool (*equals$Object)(Object, Object);
-      Class (*getClass)(Object);
-      String (*toString)(Object);
+      Class (*getClass$void)(Object);
+      String (*toString$void)(Object);
 
       __Object_VT()
       : __isa(__Object::__class()),
         __delete(&__Object::__delete),
-        hashCode(&__Object::hashCode),
+        hashCode$void(&__Object::hashCode$void),
         equals$Object(&__Object::equals$Object),
-        getClass(&__Object::getClass),
-        toString(&__Object::toString) {
+        getClass$void(&__Object::getClass$void),
+        toString$void(&__Object::toString$void) {
       }
     };
 
@@ -131,10 +131,10 @@ namespace java {
       static void __delete(__String*);
       
       // The methods implemented by java.lang.String.
-      static int32_t hashCode(String);
+      static int32_t hashCode$void(String);
       static bool equals$Object(String, Object);
-      static String toString(String);
-      static int32_t length(String);
+      static String toString$void(String);
+      static int32_t length$void(String);
       static char charAt$int32_t(String, int32_t);
 
       // The function returning the class object representing
@@ -151,21 +151,21 @@ namespace java {
     struct __String_VT {
       Class __isa;
       void (*__delete)(__String*);
-      int32_t (*hashCode)(String);
+      int32_t (*hashCode$void)(String);
       bool (*equals$Object)(String, Object);
-      Class (*getClass)(String);
-      String (*toString)(String);
-      int32_t (*length)(String);
+      Class (*getClass$void)(String);
+      String (*toString$void)(String);
+      int32_t (*length$void)(String);
       char (*charAt$int32_t)(String, int32_t);
       
       __String_VT()
       : __isa(__String::__class()),
         __delete(__String::__delete),
-        hashCode(&__String::hashCode),
+        hashCode$void(&__String::hashCode$void),
         equals$Object(&__String::equals$Object),
-        getClass((Class(*)(String))&__Object::getClass),
-        toString(&__String::toString),
-        length(&__String::length),
+        getClass$void((Class(*)(String))&__Object::getClass$void),
+        toString$void(&__String::toString$void),
+        length$void(&__String::length$void),
         charAt$int32_t(&__String::charAt$int32_t) {
       }
     };
@@ -190,12 +190,12 @@ namespace java {
       static void __delete(__Class*);
 
       // The instance methods of java.lang.Class.
-      static String toString(Class);
-      static String getName(Class);
-      static Class getSuperclass(Class);
-      static bool isPrimitive(Class);
-      static bool isArray(Class);
-      static Class getComponentType(Class);
+      static String toString$void(Class);
+      static String getName$void(Class);
+      static Class getSuperclass$void(Class);
+      static bool isPrimitive$void(Class);
+      static bool isArray$void(Class);
+      static Class getComponentType$void(Class);
       static bool isInstance$Object(Class, Object);
 
       // The function returning the class object representing
@@ -210,29 +210,29 @@ namespace java {
     struct __Class_VT {
       Class __isa;
       void (*__delete)(__Class*);
-      int32_t (*hashCode)(Class);
+      int32_t (*hashCode$void)(Class);
       bool (*equals$Object)(Class, Object);
-      Class (*getClass)(Class);
-      String (*toString)(Class);
-      String (*getName)(Class);
-      Class (*getSuperclass)(Class);
-      bool (*isPrimitive)(Class);
-      bool (*isArray)(Class);
-      Class (*getComponentType)(Class);
+      Class (*getClass$void)(Class);
+      String (*toString$void)(Class);
+      String (*getName$void)(Class);
+      Class (*getSuperclass$void)(Class);
+      bool (*isPrimitive$void)(Class);
+      bool (*isArray$void)(Class);
+      Class (*getComponentType$void)(Class);
       bool (*isInstance$Object)(Class, Object);
 
       __Class_VT()
       : __isa(__Class::__class()),
         __delete(&__Class::__delete),
-        hashCode((int32_t(*)(Class))&__Object::hashCode),
+        hashCode$void((int32_t(*)(Class))&__Object::hashCode$void),
         equals$Object((bool(*)(Class,Object))&__Object::equals$Object),
-        getClass((Class(*)(Class))&__Object::getClass),
-        toString(&__Class::toString),
-        getName(&__Class::getName),
-        getSuperclass(&__Class::getSuperclass),
-        isPrimitive(&__Class::isPrimitive),
-        isArray(&__Class::isArray),
-        getComponentType(&__Class::getComponentType),
+        getClass$void((Class(*)(Class))&__Object::getClass$void),
+        toString$void(&__Class::toString$void),
+        getName$void(&__Class::getName$void),
+        getSuperclass$void(&__Class::getSuperclass$void),
+        isPrimitive$void(&__Class::isPrimitive$void),
+        isArray$void(&__Class::isArray$void),
+        getComponentType$void(&__Class::getComponentType$void),
         isInstance$Object(&__Class::isInstance$Object) {
       }
     };
@@ -384,22 +384,22 @@ namespace __rt {
 
     java::lang::Class __isa;
     void (*__delete)(Array<T>*);
-    int32_t (*hashCode)(Reference);
+    int32_t (*hashCode$void)(Reference);
     bool (*equals$Object)(Reference, java::lang::Object);
-    java::lang::Class (*getClass)(Reference);
-    java::lang::String (*toString)(Reference);
+    java::lang::Class (*getClass$void)(Reference);
+    java::lang::String (*toString$void)(Reference);
     
     Array_VT()
     : __isa(Array<T>::__class()),
       __delete(&Array<T>::__delete),
-      hashCode((int32_t(*)(Reference))
-               &java::lang::__Object::hashCode),
+      hashCode$void((int32_t(*)(Reference))
+               &java::lang::__Object::hashCode$void),
       equals$Object((bool(*)(Reference,java::lang::Object))
              &java::lang::__Object::equals$Object),
-      getClass((java::lang::Class(*)(Reference))
-               &java::lang::__Object::getClass),
-      toString((java::lang::String(*)(Reference))
-               &java::lang::__Object::toString) {
+      getClass$void((java::lang::Class(*)(Reference))
+               &java::lang::__Object::getClass$void),
+      toString$void((java::lang::String(*)(Reference))
+               &java::lang::__Object::toString$void) {
     }
   };
 
@@ -431,8 +431,8 @@ namespace __rt {
   template <typename T, typename U>
   void checkStore(Ptr<Array<T> > array, U object) {
     if (null() != object) {
-      java::lang::Class t1 = array->__vptr->getClass(array);
-      java::lang::Class t2 = t1->__vptr->getComponentType(t1);
+      java::lang::Class t1 = array->__vptr->getClass$void(array);
+      java::lang::Class t2 = t1->__vptr->getComponentType$void(t1);
 
       if (! t2->__vptr->isInstance$Object(t2, object)) {
         throw java::lang::ArrayStoreException();

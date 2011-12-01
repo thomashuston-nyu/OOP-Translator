@@ -55,12 +55,38 @@ public class JavaType extends Visitor implements Translatable {
     primitives.put("void", "void");
   }
 
+  private final static Map<String, String> primitiveWrappers = new HashMap<String, String>();
+  static {
+    primitiveWrappers.put("unsigned char", "Byte");
+    primitiveWrappers.put("int16_t", "Short");
+    primitiveWrappers.put("int32_t", "Integer");
+    primitiveWrappers.put("int64_t", "Long");
+    primitiveWrappers.put("float", "Float");
+    primitiveWrappers.put("double", "Double");
+    primitiveWrappers.put("bool", "Boolean");
+    primitiveWrappers.put("char", "Character");
+  }
+
+  private final static Map<String, Character> primitiveLetters = new HashMap<String, Character>();
+  static {
+    primitiveLetters.put("unsigned char", 'B');
+    primitiveLetters.put("int16_t", 'S');
+    primitiveLetters.put("int32_t", 'I');
+    primitiveLetters.put("int64_t", 'J');
+    primitiveLetters.put("float", 'F');
+    primitiveLetters.put("double", 'D');
+    primitiveLetters.put("bool", 'Z');
+    primitiveLetters.put("char", 'C');
+  }
+
   private static Map<String, String> hierarchy = new HashMap<String, String>();
   static {
     hierarchy.put("Object", null);
     hierarchy.put("Class", "Object");
     hierarchy.put("String", "Object");
   }
+
+  private static Map<String, Integer> arrays = new HashMap<String, Integer>();
 
   private int dimensions;
   private boolean isStatic;
@@ -99,7 +125,20 @@ public class JavaType extends Visitor implements Translatable {
    */
   public JavaType(String type, int dim) {
     this(type);
-    dimensions = dim;
+    setDimensions(dim);
+  }
+
+  /**
+   * Creates the type from a string, package, and dimensions.
+   *
+   * @param type The type.
+   * @param pkg The package.
+   * @param dim The dimensions of the array.
+   */
+  public JavaType(String type, JavaPackage pkg, int dim) {
+    this(type);
+    setDimensions(dim);
+    this.pkg = pkg;
   }
 
 
@@ -286,6 +325,17 @@ public class JavaType extends Visitor implements Translatable {
       dimensions = dim;
     else
       pcp.Translator.errConsole.p("Invalid array dimensions: ").pln(dim).flush();
+    String type;
+    if (null != primitiveType)
+      type = primitiveType;
+    else
+      type = classType;
+    if (arrays.containsKey(type)) {
+      if (arrays.get(type) < dimensions)
+        arrays.put(type, dimensions);
+    } else {
+      arrays.put(type, dimensions);
+    }
   }
 
   /**
@@ -369,6 +419,96 @@ public class JavaType extends Visitor implements Translatable {
     return out.p(getType());
   }
 
+  /**
+   * Creates the array template for the type and
+   * adds it to the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
+  public Printer translateArraySpecialization(Printer out) {
+    out.indent().pln("template<>");
+    out.indent().p("java::lang::Class Array<");
+    for (int i = 1; i < dimensions; i++) {
+      out.p("Ptr<Array<");
+    }
+    if (null != classType) {
+      if (null != pkg)
+        out.p(pkg.getNamespace()).p("::");
+      else if (classType.equals("Object") || classType.equals("Class") 
+          || classType.equals("String"))
+        out.p("java::lang::");
+      out.p(classType);
+    } else {
+      out.p(primitives.get(primitiveType));
+    }
+    for (int i = 1; i < dimensions; i++) {
+      out.p(" > >");
+    }
+    out.pln(" >::__class() {").incr();
+    out.indent().pln("static java::lang::Class k = ");
+    out.indentMore().p("new java::lang::__Class(literal(\"");
+    for (int i = 1; i < dimensions; i++) {
+      out.p("[");
+    }
+    out.p("[");
+    if (null != classType) {
+      out.p("L");
+      if (null != pkg)
+        out.p(pkg.getPackagename()).p("::");
+      else if (classType.equals("Object") || classType.equals("Class") 
+          || classType.equals("String"))
+        out.p("java.lang.");
+      out.p(classType);
+    } else {
+      out.p(primitiveLetters.get(primitives.get(primitiveType)));
+    }
+    if (null != classType)
+      out.p(";");
+    out.pln("\"),").incr();
+    if (1 < dimensions || null != classType) {
+      out.indentMore().p("Array<");
+      if (1 == dimensions) {
+        out.p("java::lang::Object");
+      } else {
+        for (int i = 2; i < dimensions; i++) {
+          out.p("Ptr<Array<");
+        }
+        if (null != classType) {
+          if (null != pkg)
+            out.p(pkg.getNamespace()).p("::");
+          else if (classType.equals("Object") || classType.equals("Class") 
+              || classType.equals("String"))
+            out.p("java::lang::");
+          out.p(classType);
+        } else {
+          out.p(primitives.get(primitiveType));
+        }
+        for (int i = 2; i < dimensions; i++) {
+          out.p(" > >");
+        }
+      }
+      out.pln(" >::__class(),");
+    } else {
+      out.indentMore().pln("java::lang::__Object::__class(),");
+    }
+    out.indentMore();
+    if (null != pkg)
+      out.p(pkg.getNamespace()).p("::");
+    else if (null != primitiveType || classType.equals("Object") ||
+        classType.equals("Class") || classType.equals("String"))
+      out.p("java::lang::");
+    out.p("__");
+    if (null != classType)
+      out.p(classType).p("::__class()");
+    else
+      out.p(primitiveWrappers.get(primitives.get(primitiveType))).p("::TYPE()");
+    out.pln(");").decr(); 
+    out.indent().pln("return k;");
+    return out.decr().indent().pln("}").pln();
+  }
+
 
   // ========================== Static Methods ======================
 
@@ -383,12 +523,33 @@ public class JavaType extends Visitor implements Translatable {
   }
 
   /**
+   * Gets the mapping of array types to maximum dimensions.
+   *
+   * @return The array mapping.
+   */
+  public static Map<String, Integer> getArrayDimensions() {
+    return arrays;
+  }
+
+  /**
    * Gets the class hierarchy.
    *
    * @return The class hierarchy.
    */
   public static Map<String, String> getHierarchy() {
     return hierarchy;
+  }
+
+  /**
+   * Checks if the specified type is primitive.
+   *
+   * @param type The type to check.
+   *
+   * @return <code>True</code> if the type is primitive;
+   * <code>false</code> otherwise.
+   */
+  public static boolean isPrimitive(String type) {
+    return primitives.containsKey(type);
   }
 
 }

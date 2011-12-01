@@ -10,6 +10,8 @@
   <property name="lib"  location="lib"/>
   <property name="output" location="output"/>
 	<property name="src" location="src"/>
+	<property name="test" location="test"/>
+	<property name="temp" location="temp"/>
 	<property environment="env"/>
 
 	<!-- Include jars -->
@@ -33,8 +35,8 @@
 		<!-- Put everything in the build directory into the distrbution jar -->
 		<jar jarfile="${dist}/pcp.jar" basedir="${classes}">
 			<manifest>
-                <attribute name="Main-Class" value="pcp.Translator"/>
-            </manifest>
+        <attribute name="Main-Class" value="pcp.Translator"/>
+      </manifest>
 		</jar>
 	</target>
 	
@@ -51,7 +53,7 @@
   </target>
 
   <!-- Run the distribution jar to translate a file -->
-	<target name="translate" depends="jar,clean-output" description="run the distribution">
+	<target name="translate" depends="jar,clean-output" description="translate a file">
 	  <mkdir dir="${output}"/>
     <java fork="true" classname="pcp.Translator">
       <classpath>
@@ -61,6 +63,17 @@
       <arg value="-translateJava"/>
       <arg value="${file}"/>
     </java>
+  </target>
+
+  <!-- Translate a file and then compile and run the generated C++ -->
+  <target name="test" description="test the C++ output">
+		<delete dir="${temp}"/>
+    <mkdir dir="${temp}"/>
+    <javac srcdir="${test}" destdir="${temp}" classpathref="classpath" debug="on" debuglevel="lines,vars,source" includeantruntime="false">
+    </javac>
+    <exec executable="sh">
+      <arg value="${test}/test.sh"/>
+    </exec>
   </target>
 
   <!-- Run the distribution jar to print the AST -->
