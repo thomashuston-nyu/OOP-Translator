@@ -1006,15 +1006,23 @@ public class JavaExpression extends Visitor implements Translatable {
         JavaClass cls = (JavaClass)temp;
         if (isSuper)
           cls = cls.getParent();
-        if (null == cls)
-          return out.p("java::lang::__Object::$__Object$void($con$)");
+        if (null == cls) {
+          out.p("java::lang::__Object::$__Object$void(");
+          if (isSuper)
+            out.p("$con$");
+          return out.p(")");
+        }
         if (!cls.getFile().getPackage().getNamespace().equals(""))
           out.p(cls.getFile().getPackage().getNamespace()).p("::");
-        out.p("__").p(cls.getName()).p("::").p(name).p("($con$");
-        for (JavaExpression arg : args) {
-          out.p(", ");
-          arg.translate(out);
+        out.p("__").p(cls.getName()).p("::").p(name).p("(");
+        int size = args.size();
+        for (int i = 0; i < size; i++) {
+          args.get(i).translate(out);
+          if (i < size - 1)
+            out.p(", ");
         }
+        if (isSuper)
+          out.p(", $con$");
         return out.p(")");
       } else if (null != caller && caller.hasName("CallExpression")) {
         out.pln("({").incr();
@@ -1656,7 +1664,9 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class NewClassExpression extends JavaExpression {
 
-    private List<JavaExpression> arguments;
+    private List<JavaExpression> args;
+    private JavaClass cls;
+    private String name;
     private JavaType type;
     private JavaExpression parent;
 
@@ -1669,11 +1679,11 @@ public class JavaExpression extends Visitor implements Translatable {
     public NewClassExpression(GNode n, JavaExpression parent) {
       this.parent = parent;
       type = new JavaType(n.getGeneric(2));
-      arguments = new ArrayList<JavaExpression>();
+      args = new ArrayList<JavaExpression>();
       for (Object o : n.getNode(3)) {
         if (null == o)
           continue;
-        arguments.add(new JavaExpression((GNode)o, parent.getStatement()));
+        args.add(new JavaExpression((GNode)o, parent.getStatement()));
       }
     }
 
@@ -1681,10 +1691,114 @@ public class JavaExpression extends Visitor implements Translatable {
      * Makes sure to call checkNotNull on this variable.
      */
     public void checkNotNull() {
-      for (JavaExpression e : arguments) {
+      for (JavaExpression e : args) {
         if (e.hasName("CallExpression") || e.hasName("SelectionExpression"))
           e.checkNotNull();
       }
+    }
+
+    /**
+     * Determines the correct overloaded constructor.
+     */
+    public void determineConstructor() {
+      // First, locate the class that we're constructing
+      Set<String> classes = JavaClass.getJavaClassList();
+      for (String className : classes) {
+        if (className.endsWith(type.getClassType())) {
+          cls = JavaClass.getJavaClass(className);
+          break;
+        }
+      }
+      name = "$__" + type.getClassType();
+
+      // Used for performing a breadth-first search
+      int level = 0, maxLevel = 0;
+
+      // Keep track of the types of the arguments passed
+      List<String> newArgTypes = new ArrayList<String>();
+
+      // Get the class hierarchy
+      Map<String, String> hierarchy = JavaType.getHierarchy();
+
+      // Get the types of the arguments and the depth of the type furthest from Object
+      for (JavaExpression e : args) {
+        if (!e.getType().isPrimitive() && 0 == e.getType().getDimensions()) {
+          String type = e.getType().getClassType();
+          int depth = 0;
+          while (null != hierarchy.get(type)) {
+            depth++;
+            type = hierarchy.get(type);
+          }
+          if (depth > maxLevel)
+            maxLevel = depth;
+          newArgTypes.add(e.getType().getClassType());
+        } else {
+          newArgTypes.add(null);
+        }
+      }
+
+      // Loop until a match is found or we have tried every combination
+      while (true) {
+        // If there are no arguments, simply locate use the original method name
+        if (0 == newArgTypes.size()) {
+          name += "$void";
+          return;
+        }
+
+        // This loop specifies the argument to climb higher in the hierarchy
+        for (int i = 0; i < newArgTypes.size(); i++) {
+          // This loop specifies how many levels further to climb for specified argument
+          for (int j = level; j <= maxLevel; j++) {
+            // Create the mangled name
+            StringBuilder s = new StringBuilder();
+            s.append(name);
+            List<String> argTypes = new ArrayList<String>();
+
+            // This loop adds the argument types to the name in order
+            for (int k = 0; k < newArgTypes.size(); k++) {
+              // If this is a primitive type, we can't climb up the hierarchy so simply append it
+              if (null == newArgTypes.get(k)) {
+                String t = args.get(k).getType().getMangledType();
+                s.append("$" + t);
+                argTypes.add(t);
+              // Otherwise climb the tree as specified by the level
+              } else {
+                // Start out with the original type of the argument
+                String type = newArgTypes.get(k);
+                // Climb the tree to the current level 
+                for (int l = 1; l < level; l++) {
+                  if (null == hierarchy.get(type))
+                    break;
+                  type = hierarchy.get(type);
+                }
+                // If this is the argument specified by the outer loop, climb extra levels
+                if (i == k) {
+                  for (int m = level; m < j; m++) {
+                    if (null == hierarchy.get(type))
+                      break;
+                    type = hierarchy.get(type);
+                  }
+                }
+                s.append("$" + type);
+                argTypes.add(type);
+              }
+            }
+            String temp = s.toString();
+
+            if (null != cls.getConstructor(temp)) {
+              name = temp;
+              return;
+            }
+          }
+        }
+
+        // If the method was not found, continue up another level in the hierarchy
+        level++;
+        // Return if we have already reached the top of the hierarchy for all arguments
+        if (level > maxLevel)
+          return;
+      }
+    
     }
 
     /**
@@ -1693,6 +1807,7 @@ public class JavaExpression extends Visitor implements Translatable {
     public void determineType() {
       if (parent.hasType())
         return;
+      determineConstructor();
       parent.setType(type);
     }
 
@@ -1706,26 +1821,16 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      out.pln("({").incr();
-      out.indent();
-      type.translate(out).p(" $con$ = new __");
-      type.translate(out).pln("();");
-      out.indent().p("__");
-      type.translate(out).p("::$__");
-      type.translate(out);
-      for (JavaExpression arg : arguments) {
-        out.p("$").p(arg.getType().getMangledType());
+      if (null != cls && !cls.getFile().getPackage().getNamespace().equals(""))
+        out.p(cls.getFile().getPackage().getNamespace()).p("::");
+      out.p("__").p(type.getClassType()).p("::").p(name).p("(");
+      int argsize = args.size();
+      for (int i = 0; i < argsize; i++) {
+        args.get(i).translate(out);
+        if (i < argsize - 1)
+          out.p(", ");
       }
-      if (0 == arguments.size())
-        out.p("$void");
-      out.p("($con$");
-      for (JavaExpression arg : arguments) {
-        out.p(", ");
-        arg.translate(out);
-      }
-      out.pln(");");
-      out.indent().pln("$con$;");
-      return out.decr().indent().p("})");
+      return out.p(")");
     }
 
   }

@@ -29,6 +29,8 @@ namespace java {
     }
 
     Object __Object::$__Object$void(Object $con$) {
+	  if (__rt::null() == $con$)
+		$con$ = new __Object();
       return $con$;
     }
 

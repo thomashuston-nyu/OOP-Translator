@@ -278,17 +278,17 @@ public class JavaConstructor extends Visitor implements Translatable {
     }
     if (0 == params.size())
       out.p("$void");
-    out.p("(").p(name).p(" $con$");
+    out.p("(");
+    int count = 0;
     for (String param : params) {
-      out.p(", ");
       if (parameters.get(param).isArray())
         out.p("__rt::Ptr<");
       parameters.get(param).translate(out);
       if (parameters.get(param).isArray())
         out.p(" >");
-      out.p(" ").p(param);
+      out.p(" ").p(param).p(", ");
     }
-    return out.pln(");");
+    return out.p(name).pln(" $con$ = __rt::null());");
   }
 
   /**
@@ -308,46 +308,40 @@ public class JavaConstructor extends Visitor implements Translatable {
     }
     if (0 == params.size())
       out.p("$void");
-    out.p("(").p(name).p(" $con$");
+    out.p("(");
     for (String param : params) {
-      out.p(", ");
       if (parameters.get(param).isArray())
         out.p("__rt::Ptr<");
       parameters.get(param).translate(out);
       if (parameters.get(param).isArray())
         out.p(" >");
       out.p(" ").p(param);
+      out.p(", ");
     }
-    out.pln(") {").incr();
+    out.p(name).pln(" $con$) {").incr();
 
     // Call the C++ constructor
     if (null != thisCall) {
-      out.indent();
+      out.indent().p("$con$ = ");
       thisCall.translate(out);
+    } else {
+      out.indent().pln("if (__rt::null() == $con$)");
+      out.indentMore().p("$con$ = new __").p(name).pln("();");
     }
 
     if (null != superCall) {
       out.indent();
       superCall.translate(out);
     } else if (null == thisCall) {
-      out.indent().pln("$con$->__super = ({").incr();
+      out.indent().p("$con$->__super = ");
       JavaClass sup = cls.getParent();
       if (null == sup) {
-        out.indent().pln("Object $con$ = new __Object();");
-        out.indent().pln("__Object::$__Object$void($con$);");
+        out.pln("__Object::$__Object$void();");
       } else {
         if (!sup.getFile().getPackage().getNamespace().equals(""))
           out.p(sup.getFile().getPackage().getNamespace()).p("::");
-        out.p(sup.getName()).p(" $con$ = new ");
-        if (!sup.getFile().getPackage().getNamespace().equals(""))
-          out.p(sup.getFile().getPackage().getNamespace()).p("::");
-        out.p("__").p(sup.getName()).p("()");
-        if (!sup.getFile().getPackage().getNamespace().equals(""))
-          out.p(sup.getFile().getPackage().getNamespace()).p("::");
-        out.p("__").p(sup.getName()).p("::$__").p(sup.getName()).pln("$void($con$);");
+        out.p("__").p(sup.getName()).p("::$__").p(sup.getName()).pln("$void();");
       }
-      out.indent().pln("$con$;");
-      out.decr().indent().pln("});");
     }
 
     if (null == thisCall) {
@@ -357,7 +351,7 @@ public class JavaConstructor extends Visitor implements Translatable {
           List<JavaField> parentFields = temp.getFields();
           for (JavaField f : parentFields) {
             if (!f.isStatic())
-              f.translateDeclaration(out);
+              f.translateConstructor(out);
           }
           temp = temp.getParent();
         }
