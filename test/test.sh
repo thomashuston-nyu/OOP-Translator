@@ -10,15 +10,13 @@ function check_exit() {
 
 # List of test files to run
 files=(
-    "test/While.java"
-    "xtc/oop/Test.java"
 )
 
 # Directories
 main=$(pwd)
 test="${main}/test"
 output="${main}/output"
-classes="${main}/temp"
+classes="${main}/tmp"
 
 for file in "${files[@]}"
 do
