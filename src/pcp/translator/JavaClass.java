@@ -598,7 +598,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
         t.translateArraySpecialization(out);
       }
     }
-    if (getFile().isMain()) {
+    if (getFile().isMain() && visibility == JavaVisibility.PUBLIC) {
       Set<String> keys = arrays.keySet();
       for (String key : keys) {
         if (key.equals("Object") || key.equals("Class") ||

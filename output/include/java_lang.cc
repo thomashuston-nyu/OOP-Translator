@@ -28,8 +28,7 @@ namespace java {
     __Object::__Object() : __vptr(&__vtable) {
     }
 
-    Object __Object::$__Object$void() {
-      Object $con$ = new __Object();
+    Object __Object::$__Object$void(Object $con$) {
       return $con$;
     }
 
@@ -81,7 +80,6 @@ namespace java {
     __String::__String(std::string data)
       : __vptr(&__vtable), 
         data(data) {
-      __super = __Object::$__Object$void();
     }
 	
     // The destructor.
@@ -161,7 +159,6 @@ namespace java {
         parent(parent),
         component(component),
         primitive(primitive) {
-      __super = __Object::$__Object$void();
     }
 
     // The destructor.
