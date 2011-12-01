@@ -98,7 +98,17 @@ public class JavaBlock extends Visitor implements JavaScope, Translatable {
     // Parse all the statements in the block
     statements = new ArrayList<JavaStatement>();
     if (n.hasName("Block")) {
+      boolean first = true;
       for (Object o : n) {
+        if (first) {
+          first = false;
+          GNode node = (GNode)o;
+          if (node.hasName("ExpressionStatement") &&
+              node.getNode(0).hasName("CallExpression"))
+            if (node.getNode(0).getString(2).equals("this") ||
+                node.getNode(0).getString(2).equals("super"))
+            continue;
+        }
         statements.add(new JavaStatement((GNode)o, this));
       }
     } else {

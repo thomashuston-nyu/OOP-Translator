@@ -8,6 +8,7 @@ ant            : defaults to src
 ant src        : compiles the source code
 ant jar        : builds a jar file
 ant translate  : translates the program at -Dfile=/path/to/file
+ant test       : runs all test files
 ant ast        : prints the AST for the file at -Dfile=/path/to/file
 ant docs       : generates javadocs
 ant clean      : deletes the classes and dist directories

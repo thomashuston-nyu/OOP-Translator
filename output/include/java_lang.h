@@ -79,7 +79,7 @@ namespace java {
 
       // The constructor.
       __Object();
-	  static Object $__Object();
+	  static Object $__Object$void();
 
       // The destructor.
       static void __delete(__Object*);
@@ -122,6 +122,7 @@ namespace java {
     // The data layout for java.lang.String.
     struct __String {
       __String_VT* __vptr;
+      Object __super;
       std::string data;
 
       // The constructor;
@@ -175,6 +176,7 @@ namespace java {
     // The data layout for java.lang.Class.
     struct __Class {
       __Class_VT* __vptr;
+      Object __super;
       String name;
       Class parent;
       Class component;

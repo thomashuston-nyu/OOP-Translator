@@ -11,7 +11,7 @@
   <property name="output" location="output"/>
 	<property name="src" location="src"/>
 	<property name="test" location="test"/>
-	<property name="temp" location="temp"/>
+	<property name="temp" location="tmp"/>
 	<property environment="env"/>
 
 	<!-- Include jars -->
@@ -109,9 +109,7 @@
   <target name="clean-output" description="clean up">
 	  <delete>
       <fileset dir="${output}">
-        <include name="*.cc"/>
-        <include name="*.h"/>
-        <include name="a.out"/>
+        <exclude name="include/*"/>
       </fileset>
 	  </delete>
   </target>

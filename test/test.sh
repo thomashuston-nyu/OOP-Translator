@@ -10,7 +10,7 @@ function check_exit() {
 
 # List of test files to run
 files=(
-    "While.java"
+    "test/While.java"
     "xtc/oop/Test.java"
 )
 
@@ -48,7 +48,6 @@ do
   echo
   echo "Running Java ... "
   echo
-  echo "${fullname}"
   java -cp "${classes}" "${fullname}"
   check_exit "${filename}.java does not run correctly."
 

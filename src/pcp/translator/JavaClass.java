@@ -127,6 +127,22 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
   }
 
   /**
+   * Gets the constructor with the specified name if it exists.
+   *
+   * @param name The name of the constructor.
+   *
+   * @return The constructor if it exists;
+   * <code>null</code> otherwise.
+   */
+  public JavaConstructor getConstructor(String name) {
+    for (JavaConstructor c : constructors) {
+      if (c.getMangledName().equals(name))
+        return c;
+    }
+    return null;
+  }
+
+  /**
    * Gets the method of the specified name if it exists.
    *
    * @param name The name of the method.
@@ -461,6 +477,15 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
 
     // Declare all the fields
     out.indent().p("__").p(name).pln("_VT* __vptr;");
+    out.indent();
+    if (null == parent) {
+      out.p("Object");
+    } else {               
+      if (!parent.getFile().getPackage().getNamespace().equals(""))
+        out.p(parent.getFile().getPackage().getNamespace()).p("::");
+      out.p(parent.getName());
+    }
+    out.pln(" __super;");
     JavaClass temp = parent;
     while (null != temp) {
       List<JavaField> parentFields = temp.getFields();

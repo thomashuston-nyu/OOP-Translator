@@ -45,9 +45,10 @@ public class JavaConstructor extends Visitor implements Translatable {
   private JavaClass cls;
   //private ThrowsClause exception;
   private Map<String, JavaExpression> initialize;
-  private boolean isAbstract, isFinal, isStatic;
+  private boolean isAbstract, isFinal;
   private String name;
   private LinkedHashMap<String, JavaType> parameters;
+  private JavaStatement superCall, thisCall;
   private JavaVisibility visibility;
 
 
@@ -81,6 +82,14 @@ public class JavaConstructor extends Visitor implements Translatable {
 
     // Create the body of the constructor
     body = new JavaBlock(n.getGeneric(5), cls, this);
+
+    // Check if the first line of the constructor is a call to this
+    if (0 < n.getNode(5).size() && n.getNode(5).getNode(0).hasName("ExpressionStatement") &&
+        n.getNode(5).getNode(0).getNode(0).hasName("CallExpression"))
+      if (n.getNode(5).getNode(0).getNode(0).getString(2).equals("this"))
+        thisCall = new JavaStatement(n.getNode(5).getGeneric(0), body);
+      else if (n.getNode(5).getNode(0).getNode(0).getString(2).equals("super"))
+        superCall = new JavaStatement(n.getNode(5).getGeneric(0), body);
   }
 
 
@@ -93,6 +102,23 @@ public class JavaConstructor extends Visitor implements Translatable {
    */
   public JavaClass getClassFrom() {
     return cls;
+  }
+
+  /**
+   * Gets the mangled constructor name.
+   *
+   * @return The mangled name.
+   */
+  public String getMangledName() {
+    StringBuilder mangled = new StringBuilder();
+    mangled.append("$__" + name);
+    Set<String> params = parameters.keySet();
+    for (String param : params) {
+      mangled.append("$" + parameters.get(param).getMangledType());
+    }
+    if (0 == params.size())
+      mangled.append("$void");
+    return mangled.toString();
   }
 
   /**
@@ -250,6 +276,8 @@ public class JavaConstructor extends Visitor implements Translatable {
     for (String param : params) {
       out.p("$").p(parameters.get(param).getMangledType());
     }
+    if (0 == params.size())
+      out.p("$void");
     out.p("(");
     int count = 0;
     for (String param : params) {
@@ -275,33 +303,14 @@ public class JavaConstructor extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
-   // out.indent().p("__").p(name).p("::__").p(name).p("(");
+    // Create the mangled name based on the parameters
     Set<String> params = parameters.keySet();
-  /*  int count = 0;
-    for (String param : params) {
-      if (parameters.get(param).isArray())
-        out.p("__rt::Ptr<");
-      parameters.get(param).translate(out);
-      if (parameters.get(param).isArray())
-        out.p(" >");
-      out.p(" ").p(param);
-      if (count < params.size() - 1)
-        out.p(", ");
-      count++;
-    }
-    out.pln(")");
-    out.indent().pln(": __vptr(&__vtable) {}");
-    /*Set<String> keys = initialize.keySet();
-    for (String key : keys) {
-      out.pln(",").indent().p(key).p("(");
-      initialize.get(key).translate(out);
-      out.p(")");
-    }
-    out.pln(" {").incr();*/
     out.indent().p(name).p(" __").p(name).p("::$__").p(name);
     for (String param : params) {
       out.p("$").p(parameters.get(param).getMangledType());
     }
+    if (0 == params.size())
+      out.p("$void");
     out.p("(");
     int count = 0;
     for (String param : params) {
@@ -316,13 +325,42 @@ public class JavaConstructor extends Visitor implements Translatable {
       count++;
     }
     out.pln(") {").incr();
-    out.indent().p(name).p(" $con$ = new __").p(name).pln("();");
-    for (JavaField f : cls.getFields()) {
-      if (!f.isStatic()) {
-        f.translateConstructor(out);
+
+    // Call the C++ constructor
+    out.indent().p(name).p(" $con$ = ");
+    if (null != thisCall)
+      thisCall.translate(out);
+    else
+      out.p("new __").p(name).pln("();");
+
+    if (null != superCall) {
+      out.indent().p("$con$->__super = ");
+      superCall.translate(out);
+    } else if (null == thisCall) {
+      out.indent().p("$con$->__super = ");
+      JavaClass sup = cls.getParent();
+      if (null == sup) {
+        out.pln("__Object::$__Object$void();");
+      } else {
+        if (!sup.getFile().getPackage().getNamespace().equals(""))
+          out.p(sup.getFile().getPackage().getNamespace()).p("::");
+        out.p("__").p(sup.getName()).p("::$__").p(sup.getName()).pln("$void();");
       }
     }
+
+    if (null == thisCall) {
+      // Initialize any class instance variables
+      for (JavaField f : cls.getFields()) {
+        if (!f.isStatic()) {
+          f.translateConstructor(out);
+        }
+      }
+    }
+
+    // Translate the body of the constructor
     body.translate(out);
+
+    // Return the created instance
     out.indent().pln("return $con$;");
     return out.decr().indent().pln("}");
   }

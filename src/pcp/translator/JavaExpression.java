@@ -680,7 +680,7 @@ public class JavaExpression extends Visitor implements Translatable {
   private class CallExpression extends JavaExpression {
 
     private List<JavaExpression> args;
-    private boolean isConstructor, isPrint;
+    private boolean isConstructor, isPrint, isSuper, isSuperCall, isThis;
     private String name;
     private JavaExpression caller, parent;
     private JavaMethod method;
@@ -709,12 +709,18 @@ public class JavaExpression extends Visitor implements Translatable {
             n.getNode(0).getString(1).equals("out") &&
             (n.getString(2).equals("println") || n.getString(2).equals("print")))
           isPrint = true;
+        else if (n.getNode(0).hasName("SuperExpression"))
+          isSuperCall = true;
         else
           caller = new JavaExpression(n.getGeneric(0), parent.getStatement());
       }
 
       // The raw name of the method
       name = n.getString(2);
+      if (name.equals("this"))
+        isThis = true;
+      else if (name.equals("super"))
+        isSuper = true;
 
       // The arguments of the method
       args = new ArrayList<JavaExpression>();
@@ -728,8 +734,8 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public void checkNotNull() {
       determineType();
-      if (null != caller && null == method ||
-          (null != method && !method.isStatic()))
+      if ((null != caller && null == method ||
+          (null != method && !method.isStatic())) && !isSuperCall)
         caller.checkNotNull();
       for (JavaExpression e : args) {
         if (e.hasName("CallExpression") || e.hasName("SelectionExpression") ||
@@ -753,6 +759,14 @@ public class JavaExpression extends Visitor implements Translatable {
         while (!temp.hasName("JavaClass"))
           temp = temp.getParentScope();
         cls = (JavaClass)temp;
+        if (isThis) {
+          name = "$__" + cls.getName();
+        } else if (isSuper) {
+          cls = cls.getParent();
+          name = "$__" + cls.getName();
+        } else if (isSuperCall) {
+          cls = cls.getParent();
+        }
       // Otherwise locate the class
       } else if (null != caller) {
         String callerClass = caller.getType().getType();
@@ -796,7 +810,7 @@ public class JavaExpression extends Visitor implements Translatable {
         // If there are no arguments, simply locate use the original method name
         if (0 == newArgTypes.size()) {
           name += "$void";
-          if (null != cls)
+          if (null != cls && !isThis && !isSuper)
             method = cls.getMethod(name);
           return;
         }
@@ -845,6 +859,13 @@ public class JavaExpression extends Visitor implements Translatable {
             if (temp.equals("equals$Object") ||
                 temp.equals("charAt$int32_t")) {
               name = temp;
+              return;
+            }
+            if ((isThis || isSuper) && null != cls.getConstructor(temp)) {
+              name = temp;
+              return;
+            }
+            if (isSuper) {
               return;
             }
             // Check if the specified method exists
@@ -958,6 +979,25 @@ public class JavaExpression extends Visitor implements Translatable {
         if (name.equals("println"))
           out.p(" << std::endl");
         return out;
+      } else if (isThis || isSuper) {
+        JavaScope temp = parent.getStatement().getScope();
+        while (!temp.hasName("JavaClass"))
+          temp = temp.getParentScope();
+        JavaClass cls = (JavaClass)temp;
+        if (isSuper)
+          cls = cls.getParent();
+        if (null == cls)
+          return out.p("java::lang::__Object::$__Object()");
+        if (!cls.getFile().getPackage().getNamespace().equals(""))
+          out.p(cls.getFile().getPackage().getNamespace()).p("::");
+        out.p("__").p(cls.getName()).p("::").p(name).p("(");
+        int size = args.size();
+        for (int i = 0; i < size; i++) {
+          args.get(i).translate(out);
+          if (i < size - 1)
+            out.p(", ");
+        }
+        return out.p(")");
       } else if (null != caller && caller.hasName("CallExpression")) {
         out.pln("({").incr();
         out.indent();
@@ -997,8 +1037,12 @@ public class JavaExpression extends Visitor implements Translatable {
       } else {
         if (null != method && method.isStatic())
           out.p("__").p(method.getClassFrom().getName()).p("::");
+        else if (isConstructor && isSuperCall)
+          out.p("$con$->__super->");
         else if (isConstructor)
           out.p("$con$->");
+        else if (isSuperCall)
+          out.p("__this->super->");
         else 
           out.p("__this->");
       }
@@ -1006,8 +1050,12 @@ public class JavaExpression extends Visitor implements Translatable {
         out.p("__vptr->");
       out.p(name).p("(");
       if (null == caller && (null == method || !method.isStatic())) {
-        if (isConstructor)
-          out.p("$con$");
+        if (isConstructor && isSuperCall)
+          out.p("$con$->__super");
+        else if (isConstructor)
+          out.p("$con$->");
+        else if (isSuperCall)
+          out.p("__this->__super");
         else
           out.p("__this");
         if (0 < args.size())
@@ -1650,6 +1698,8 @@ public class JavaExpression extends Visitor implements Translatable {
       for (JavaExpression arg : arguments) {
         out.p("$").p(arg.getType().getMangledType());
       }
+      if (0 == arguments.size())
+        out.p("$void");
       out.p("(");
       int size = arguments.size();
       for (int i = 0; i < size; i++) {
@@ -1813,7 +1863,7 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class SelectionExpression extends JavaExpression {
 
-    private boolean isClass, isThis, isVariable;
+    private boolean isClass, isSuper, isThis, isVariable;
     private JavaExpression identifier, parent;
     private String selection;
 
@@ -1824,10 +1874,12 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public SelectionExpression(GNode n, JavaExpression parent) {
       this.parent = parent;
-      if (!n.getNode(0).hasName("ThisExpression"))
-        identifier = new JavaExpression(n.getGeneric(0), parent.getStatement());
-      else
+      if (n.getNode(0).hasName("ThisExpression"))
         isThis = true;
+      else if (n.getNode(0).hasName("SuperExpression"))
+        isSuper = true;
+      else
+        identifier = new JavaExpression(n.getGeneric(0), parent.getStatement());
       selection = n.getString(1);
     }
 
@@ -1912,6 +1964,12 @@ public class JavaExpression extends Visitor implements Translatable {
           return out.p("$con$->$").p(selection);
         else
           return out.p("__this->$").p(selection);
+      }
+      if (isSuper) {
+        if (parent.getStatement().getScope().hasName("JavaConstructor"))
+          return out.p("$con$->__super->$").p(selection);
+        else
+          return out.p("__this->__super->$").p(selection);
       }
       if (null != identifier) {
         if (identifier.getType().isArray()) {

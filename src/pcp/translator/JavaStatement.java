@@ -501,7 +501,7 @@ public class JavaStatement extends Visitor implements Translatable {
   private class ExpressionStatement extends JavaStatement {
 
     private JavaExpression e, initializer;
-    private boolean isInitializer;
+    private boolean isThis, isSuper;
 
     /**
      * Creates a new expression statement.
@@ -509,30 +509,13 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The expression statement node.
      */
     public ExpressionStatement(GNode n, JavaStatement parent) {
-     /* if (parent.getScope().hasName("JavaConstructor")) {
-        if (n.getNode(0).hasName("Expression") && n.getNode(0).getString(1).equals("=")) {
-          String name = "";
-          if (n.getNode(0).getNode(0).hasName("PrimaryIdentifier"))
-            name = "$" + n.getNode(0).getNode(0).getString(0);
-          else if (n.getNode(0).getNode(0).hasName("SelectionExpression")
-              && n.getNode(0).getNode(0).getNode(0).hasName("ThisExpression"))
-            name = "$" + n.getNode(0).getNode(0).getString(1);
-          if (!name.equals("") && null == parent.getScope().getVariableScope(name)) {
-            isInitializer = true;
-          } else if (!name.equals("") && parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
-            if (parent.getScope().getVariableScope(name).getParentScope().isInScope(name)) {
-              isInitializer = true;
-            }
-          } else if (!name.equals("") && !parent.getScope().getVariableScope(name).hasName("JavaConstructor")) {
-            isInitializer = true;
-          }
-          if (isInitializer) {
-            initializer = new JavaExpression(n.getNode(0).getGeneric(2), parent);                                                      
-            ((JavaBlock)parent.getScope()).getConstructor().addInitializer(name, initializer);
-          }
-        }
-      } */
       e = new JavaExpression(n.getGeneric(0), parent);
+      if (n.getNode(0).hasName("CallExpression")) {
+        if (n.getNode(0).getString(2).equals("this"))
+          isThis = true;
+        else if (n.getNode(0).getString(2).equals("super"))
+          isSuper = true;
+      }
     }
 
     /**
@@ -540,9 +523,8 @@ public class JavaStatement extends Visitor implements Translatable {
      * not null on.
      */
     public void checkNotNull() {
-      if (isInitializer)
-        return;
-      e.checkNotNull();
+      if (!isThis && !isSuper)
+        e.checkNotNull();
     }
 
     /**
@@ -554,9 +536,8 @@ public class JavaStatement extends Visitor implements Translatable {
      * @return The output stream.
      */
     public Printer translate(Printer out) {
-      if (isInitializer)
-        return out;
-      out.indent();
+      if (!isThis && !isSuper)
+        out.indent();
       e.translate(out);
       return out.pln(";");
     }
