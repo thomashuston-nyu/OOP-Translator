@@ -555,8 +555,8 @@ public class JavaExpression extends Visitor implements Translatable {
           out.p(")");
         }
         out.pln(";");
-        out.indent().pln("String $s$ = new __String(sout.str());");
-        out.indent().pln("$s$;");
+        out.indent().pln("String s = new __String(sout.str());");
+        out.indent().pln("s;");
         out.decr().indent().p("})");
         return out;
       }
@@ -620,13 +620,13 @@ public class JavaExpression extends Visitor implements Translatable {
       determineType();
       out.pln("({").incr();
       out.indent().p("__rt::Ptr<");
-      parent.getType().translate(out).p(" > $a$ = new ");
+      parent.getType().translate(out).p(" > a = new ");
       parent.getType().translate(out).p("(").p(variables.size()).pln(");");
       for (int i = 0; i < variables.size(); i++) {
-        out.indent().p("(*$a$)[").p(i).p("] = ");
+        out.indent().p("(*a)[").p(i).p("] = ");
         variables.get(i).translate(out).pln(";");
       }
-      out.indent().pln("$a$;");
+      out.indent().pln("a;");
       out.decr().indent().p("})");
       return out;
     }
@@ -975,8 +975,8 @@ public class JavaExpression extends Visitor implements Translatable {
             out.indent().pln("else");
             out.indentMore().p("sout << ");
             args.get(i).translate(out).pln(";");
-            out.indent().pln("String $s$ = new __String(sout.str());");
-            out.indent().pln("$s$;");
+            out.indent().pln("String s = new __String(sout.str());");
+            out.indent().pln("s;");
             out.decr().indent().p("})");
           } else if (args.get(i).getType().getType().equals("bool")) {
             out.p("(");
@@ -1011,7 +1011,7 @@ public class JavaExpression extends Visitor implements Translatable {
         if (null == cls) {
           out.p("java::lang::__Object::$__Object$void(");
           if (isSuper)
-            out.p("$con$");
+            out.p("con");
           return out.p(")");
         }
         if (!cls.getFile().getPackage().getNamespace().equals(""))
@@ -1024,15 +1024,15 @@ public class JavaExpression extends Visitor implements Translatable {
             out.p(", ");
         }
         if (isSuper)
-          out.p(", $con$");
+          out.p(", con");
         return out.p(")");
       } else if (null != caller && caller.hasName("CallExpression")) {
         out.pln("({").incr();
         out.indent();
-        caller.getType().translate(out).p(" $c$ = ");
+        caller.getType().translate(out).p(" c = ");
         caller.translate(out).pln(";");
-        out.indent().pln("__rt::checkNotNull($c$);");
-        out.indent().p("$c$");
+        out.indent().pln("__rt::checkNotNull(c);");
+        out.indent().p("c");
         if (null != method && method.isStatic())
           out.p("::");
         else
@@ -1041,7 +1041,7 @@ public class JavaExpression extends Visitor implements Translatable {
           out.p("__vptr->");
         out.p(name).p("(");
         if (null == method || method.isVirtual()) {
-          out.p("$c$");
+          out.p("c");
           if (0 < args.size())
             out.p(", ");
         }
@@ -1066,9 +1066,9 @@ public class JavaExpression extends Visitor implements Translatable {
         if (null != method && method.isStatic())
           out.p("__").p(method.getClassFrom().getName()).p("::");
         else if (isConstructor && isSuperCall)
-          out.p("$con$->__super->");
+          out.p("con->__super->");
         else if (isConstructor)
-          out.p("$con$->");
+          out.p("con->");
         else if (isSuperCall)
           out.p("__this->__super->");
         else 
@@ -1079,7 +1079,7 @@ public class JavaExpression extends Visitor implements Translatable {
       out.p(name).p("(");
       if (null == caller && (null == method || !method.isStatic())) {
         if (isConstructor)
-          out.p("$con$");
+          out.p("con");
         else
           out.p("__this");
         if (0 < args.size())
@@ -1636,19 +1636,19 @@ public class JavaExpression extends Visitor implements Translatable {
         for (int i = 0; i < dimensions.size(); i++) {
           out.indent().p("__rt::Ptr<");
           type.setDimensions(dimensions.size() - i);
-          type.translate(out).p(" > $a").p(i).p("$ = new ");
+          type.translate(out).p(" > a").p(i).p(" = new ");
           type.translate(out).p("(");
           dimensions.get(i).translate(out).pln(");");
           if (i < dimensions.size() - 1) {
-            out.indent().p("for (int32_t $i").p(i).p("$ = 0; $i").p(i).p("$ < ");
-            dimensions.get(i).translate(out).p("; $i").p(i).pln("$++) {").incr();
+            out.indent().p("for (int32_t i").p(i).p(" = 0; i").p(i).p(" < ");
+            dimensions.get(i).translate(out).p("; i").p(i).pln("++) {").incr();
           }
         }
         for (int i = dimensions.size() - 1; i > 0; i--) {
-          out.indent().p("(*$a").p(i-1).p("$)[$i").p(i-1).p("$] = $a").p(i).pln("$;");
+          out.indent().p("(*a").p(i-1).p(")[i").p(i-1).p("] = a").p(i).pln(";");
           out.decr().indent().pln("}");
         }
-        out.indent().pln("$a0$;");
+        out.indent().pln("a0;");
         out.decr().indent().p("})");
       } else {
         out.p("new ");
@@ -1877,7 +1877,7 @@ public class JavaExpression extends Visitor implements Translatable {
           check.append("__" + scope.getName() + "::");
         } else if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")) {
           if (parent.getStatement().getScope().hasName("JavaConstructor"))
-            check.append("$con$->");
+            check.append("con->");
           else
             check.append("__this->");
         }
@@ -1966,7 +1966,7 @@ public class JavaExpression extends Visitor implements Translatable {
         // Check if it's an instance variable
         } else if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")) {
           if (parent.getStatement().getScope().hasName("JavaConstructor"))
-            out.p("$con$->");
+            out.p("con->");
           else
             out.p("__this->");
         }
@@ -2094,21 +2094,11 @@ public class JavaExpression extends Visitor implements Translatable {
       determineType();
       if (isThis || isSuper) {
         if (parent.getStatement().getScope().hasName("JavaConstructor"))
-          out.p("$con$->");
+          out.p("con->");
         else
           out.p("__this->");
         return out.p("$").p(selection);
       }
-      /*if (isSuper) {
-        if (parent.getStatement().getScope().hasName("JavaConstructor"))
-          out.p("$con$->__super->");
-        else
-          out.p("__this->__super->");
-        for (int i = 1; i < depth; i++) {
-          out.p("__super->");
-        }
-        return out.p("$").p(selection);
-      }*/
       if (null != identifier) {
         if (identifier.getType().isArray()) {
           return identifier.translate(out).p("->").p(selection);
@@ -2160,7 +2150,7 @@ public class JavaExpression extends Visitor implements Translatable {
         if (parent.getStatement().getScope().getVariableScope("$" + n.getNode(0).getString(0)).equals("JavaClass")) {
           if (parent.getStatement().getScope().hasName("JavaConstructor") ||
               parent.getStatement().getScope().hasName("JavaClass"))
-            parent.getStatement().addObject("$con$->$" + n.getNode(0).getString(0));
+            parent.getStatement().addObject("con->$" + n.getNode(0).getString(0));
           else
             parent.getStatement().addObject("__this->$" + n.getNode(0).getString(0));
         } else {

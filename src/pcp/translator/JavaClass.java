@@ -641,8 +641,8 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
       }
     } else {
       out.indent().p(name).p(" __").p(name).p("::$__").p(name).pln("$void() {").incr();
-      out.indent().p(name).p(" $con$ = new __").p(name).pln("();");
-      out.indent().p("$con$->__super = ");
+      out.indent().p(name).p(" con = new __").p(name).pln("();");
+      out.indent().p("con->__super = ");
       if (null == parent) {
         out.pln("__Object::$__Object$void();");
       } else {
@@ -664,7 +664,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
           f.translateConstructor(out);
         }
       }
-      out.indent().pln("return $con$;");
+      out.indent().pln("return con;");
       out.decr().indent().pln("}").pln();
     }
 

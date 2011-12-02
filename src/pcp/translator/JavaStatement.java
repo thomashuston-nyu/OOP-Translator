@@ -641,9 +641,6 @@ public class JavaStatement extends Visitor implements Translatable {
         int size = vars.size();
         for (int i = 0; i < size; i++) {
           out.p(vars.get(i));
-          // TODO: Handle C++ arrays
-          // for (int j = 0; j < dimensions.get(i); j++)
-          //   out.p("[]");
           if (null != values.get(i)) {
             out.p(" = ");
             values.get(i).translate(out);
@@ -717,7 +714,7 @@ public class JavaStatement extends Visitor implements Translatable {
         e.translate(out);
       } else if (isThis) {
         if (parent.hasName("JavaConstructor"))
-          out.p("$con$");
+          out.p("con");
         else
           out.p(" __this");
       }

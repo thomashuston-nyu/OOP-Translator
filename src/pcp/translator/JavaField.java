@@ -98,8 +98,6 @@ public class JavaField extends JavaStatement implements Translatable {
     values = new ArrayList<JavaExpression>();
     for (Object o : n.getNode(2)) {
       Node declarator = (Node)o;
-      if (declarator.getString(0).contains("$"))
-        throw new RuntimeException("Variable names may not contain a $-sign.");
       names.add("$" + declarator.getString(0));
       if (null == this.parent)
         cls.addVariable("$" + declarator.getString(0), type);
@@ -243,7 +241,7 @@ public class JavaField extends JavaStatement implements Translatable {
     for (int i = 0; i < size; i++) {
       if (isStatic)
         continue;
-      out.indent().p("$con$->").p(names.get(i));
+      out.indent().p("con->").p(names.get(i));
       if (null != values.get(i)) {
         out.p(" = ");
         values.get(i).translate(out).pln(";");

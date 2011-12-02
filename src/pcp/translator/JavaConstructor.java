@@ -226,7 +226,6 @@ public class JavaConstructor extends Visitor implements Translatable {
    * @param n The throws clause node.
    */
   public void visitThrowsClause(GNode n) {
-    // TODO: handle exceptions
     //exception = new ThrowsClause(n);
   }
 
@@ -288,7 +287,7 @@ public class JavaConstructor extends Visitor implements Translatable {
         out.p(" >");
       out.p(" ").p(param).p(", ");
     }
-    return out.p(name).pln(" $con$ = __rt::null());");
+    return out.p(name).pln(" con = __rt::null());");
   }
 
   /**
@@ -318,22 +317,22 @@ public class JavaConstructor extends Visitor implements Translatable {
       out.p(" ").p(param);
       out.p(", ");
     }
-    out.p(name).pln(" $con$) {").incr();
+    out.p(name).pln(" con) {").incr();
 
     // Call the C++ constructor
     if (null != thisCall) {
-      out.indent().p("$con$ = ");
+      out.indent().p("con = ");
       thisCall.translate(out);
     } else {
-      out.indent().pln("if (__rt::null() == $con$)");
-      out.indentMore().p("$con$ = new __").p(name).pln("();");
+      out.indent().pln("if (__rt::null() == con)");
+      out.indentMore().p("con = new __").p(name).pln("();");
     }
 
     if (null != superCall) {
       out.indent();
       superCall.translate(out);
     } else if (null == thisCall) {
-      out.indent().p("$con$->__super = ");
+      out.indent().p("con->__super = ");
       JavaClass sup = cls.getParent();
       if (null == sup) {
         out.pln("__Object::$__Object$void();");
@@ -368,7 +367,7 @@ public class JavaConstructor extends Visitor implements Translatable {
     body.translate(out);
 
     // Return the created instance
-    out.indent().pln("return $con$;");
+    out.indent().pln("return con;");
     return out.decr().indent().pln("}");
   }
 

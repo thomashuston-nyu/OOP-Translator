@@ -232,8 +232,6 @@ public class JavaMethod extends Visitor implements Translatable {
       JavaType paramType = new JavaType(param.getGeneric(j));
       if (null != param.getNode(j).get(1))
         paramType.setDimensions(param.getNode(j).getNode(1).size());
-      if (param.getString(j + 2).contains("$"))
-        throw new RuntimeException("Variable names may not contain a $-sign.");
       parameters.put("$" + param.getString(j + 2), paramType);
     }
   }
