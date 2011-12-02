@@ -230,7 +230,7 @@ public class JavaFile extends Visitor implements Translatable {
    */
   public Printer translate(Printer out) {
     for (JavaClass cls : allClasses) {
-      cls.translate(out);
+      cls.translate(out).pln();
     }
     return out;
   }

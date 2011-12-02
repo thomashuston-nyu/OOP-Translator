@@ -1011,7 +1011,7 @@ public class JavaExpression extends Visitor implements Translatable {
         if (null == cls) {
           out.p("java::lang::__Object::$__Object$void(");
           if (isSuper)
-            out.p("con");
+            out.p("__this");
           return out.p(")");
         }
         if (!cls.getFile().getPackage().getNamespace().equals(""))
@@ -1024,7 +1024,7 @@ public class JavaExpression extends Visitor implements Translatable {
             out.p(", ");
         }
         if (isSuper)
-          out.p(", con");
+          out.p(", __this");
         return out.p(")");
       } else if (null != caller && caller.hasName("CallExpression")) {
         out.pln("({").incr();
@@ -1065,10 +1065,6 @@ public class JavaExpression extends Visitor implements Translatable {
       } else {
         if (null != method && method.isStatic())
           out.p("__").p(method.getClassFrom().getName()).p("::");
-        else if (isConstructor && isSuperCall)
-          out.p("con->__super->");
-        else if (isConstructor)
-          out.p("con->");
         else if (isSuperCall)
           out.p("__this->__super->");
         else 
@@ -1078,10 +1074,7 @@ public class JavaExpression extends Visitor implements Translatable {
         out.p("__vptr->");
       out.p(name).p("(");
       if (null == caller && (null == method || !method.isStatic())) {
-        if (isConstructor)
-          out.p("con");
-        else
-          out.p("__this");
+        out.p("__this");
         if (0 < args.size())
           out.p(", ");
       } else if (null != caller && (null == method || !method.isStatic())) {
@@ -1876,10 +1869,7 @@ public class JavaExpression extends Visitor implements Translatable {
             check.append(scope.getFile().getPackage().getNamespace() + "::");
           check.append("__" + scope.getName() + "::");
         } else if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")) {
-          if (parent.getStatement().getScope().hasName("JavaConstructor"))
-            check.append("con->");
-          else
-            check.append("__this->");
+          check.append("__this->");
         }
         check.append("$" + name);
       } else {
@@ -1913,6 +1903,17 @@ public class JavaExpression extends Visitor implements Translatable {
         while (!temp.hasName("JavaClass"))
           temp = temp.getParentScope();
         JavaClass cls = (JavaClass)temp;
+        // Look in the current file, first
+        for (JavaClass c : cls.getFile().getClasses()) {
+          if (name.equals(c.getName())) {
+            isClass = true;
+            this.pkg = c.getFile().getPackage();
+            JavaType type = new JavaType(name);
+            type.setStatic();
+            parent.setType(type);
+            return;
+          }
+        }
         // Look in the current package
         JavaPackage pkg = cls.getFile().getPackage();
         for (JavaFile f : pkg.getFiles()) {
@@ -1965,10 +1966,7 @@ public class JavaExpression extends Visitor implements Translatable {
           out.p("__").p(scope.getName()).p("::");
         // Check if it's an instance variable
         } else if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")) {
-          if (parent.getStatement().getScope().hasName("JavaConstructor"))
-            out.p("con->");
-          else
-            out.p("__this->");
+          out.p("__this->");
         }
         return out.p("$").p(name);
       } else {
@@ -2041,6 +2039,22 @@ public class JavaExpression extends Visitor implements Translatable {
         isVariable = true;
         return;
       }
+      // Look in the current file
+      for (JavaClass c : cls.getFile().getClasses()) {
+        if (name.equals(c.getName())) {
+          cls = c;
+          if (null != identifier && identifier.getType().isStatic() &&
+              cls.isInScope("$" + selection)) {
+            parent.setType(cls.getVariableType("$" + selection));
+            isVariable = true;
+          } else {
+            JavaType type = new JavaType(selection);
+            type.setStatic();
+            parent.setType(type);
+            isClass = true;
+          }
+        }
+      }
       // Look in the current package
       JavaPackage pkg = cls.getFile().getPackage();
       for (JavaFile f : pkg.getFiles()) {
@@ -2093,10 +2107,7 @@ public class JavaExpression extends Visitor implements Translatable {
     public Printer translate(Printer out) {
       determineType();
       if (isThis || isSuper) {
-        if (parent.getStatement().getScope().hasName("JavaConstructor"))
-          out.p("con->");
-        else
-          out.p("__this->");
+        out.p("__this->");
         return out.p("$").p(selection);
       }
       if (null != identifier) {
@@ -2148,11 +2159,7 @@ public class JavaExpression extends Visitor implements Translatable {
       if (n.getNode(0).hasName("PrimaryIdentifier") &&
           parent.getStatement().getScope().isInScope("$" + n.getNode(0).getString(0))) {
         if (parent.getStatement().getScope().getVariableScope("$" + n.getNode(0).getString(0)).equals("JavaClass")) {
-          if (parent.getStatement().getScope().hasName("JavaConstructor") ||
-              parent.getStatement().getScope().hasName("JavaClass"))
-            parent.getStatement().addObject("con->$" + n.getNode(0).getString(0));
-          else
-            parent.getStatement().addObject("__this->$" + n.getNode(0).getString(0));
+          parent.getStatement().addObject("__this->$" + n.getNode(0).getString(0));
         } else {
           parent.getStatement().addObject("$" + n.getNode(0).getString(0));
         }

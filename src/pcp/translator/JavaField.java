@@ -241,7 +241,7 @@ public class JavaField extends JavaStatement implements Translatable {
     for (int i = 0; i < size; i++) {
       if (isStatic)
         continue;
-      out.indent().p("con->").p(names.get(i));
+      out.indent().p("__this->").p(names.get(i));
       if (null != values.get(i)) {
         out.p(" = ");
         values.get(i).translate(out).pln(";");

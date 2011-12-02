@@ -713,10 +713,7 @@ public class JavaStatement extends Visitor implements Translatable {
         out.p(" ");
         e.translate(out);
       } else if (isThis) {
-        if (parent.hasName("JavaConstructor"))
-          out.p("con");
-        else
-          out.p(" __this");
+        out.p(" __this");
       }
       return out.pln(";");
     }
@@ -841,7 +838,7 @@ public class JavaStatement extends Visitor implements Translatable {
    */
   private class TryCatchStatement extends JavaStatement {
 
-    JavaBlock tryBlock, catchBlock;
+    JavaBlock tryBlock, catchBlock, finallyBlock;
     String exception;
 
     /**
@@ -856,6 +853,9 @@ public class JavaStatement extends Visitor implements Translatable {
         catchBlock = new JavaBlock(n.getNode(2).getGeneric(1), parent.getScope());
       } else {
         exception = "Exception";
+      }
+      if (3 < n.size() && null != n.get(3)) {
+        finallyBlock = new JavaBlock(n.getGeneric(3), parent.getScope());
       }
     }
 
@@ -878,6 +878,8 @@ public class JavaStatement extends Visitor implements Translatable {
       } else {
         out.pln("}");
       }
+      if (null != finallyBlock)
+        finallyBlock.translate(out);
       return out;
     }
 
@@ -940,7 +942,7 @@ public class JavaStatement extends Visitor implements Translatable {
     if (null == s)
       return out;
     s.checkNotNull();
-    if (!parent.hasName("JavaClass") && !parent.hasName("JavaConstructor")) {
+    if (!parent.hasName("JavaClass")) {
       for (String obj : objects) {
         out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
       }

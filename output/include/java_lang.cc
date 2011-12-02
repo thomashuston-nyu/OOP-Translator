@@ -28,10 +28,10 @@ namespace java {
     __Object::__Object() : __vptr(&__vtable) {
     }
 
-    Object __Object::$__Object$void(Object $con$) {
-	  if (__rt::null() == $con$)
-		$con$ = new __Object();
-      return $con$;
+    Object __Object::$__Object$void(Object __this) {
+	  if (__rt::null() == __this)
+		__this = new __Object();
+      return __this;
     }
 
     // The destructor.

@@ -294,16 +294,23 @@ public class Translator extends Tool {
     // Set the superclass
     for (JavaClass cd : c.getClasses()) {
       if (cd.hasParent()) {
+        String extCls = cd.getExtension().getType();
         String ext = cd.getExtension().getPath();
         String extpath;
-        boolean found = false;
-        int index = ext.lastIndexOf("/");
+        // Check the current file
+        for (JavaClass cls : cd.getFile().getClasses()) {
+          if (cls.getName().equals(extCls)) {
+            cd.setParent(cls);
+            return;
+          }
+        }
         // If the superclass path is given explicitly, use that path
+        int index = ext.lastIndexOf("/");
         if (-1 < index) {
           extpath = classpath + ext;
           if (null != JavaFile.getJavaFile(extpath)) {
             cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
-            found = true;
+            return;
           }
         } else {
           // Check the package
@@ -314,23 +321,19 @@ public class Translator extends Tool {
               extpath = classpath + pkg.getPath() + "/" + ext;
             if (null != JavaFile.getJavaFile(extpath)) {
               cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
-              found = true;
+              return;
             }
           }
           // Check the imports
-          if (!found) {
-            for (JavaPackage i : imp) {
-              extpath = classpath + i.getPath();
-              if (null != JavaFile.getJavaFile(extpath)) {
-                cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
-                found = true;
-                break;
-              }
+          for (JavaPackage i : imp) {
+            extpath = classpath + i.getPath();
+            if (null != JavaFile.getJavaFile(extpath)) {
+              cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
+              return;
             }
           }
         }                                         
-        if (!found)
-          runtime.errConsole().p("Superclass not found: ").p(ext).pln().flush();
+        runtime.errConsole().p("Superclass not found: ").p(ext).pln().flush();
       }
     }
   }

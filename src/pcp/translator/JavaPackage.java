@@ -320,9 +320,8 @@ public class JavaPackage implements Translatable {
     // Print header structs
     for (JavaFile file : files) {
       for (JavaClass cls : file.getClasses()) {
-        cls.translateHeader(out);
+        cls.translateHeader(out).pln();
       }
-      out.pln();
     } 
 
     // Close the namespace
@@ -368,7 +367,6 @@ public class JavaPackage implements Translatable {
     for (JavaFile f : files) {
       for (JavaClass cls : f.getClasses()) {
         cls.translateArrayTemplate(out);
-        out.pln();
       }
     }
     out.decr().pln("}").pln();
