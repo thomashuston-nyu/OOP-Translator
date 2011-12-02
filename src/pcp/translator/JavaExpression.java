@@ -700,7 +700,7 @@ public class JavaExpression extends Visitor implements Translatable {
   private class CallExpression extends JavaExpression {
 
     private List<JavaExpression> args;
-    private boolean isConstructor, isPrint, isSuper, isSuperCall, isThis;
+    private boolean isConstructor, isPrint, isSuper, isSuperCall, isThis, isThisCall;
     private String name;
     private JavaExpression caller, parent;
     private JavaMethod method;
@@ -731,6 +731,8 @@ public class JavaExpression extends Visitor implements Translatable {
           isPrint = true;
         else if (n.getNode(0).hasName("SuperExpression"))
           isSuperCall = true;
+        else if (n.getNode(0).hasName("ThisExpression"))
+          isThisCall = true;
         else
           caller = new JavaExpression(n.getGeneric(0), parent.getStatement());
       }
@@ -754,7 +756,7 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public void checkNotNull() {
       determineType();
-      if ((null != caller && null == method ||
+      if (null != caller && (null == method ||
           (null != method && !method.isStatic())) && !isSuperCall)
         caller.checkNotNull();
       for (JavaExpression e : args) {
@@ -788,7 +790,7 @@ public class JavaExpression extends Visitor implements Translatable {
           cls = cls.getParent();
         }
       // Otherwise locate the class
-      } else if (null != caller) {
+      } else if (null != caller && !isThis && !isSuper) {
         String callerClass = caller.getType().getType();
         Set<String> classes = JavaClass.getJavaClassList();
         for (String className : classes) {
@@ -1864,6 +1866,8 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public void checkNotNull() {
       determineType();
+      if (parent.getType().isPrimitive())
+        return;
       StringBuilder check = new StringBuilder();
       if (parent.getStatement().getScope().isInScope("$" + name)) {
         if (isClassVar) {
