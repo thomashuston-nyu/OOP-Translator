@@ -66,7 +66,7 @@
   </target>
 
   <!-- Translate a file and then compile and run the generated C++ -->
-  <target name="test" description="test the C++ output">
+  <target name="test" depends="jar,clean-output" description="test the C++ output">
 		<delete dir="${temp}"/>
     <mkdir dir="${temp}"/>
     <javac srcdir="${test}" destdir="${temp}" classpathref="classpath" debug="on" debuglevel="lines,vars,source" includeantruntime="false">
