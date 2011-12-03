@@ -4,9 +4,8 @@ public class JavaExpression {
     testAdditiveExpression();
     testArrayInitializerExpression();
     testBitwiseExpression();
-    // testCallExpression();
-    // testCastExpression();
-    // testConditionalExpression();
+    testCastExpression();
+    testConditionalExpression();
     // testEqualityExpression();
     // testInstanceOfExpression();
     // testLiteralExpression();
@@ -78,6 +77,30 @@ public class JavaExpression {
     System.out.println(~d);
     System.out.println(b << 2);
     System.out.println(c >> 3);
+  }
+
+  public static void testCastExpression() {
+    System.out.println("\nCast Expressions");
+    
+    int a = 5;
+    long b = 2l;
+    double c = 8.0;
+    String s = "asdf";
+    
+    System.out.println((int)a);
+    System.out.println((int)b);
+    System.out.println((int)c);
+    System.out.println((Object)s);
+  }
+
+  public static void testConditionalExpression() {
+    System.out.println("\nConditional Expressions");
+    
+    int a = 2;
+    int b = 3;
+    boolean c = true;
+
+    System.out.println(c ? a : b);
   }
 
 }

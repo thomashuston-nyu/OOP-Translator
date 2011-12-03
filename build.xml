@@ -71,7 +71,7 @@
     <mkdir dir="${temp}"/>
     <javac srcdir="${test}" destdir="${temp}" classpathref="classpath" debug="on" debuglevel="lines,vars,source" includeantruntime="false">
     </javac>
-    <exec executable="sh">
+    <exec executable="bash">
       <arg value="${test}/test.sh"/>
     </exec>
   </target>
