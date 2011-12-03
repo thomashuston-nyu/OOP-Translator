@@ -114,7 +114,7 @@ public class JavaField extends JavaStatement implements Translatable {
         cls.addVariable("$" + declarator.getString(0), type);
       else
         this.parent.getScope().addVariable("$" + declarator.getString(0), type);
-      if (null != declarator.get(2) && !declarator.getNode(2).hasName("NullLiteral")) {
+      if (null != declarator.get(2)) {
         if (null != parent)
           values.add(new JavaExpression(declarator.getGeneric(2), parent));
         else

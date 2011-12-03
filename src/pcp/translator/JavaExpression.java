@@ -1011,17 +1011,20 @@ public class JavaExpression extends Visitor implements Translatable {
           } else if (args.get(i).getType().getType().equals("unsigned char")) {
             out.p("(int16_t)");
             args.get(i).translate(out);
-          } else {
+          } else if (args.get(i).getType().isPrimitive()) {
             args.get(i).translate(out);
-            // If the argument is an object, call toString()
-            if ((0 == args.get(i).getType().getDimensions() && 
-                !args.get(i).getType().isPrimitive() &&
-                !args.get(i).getType().getClassType().equals("String")) ||
-                args.get(i).getType().isArray()) {
-              out.p("->__vptr->toString$void(");
-              args.get(i).translate(out);
-              out.p(")");
-            }
+          } else {
+            out.pln("({").incr();
+            out.indent().pln("String x;");
+            out.indent();
+            args.get(i).getType().translate(out).p(" y = ");
+            args.get(i).translate(out).pln(";");
+            out.indent().pln("if (__rt::null() == y)");
+            out.indentMore().pln("x = __rt::literal(\"null\");");
+            out.indent().pln("else");
+            out.indentMore().pln("x = y->__vptr->toString$void(y);");
+            out.indent().pln("x;");
+            out.decr().indent().p("})");
           }
         }
         // Append a newline if necessary
