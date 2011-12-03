@@ -553,27 +553,45 @@ public class JavaExpression extends Visitor implements Translatable {
       } else {
         out.pln("({");
         out.incr().indent().pln("std::ostringstream sout;");
-        out.indent().p("sout << ");
-        left.translate(out);
-        if ((0 == left.getType().getDimensions() && 
-            !left.getType().isPrimitive() &&
-            !left.getType().getClassType().equals("String")) ||
-            left.getType().isArray()) {
-          out.p("->__vptr->toString$void(");
-          left.translate(out);
-          out.p(")");
-        }
-        out.p(" << ");
-        right.translate(out);
-        out.flush();
-        if ((0 == right.getType().getDimensions() && 
-            !right.getType().isPrimitive() &&
-            null != right.getType().getClassType() && 
-            !right.getType().getClassType().equals("String")) ||
-            right.getType().isArray()) {
-          out.p("->__vptr->toString$void(");
-          right.translate(out);
-          out.p(")");
+        out.indent().p("sout");
+        for (int i = 0; i < 2; i++) {
+          out.p(" << ");
+          JavaExpression x = 0 == i ? left : right;
+          if (x.getType().getType().equals("float") ||
+              x.getType().getType().equals("double")) {
+            out.pln("({").incr();
+            out.indent().pln("std::ostringstream sout;");
+            out.indent().p("if (modf(");
+            x.translate(out).pln(", new double) == 0)");
+            out.indentMore().p("sout << ");
+            x.translate(out).pln(" << \".0\";");
+            out.indent().pln("else");
+            out.indentMore().p("sout << ");
+            x.translate(out).pln(";");
+            out.indent().pln("String s = new __String(sout.str());");
+            out.indent().pln("s;");
+            out.decr().indent().p("})");
+          } else if (x.getType().getType().equals("bool")) {
+            out.p("(");
+            x.translate(out).p(" ? \"true\" : \"false\")");
+          } else if (x.getType().getType().equals("unsigned char")) {
+            out.p("(int16_t)");
+            x.translate(out);
+          } else if (x.getType().isPrimitive()) {
+            x.translate(out);
+          } else {
+            out.pln("({").incr();
+            out.indent().pln("String x;");
+            out.indent();
+            x.getType().translate(out).p(" y = ");
+            x.translate(out).pln(";");
+            out.indent().pln("if (__rt::null() == y)");
+            out.indentMore().pln("x = __rt::literal(\"null\");");
+            out.indent().pln("else");
+            out.indentMore().pln("x = y->__vptr->toString$void(y);");
+            out.indent().pln("x;");
+            out.decr().indent().p("})");
+          }
         }
         out.pln(";");
         out.indent().pln("String s = new __String(sout.str());");
@@ -1403,11 +1421,23 @@ public class JavaExpression extends Visitor implements Translatable {
         out.indent().pln("a;");
         out.decr().indent().p("})");
       } else if (null != right) {
+        if (n.getName().startsWith("Logical") || n.getName().startsWith("Bitwise") ||
+            n.hasName("ShiftExpression"))
+          out.p("(");
         left.translate(out).p(" ").p(operator).p(" ");
         right.translate(out);
+        if (n.getName().startsWith("Logical") || n.getName().startsWith("Bitwise") ||
+            n.hasName("ShiftExpression"))
+          out.p(")");
       } else {
+        if (n.getName().startsWith("Logical") || n.getName().startsWith("Bitwise") ||
+            n.hasName("ShiftExpression"))
+          out.p("(");
         out.p(operator);
         left.translate(out);
+        if (n.getName().startsWith("Logical") || n.getName().startsWith("Bitwise") ||
+            n.hasName("ShiftExpression"))
+          out.p(")");
       }
       return out;
     }
