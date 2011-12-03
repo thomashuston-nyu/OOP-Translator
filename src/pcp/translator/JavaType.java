@@ -478,44 +478,49 @@ public class JavaType extends Visitor implements Translatable {
     if (null != classType)
       out.p(";");
     out.pln("\"),").incr();
-    if (1 < dimensions || null != classType) {
-      out.indentMore().p("Array<");
-      if (1 == dimensions) {
-        out.p("java::lang::Object");
-      } else {
-        for (int i = 2; i < dimensions; i++) {
-          out.p("Ptr<Array<");
-        }
-        if (null != classType) {
-          if (null != pkg)
-            out.p(pkg.getNamespace()).p("::");
-          else if (classType.equals("Object") || classType.equals("Class") 
-              || classType.equals("String"))
-            out.p("java::lang::");
-          out.p(classType);
+    if (1 < dimensions) {
+      for (int i = 0; i < 2; i++) {
+        out.indentMore().p("Array<");
+        if (1 == dimensions) {
+          out.p("java::lang::Object");
         } else {
-          out.p(primitives.get(primitiveType));
+          for (int j = 2; j < dimensions; j++) {
+            out.p("Ptr<Array<");
+          }
+          if (null != classType) {
+            if (null != pkg)
+              out.p(pkg.getNamespace()).p("::");
+            else if (classType.equals("Object") || classType.equals("Class") 
+                || classType.equals("String"))
+              out.p("java::lang::");
+            out.p(classType);
+          } else {
+            out.p(primitives.get(primitiveType));
+          }
+          for (int j = 2; j < dimensions; j++) {
+            out.p(" > >");
+          }
         }
-        for (int i = 2; i < dimensions; i++) {
-          out.p(" > >");
-        }
+        out.p(" >::__class()");
+        if (0 == i)
+          out.pln(",");
+        else
+          out.pln(");").decr();
       }
-      out.pln(" >::__class(),");
     } else {
-      out.indentMore().pln("java::lang::__Object::__class(),");
+      out.indentMore().pln("Array<java::lang::Object >::__class(),");
+      out.indentMore();
+      if (null != pkg)
+        out.p(pkg.getNamespace()).p("::");
+      else if (null != primitiveType || classType.equals("Object") ||
+          classType.equals("Class") || classType.equals("String"))
+        out.p("java::lang::");
+      out.p("__");
+      if (null != classType)
+        out.p(classType).pln("::__class());").decr();
+      else
+        out.p(primitiveWrappers.get(primitives.get(primitiveType))).pln("::TYPE());").decr();
     }
-    out.indentMore();
-    if (null != pkg)
-      out.p(pkg.getNamespace()).p("::");
-    else if (null != primitiveType || classType.equals("Object") ||
-        classType.equals("Class") || classType.equals("String"))
-      out.p("java::lang::");
-    out.p("__");
-    if (null != classType)
-      out.p(classType).p("::__class()");
-    else
-      out.p(primitiveWrappers.get(primitives.get(primitiveType))).p("::TYPE()");
-    out.pln(");").decr(); 
     out.indent().pln("return k;");
     return out.decr().indent().pln("}").pln();
   }

@@ -54,9 +54,6 @@ public class JavaStatement extends Visitor implements Translatable {
   // The specific instance of a nested class
   private JavaStatement s;
 
-  // Keeps track of array stores
-  private Map<String, JavaExpression> stores;
-
 
   // =========================== Constructors =======================
 
@@ -65,7 +62,6 @@ public class JavaStatement extends Visitor implements Translatable {
    */
   public JavaStatement() {
     objects = new HashSet<String>();
-    stores = new HashMap<String, JavaExpression>();
   }
 
   /**
@@ -79,7 +75,6 @@ public class JavaStatement extends Visitor implements Translatable {
     this.node = n;
     this.parent = parent;
     objects = new HashSet<String>();
-    stores = new HashMap<String, JavaExpression>();
     dispatch(n);
   }
 
@@ -118,16 +113,6 @@ public class JavaStatement extends Visitor implements Translatable {
   public void addObject(String obj) {
     if (null != obj)
       objects.add(obj);
-  }
-  
-  /**
-   * Adds an array store expression to check.
-   *
-   * @param array The name of the array.
-   * @param exp The expression to store.
-   */
-  public void addStore(String array, JavaExpression exp) {
-    stores.put(array, exp);
   }
 
   /**
@@ -201,41 +186,6 @@ public class JavaStatement extends Visitor implements Translatable {
    */
   public void visitExpressionStatement(GNode n) {
     s = new ExpressionStatement(n, this);
-    if (n.getNode(0).hasName("Expression") && 
-        n.getNode(0).getNode(0).hasName("SubscriptExpression")) {
-      if ((!n.getNode(0).getNode(2).getName().endsWith("Literal") ||
-          n.getNode(0).getNode(2).hasName("StringLiteral")) &&      
-          !n.getNode(0).getNode(2).getName().startsWith("New")) {
-        GNode node = n.getNode(0).getGeneric(0);
-        if (node.getNode(0).hasName("SubscriptExpression")) {
-          List<String> indices = new ArrayList<String>();
-          while (node.getNode(0).hasName("SubscriptExpression")) {
-            if (node.getNode(0).getNode(1).hasName("IntegerLiteral"))
-              indices.add(0, node.getNode(0).getNode(1).getString(0));
-            else
-              indices.add(0, "$" + node.getNode(0).getNode(1).getString(0));
-            node = node.getGeneric(0);
-          }
-          StringBuilder name = new StringBuilder();
-          for (String i : indices) {
-            name.append("(*");
-          }
-          name.append("$" + node.getNode(0).getString(0));
-          for (String i : indices) {
-            name.append(")[" + i + "]");
-          }
-          if (parent.isInScope("$" + node.getNode(0).getString(0)) &&
-              null != parent.getVariableType("$" + node.getNode(0).getString(0)).getClassType())
-            stores.put(name.toString(),
-                new JavaExpression(n.getNode(0).getGeneric(2), this));
-        } else {
-          if (parent.isInScope("$" + node.getNode(0).getString(0)) &&
-              null != parent.getVariableType("$" + node.getNode(0).getString(0)).getClassType())
-            stores.put("$" + node.getNode(0).getString(0),
-                new JavaExpression(n.getNode(0).getGeneric(2), this));
-        }
-      }
-    }
   }
 
   /**
@@ -956,11 +906,6 @@ public class JavaStatement extends Visitor implements Translatable {
     if (!parent.hasName("JavaClass")) {
       for (String obj : objects) {
         out.indent().p("__rt::checkNotNull(").p(obj).pln(");");
-      }
-      Set<String> keys = stores.keySet();
-      for (String key : keys) {
-        out.indent().p("__rt::checkStore(").p(key).p(", ");
-        stores.get(key).translate(out).pln(");");
       }
     }
     return s.translate(out);

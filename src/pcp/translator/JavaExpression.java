@@ -1314,7 +1314,7 @@ public class JavaExpression extends Visitor implements Translatable {
   private class Expression extends JavaExpression {
 
     private GNode n;
-    private JavaExpression left, right, parent;
+    private JavaExpression left, right, check, parent;
     private String operator;
 
     /**
@@ -1327,6 +1327,8 @@ public class JavaExpression extends Visitor implements Translatable {
       this.n = n;
       this.parent = parent;
       left = new JavaExpression(n.getGeneric(0), parent.getStatement());
+      if (n.getNode(0).hasName("SubscriptExpression"))
+        check = new JavaExpression(n.getNode(0).getGeneric(0), parent.getStatement());
       operator = n.getString(1);
       right = new JavaExpression(n.getGeneric(2), parent.getStatement());
     }
@@ -1387,7 +1389,17 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      if (right != null) {
+      if (left.hasName("SubscriptExpression") && null != right &&
+          !right.getType().isPrimitive()) {
+        left.translate(out).pln(" = ({").incr();
+        out.indent();
+        right.getType().translate(out).p(" a = ");
+        right.translate(out).pln(";");
+        out.indent().p("__rt::checkStore(");
+        check.translate(out).pln(", a);");
+        out.indent().pln("a;");
+        out.decr().indent().p("})");
+      } else if (null != right) {
         left.translate(out).p(" ").p(operator).p(" ");
         right.translate(out);
       } else {
