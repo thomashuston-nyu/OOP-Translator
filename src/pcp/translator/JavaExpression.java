@@ -575,16 +575,17 @@ public class JavaExpression extends Visitor implements Translatable {
             out.p("(");
             x.translate(out).p(" ? \"true\" : \"false\")");
           } else if (x.getType().getType().equals("unsigned char")) {
-            out.p("(int16_t)");
-            x.translate(out);
+            out.p("((int16_t)");
+            x.translate(out).p(")");
           } else if (x.getType().isPrimitive()) {
-            x.translate(out);
+            out.p("(");
+            x.translate(out).p(")");
           } else {
             out.pln("({").incr();
             out.indent().pln("String x;");
             out.indent();
-            x.getType().translate(out).p(" y = ");
-            x.translate(out).pln(";");
+            x.getType().translate(out).p(" y = (");
+            x.translate(out).pln(");");
             out.indent().pln("if (__rt::null() == y)");
             out.indentMore().pln("x = __rt::literal(\"null\");");
             out.indent().pln("else");
@@ -1013,30 +1014,31 @@ public class JavaExpression extends Visitor implements Translatable {
               args.get(i).getType().getType().equals("double")) {
             out.pln("({").incr();
             out.indent().pln("std::ostringstream sout;");
-            out.indent().p("if (modf(");
-            args.get(i).translate(out).pln(", new double) == 0)");
-            out.indentMore().p("sout << ");
-            args.get(i).translate(out).pln(" << \".0\";");
+            out.indent().p("if (modf((");
+            args.get(i).translate(out).pln("), new double) == 0)");
+            out.indentMore().p("sout << (");
+            args.get(i).translate(out).pln(") << \".0\";");
             out.indent().pln("else");
-            out.indentMore().p("sout << ");
-            args.get(i).translate(out).pln(";");
+            out.indentMore().p("sout << (");
+            args.get(i).translate(out).pln(");");
             out.indent().pln("String s = new __String(sout.str());");
             out.indent().pln("s;");
             out.decr().indent().p("})");
           } else if (args.get(i).getType().getType().equals("bool")) {
-            out.p("(");
-            args.get(i).translate(out).p(" ? \"true\" : \"false\")");
+            out.p("((");
+            args.get(i).translate(out).p(") ? \"true\" : \"false\")");
           } else if (args.get(i).getType().getType().equals("unsigned char")) {
-            out.p("(int16_t)");
-            args.get(i).translate(out);
+            out.p("((int16_t)");
+            args.get(i).translate(out).p(")");
           } else if (args.get(i).getType().isPrimitive()) {
-            args.get(i).translate(out);
+            out.p("(");
+            args.get(i).translate(out).p(")");
           } else {
             out.pln("({").incr();
             out.indent().pln("String x;");
             out.indent();
-            args.get(i).getType().translate(out).p(" y = ");
-            args.get(i).translate(out).pln(";");
+            args.get(i).getType().translate(out).p(" y = (");
+            args.get(i).translate(out).pln(");");
             out.indent().pln("if (__rt::null() == y)");
             out.indentMore().pln("x = __rt::literal(\"null\");");
             out.indent().pln("else");
@@ -1272,6 +1274,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @param parent The wrapper expression.
      */
     public ConditionalExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       test = new JavaExpression(n.getGeneric(0), parent.getStatement());
       ifTrue = new JavaExpression(n.getGeneric(1), parent.getStatement());
       ifFalse = new JavaExpression(n.getGeneric(2), parent.getStatement());
@@ -1637,10 +1640,9 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      left.translate(out);
-      out.p(" ").p(operator).p(" ");
-      right.translate(out);
-      return out;
+      out.p("(");
+      left.translate(out).p(") ").p(operator).p(" (");
+      return right.translate(out).p(")");
     }
 
   }
