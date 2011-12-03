@@ -1037,7 +1037,12 @@ public class JavaExpression extends Visitor implements Translatable {
             out.pln("({").incr();
             out.indent().pln("String x;");
             out.indent();
-            args.get(i).getType().translate(out).p(" y = (");
+            if (args.get(i).getType().isArray())
+              out.p("__rt::Ptr<");
+            args.get(i).getType().translate(out);
+            if (args.get(i).getType().isArray())
+              out.p(" >");
+            out.p(" y = (");
             args.get(i).translate(out).pln(");");
             out.indent().pln("if (__rt::null() == y)");
             out.indentMore().pln("x = __rt::literal(\"null\");");

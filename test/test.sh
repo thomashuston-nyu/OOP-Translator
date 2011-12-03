@@ -10,7 +10,12 @@ function check_exit() {
 
 # List of test files to run
 files=(
-"JavaExpression.java"
+"CommandLineArguments.java"
+"DefaultValues.java"
+"Expressions.java"
+"Statements.java"
+"MethodChaining.java"
+"Naming.java"
 )
 
 # Directories
