@@ -1272,6 +1272,7 @@ public class JavaExpression extends Visitor implements Translatable {
      * @param parent The wrapper expression.
      */
     public ConditionalExpression(GNode n, JavaExpression parent) {
+      this.parent = parent;
       test = new JavaExpression(n.getGeneric(0), parent.getStatement());
       ifTrue = new JavaExpression(n.getGeneric(1), parent.getStatement());
       ifFalse = new JavaExpression(n.getGeneric(2), parent.getStatement());
