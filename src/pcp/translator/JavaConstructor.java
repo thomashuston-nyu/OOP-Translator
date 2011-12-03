@@ -39,16 +39,24 @@ import xtc.tree.Visitor;
  *
  * @version 1.4
  */
-public class JavaConstructor extends Visitor implements Translatable {
+public class JavaConstructor extends JavaMethod implements Translatable {
 
+  // The body of the constructor
   private JavaBlock body;
+
+  // The class this is a constructor for
   private JavaClass cls;
-  //private ThrowsClause exception;
-  private Map<String, JavaExpression> initialize;
-  private boolean isAbstract, isFinal;
+
+  // The mangled name of the constructor
   private String name;
+
+  // The parameters for the constructor
   private LinkedHashMap<String, JavaType> parameters;
+
+  // this() and super() calls
   private JavaStatement superCall, thisCall;
+
+  // The visibility of the constructor
   private JavaVisibility visibility;
 
 
@@ -64,7 +72,6 @@ public class JavaConstructor extends Visitor implements Translatable {
     this.cls = cls;
 
     // Initialize the maps
-    initialize = new HashMap<String, JavaExpression>();
     parameters = new LinkedHashMap<String, JavaType>();
     
     // Set the default visibility
@@ -83,7 +90,7 @@ public class JavaConstructor extends Visitor implements Translatable {
     // Create the body of the constructor
     body = new JavaBlock(n.getGeneric(5), cls, this);
 
-    // Check if the first line of the constructor is a call to this
+    // Check if the first line of the constructor is a this() or super() call
     if (0 < n.getNode(5).size() && n.getNode(5).getNode(0).hasName("ExpressionStatement") &&
         n.getNode(5).getNode(0).getNode(0).hasName("CallExpression"))
       if (n.getNode(5).getNode(0).getNode(0).getString(2).equals("this"))
@@ -140,6 +147,17 @@ public class JavaConstructor extends Visitor implements Translatable {
   }
 
   /**
+   * Returns <code>false</code> in all cases; exists 
+   * so that we may quickly check whether the dynamic
+   * type of a JavaMethod is a method or constructor.
+   *
+   * @return <code>False</code>.
+   */
+  public boolean isMethod() {
+    return false;
+  }
+
+  /**
    * Checks if the specified variable is static.
    *
    * @return <code>True</code> if the variable is static;
@@ -147,19 +165,6 @@ public class JavaConstructor extends Visitor implements Translatable {
    */
   public boolean isVariableStatic(String name) {
     return cls.isVariableStatic(name);
-  }
-
-
-  // ============================ Set Methods =======================
-  
-  /**
-   * Adds a variable to initialize in the constructor.
-   *
-   * @param name The name of the variable.
-   * @param value The value of the variable.
-   */
-  public void addInitializer(String name, JavaExpression value) {
-    initialize.put(name, value);
   }
 
 
@@ -171,7 +176,7 @@ public class JavaConstructor extends Visitor implements Translatable {
    * @param n The block node.
    */
   public void visitBlock(GNode n) {
-    // Already initialized
+    // Already initialized, nothing to do
   }
 
   /**
@@ -180,7 +185,7 @@ public class JavaConstructor extends Visitor implements Translatable {
    * @param n The dimensions node.
    */
   public void visitDimensions(GNode n) {
-    // TODO: What are dimensions in a method declaration?  
+    // What are dimensions in a method declaration?  
   }
      
   /**
@@ -226,38 +231,11 @@ public class JavaConstructor extends Visitor implements Translatable {
    * @param n The throws clause node.
    */
   public void visitThrowsClause(GNode n) {
-    //exception = new ThrowsClause(n);
+    // C++ doesn't have throws, so there's nothing to do here
   }
 
 
-  // r======================== Translation Methods ===================
-
-  /**
-   * Translates the constructor into a declaration for
-   * the C++ header struct and writes it to the
-   * output stream.
-   *
-   * @param out The output stream.
-   *
-   * @return The output stream.
-   */
-  public Printer translateHeaderDeclaration(Printer out) {
-    out.indent().p("__").p(cls.getName()).p("(");
-    Set<String> params = parameters.keySet();
-    int count = 0;
-    for (String param : params) {
-      if (parameters.get(param).isArray())
-        out.p("__rt::Ptr<");
-      parameters.get(param).translate(out);
-      if (parameters.get(param).isArray())
-        out.p(" >");
-      out.p(" ").p(param);
-      if (count < params.size() - 1)
-        out.p(", ");
-      count++;
-    }
-    return out.pln(");");
-  }
+  // ======================== Translation Methods ===================
 
   /**
    * Translates the constructor helper method into a
@@ -268,7 +246,7 @@ public class JavaConstructor extends Visitor implements Translatable {
    *
    * @return The output stream.
    */
-  public Printer translateHelperDeclaration(Printer out) {
+  public Printer translateHeaderDeclaration(Printer out) {
     out.indent().p("static ").p(cls.getName()).p(" $__");
     out.p(cls.getName());
     Set<String> params = parameters.keySet();
@@ -328,9 +306,11 @@ public class JavaConstructor extends Visitor implements Translatable {
       out.indentMore().p("__this = new __").p(name).pln("();");
     }
 
+    // Use the explicit super() call if written
     if (null != superCall) {
       out.indent();
       superCall.translate(out);
+    // Otherwise call super() implicitly
     } else if (null == thisCall) {
       out.indent().p("__this->__super = ");
       JavaClass sup = cls.getParent();
@@ -343,7 +323,9 @@ public class JavaConstructor extends Visitor implements Translatable {
       }
     }
 
+    // Initialize class fields
     if (null == thisCall) {
+      // Initialize instance variables inherited from superclasses
       if (null == superCall) {
         JavaClass temp = cls.getParent();
         while (null != temp) {

@@ -160,22 +160,22 @@ public class Translator extends Tool {
         // Resolve dependencies
         c.setMain();
         resolve(main, c);
-      } catch (IOException i) {
-        runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();
-      } catch (ParseException p) {
-        runtime.errConsole().p("Error parsing file: ").p(main.getPath()).pln().flush();
-      } finally {
+        
+        // Write the translated C++ code to files
         try {
-          // Write the translated C++ code to files
           Set<String> keys = JavaPackage.getJavaPackageList();
           for (String key : keys) {
             JavaPackage.getJavaPackage(key).orderFiles();
             writeHeader(JavaPackage.getJavaPackage(key));
             writeBody(JavaPackage.getJavaPackage(key));
           }
-          } catch (IOException i) {
+        } catch (IOException i) {
           runtime.errConsole().p("Error writing file: ").pln(i.toString()).flush();
         }
+      } catch (IOException i) {
+        runtime.errConsole().p("Error reading file: ").p(main.getPath()).pln().flush();
+      } catch (ParseException p) {
+        runtime.errConsole().p("Error parsing file: ").p(main.getPath()).pln().flush();
       }
     }
   }
@@ -365,6 +365,25 @@ public class Translator extends Tool {
   // ======================= Translation Methods ====================
 
   /**
+   * Creates a new file and an output stream in which
+   * to write to it.
+   *
+   * @param name The name of the file.
+   *
+   * @return The output stream.
+   *
+   * @throws IOException Signals an I/O error.
+   */
+  public BufferedWriter createFile(String name) throws IOException {
+    File file = new File(OUTPUT_DIR + name);
+    if (file.exists()) {
+      file.delete();
+    }
+    file.createNewFile();
+    return new BufferedWriter(new FileWriter(file));
+  }
+
+  /**
    * Writes the C++ body for the specified package
    * to a file.
    *
@@ -373,16 +392,8 @@ public class Translator extends Tool {
    * @throws IOException Signals an I/O error.
    */
   public void writeBody(JavaPackage pkg) throws IOException {
-    // Get the name of the cc file
-    String name = pkg.getFilename() + ".cc";
-    
     // Create the cc file
-    File file = new File(OUTPUT_DIR + name);
-    if (file.exists()) {
-      file.delete();
-    }
-    file.createNewFile();
-    BufferedWriter output = new BufferedWriter(new FileWriter(file));
+    BufferedWriter output = createFile(pkg.getFilename() + ".cc");
 
     // Translate the body of the package
     Printer printer = new Printer(output);
@@ -402,16 +413,8 @@ public class Translator extends Tool {
    * @throws IOException Signals an I/O error.
    */
   public void writeHeader(JavaPackage pkg) throws IOException {
-    // Get the name of the file
-    String name = pkg.getFilename() + ".h";
-
     // Create the header file
-    File file = new File(OUTPUT_DIR + name);
-    if (file.exists()) {
-      file.delete();
-    }
-    file.createNewFile();
-    BufferedWriter output = new BufferedWriter(new FileWriter(file));
+    BufferedWriter output = createFile(pkg.getFilename() + ".h");
 
     // Translate the header of the package
     Printer printer = new Printer(output);

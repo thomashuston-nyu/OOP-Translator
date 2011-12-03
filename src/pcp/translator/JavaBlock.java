@@ -41,11 +41,22 @@ import xtc.tree.Visitor;
  */
 public class JavaBlock extends Visitor implements JavaScope, Translatable {
 
+  // If this is a constructor, keep a reference to the constructor object
   private JavaConstructor constructor;
+
+  // If this is a method, keep a reference to the method object
   private JavaMethod method;
+  
+  // The type of block (constructor, method, or block)
   private String name;
+
+  // The parent scope
   private JavaScope parent;
+
+  // The statements making up the body of the block
   private List<JavaStatement> statements;
+
+  // The variables declared in this scope
   private Map<String, JavaType> variables;
 
   
@@ -66,9 +77,9 @@ public class JavaBlock extends Visitor implements JavaScope, Translatable {
    *
    * @param n The block node.
    * @param parent The parent scope.
-   * @param method The method this is a block for.
+   * @param method The constructor/method this is a block for.
    */
-  public JavaBlock(GNode n, JavaScope parent, Object method) {
+  public JavaBlock(GNode n, JavaScope parent, JavaMethod method) {
     // Set the parent scope
     this.parent = parent;
 
@@ -78,15 +89,16 @@ public class JavaBlock extends Visitor implements JavaScope, Translatable {
     // Set the scope name
     if (null != method) {
       LinkedHashMap<String, JavaType> parameters; 
-      if (method instanceof JavaMethod) {
+      if (method.isMethod()) {
         name = "JavaMethod";
-        this.method = (JavaMethod)method;
+        this.method = method;
         parameters = this.method.getParameters();
       } else {
         name = "JavaConstructor";
         this.constructor = (JavaConstructor)method;
         parameters = this.constructor.getParameters();
       }
+      // Add the method/constructor parameters to the scope
       Set<String> params = parameters.keySet();
       for (String param : params) {
         variables.put(param, parameters.get(param));
@@ -100,6 +112,8 @@ public class JavaBlock extends Visitor implements JavaScope, Translatable {
     if (n.hasName("Block")) {
       boolean first = true;
       for (Object o : n) {
+        // If the first statement is a this() or super() call,
+        // skip it and let the constructor translate it
         if (first) {
           first = false;
           GNode node = (GNode)o;

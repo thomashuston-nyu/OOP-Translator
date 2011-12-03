@@ -30,7 +30,9 @@ import xtc.tree.Printer;
 import xtc.tree.Visitor;
 
 /**
- * A method or constructor.
+ * Wrapper around Java methods; determines the visibility
+ * level and mangled method signature; translates the body
+ * of the method.
  *
  * @author Nabil Hassein
  * @author Thomas Huston
@@ -41,12 +43,25 @@ import xtc.tree.Visitor;
  */
 public class JavaMethod extends Visitor implements Translatable {
 
+  // The body of the method
   private JavaBlock body;
+
+  // The class this method appears in
   private JavaClass cls;
-  private boolean isAbstract, isFinal, isStatic;
+
+  // Whether the method is static or final
+  private boolean isFinal, isStatic;
+
+  // The name of the method
   private String name;
+
+  // The parameters of the method
   private LinkedHashMap<String, JavaType> parameters; 
+
+  // The return type of the method
   private JavaType returnType;
+
+  // The visibility level of the method
   private JavaVisibility visibility;
 
 
@@ -146,16 +161,6 @@ public class JavaMethod extends Visitor implements Translatable {
   }
 
   /**
-   * Returns <code>true</code> if this method is abstract.
-   *
-   * @return <code>true</code> if this method is abstract; 
-   * <code>false</code> otherwise.
-   */
-  public boolean isAbstract() {
-    return isAbstract;
-  }
-
-  /**
    * Returns <code>true</code> if this method is final.
    *
    * @return <code>true</code> if this method is final; 
@@ -166,9 +171,19 @@ public class JavaMethod extends Visitor implements Translatable {
   }
 
   /**
+   * Returns <code>true</code> in all cases; exists
+   * for the constructor subclass to override.
+   *
+   * @return <code>True</code>.
+   */
+  public boolean isMethod() {
+    return true;
+  }
+
+  /**
    * Returns <code>true</code> if this method is static.
    *
-   * @return <code>true</code> if this method is static; 
+   * @return <code>True</code> if this method is static; 
    * <code>false</code> otherwise.
    */
   public boolean isStatic() {
@@ -213,7 +228,7 @@ public class JavaMethod extends Visitor implements Translatable {
    * @param n The dimensions node.
    */
   public void visitDimensions(GNode n) {
-    // TODO: What are dimensions in a method declaration?  
+    // What are dimensions in a method declaration?  
   }
      
   /**
@@ -250,8 +265,6 @@ public class JavaMethod extends Visitor implements Translatable {
         visibility = JavaVisibility.PRIVATE;
       else if (m.equals("protected"))
         visibility = JavaVisibility.PROTECTED;
-      else if (m.equals("abstract"))
-        isAbstract = true;
       else if (m.equals("final"))
         isFinal = true;
       else if (m.equals("static"))
@@ -265,8 +278,7 @@ public class JavaMethod extends Visitor implements Translatable {
    * @param n The throws clause node.
    */
   public void visitThrowsClause(GNode n) {
-    // TODO: handle exceptions
-    //exception = new ThrowsClause(n);
+    // Nothing to do since C++ doesn't have throws
   }
 
   /**

@@ -32,12 +32,65 @@ import java.util.Map;
  */
 public interface JavaScope {
 
+  /**
+   * Adds a variable to the scope.
+   *
+   * @param name The name of the variable.
+   * @param type The type of the variable.
+   */
   public void addVariable(String name, JavaType type);
+
+  /**
+   * Gets the parent scope.
+   *
+   * @return The parent scope.
+   */
   public JavaScope getParentScope();
+
+  /**
+   * Gets the scope in which the specified variable is declared.
+   *
+   * @param name The name of the variable.
+   *
+   * @return The scope of the variable if it exists;
+   * <code>null</code> otherwise.
+   */
   public JavaScope getVariableScope(String name);
+  
+  /**
+   * Gets the type of the specified variable.
+   *
+   * @param name The name of the variable.
+   *
+   * @return The type if the variable exists;
+   * <code>null</code> otherwise.
+   */
   public JavaType getVariableType(String name);
+  
+  /**
+   * Checks if the current scope is of the specified type.
+   *
+   * @param type The type of the scope.
+   *
+   * @return <code>True</code> if the scope is of the specified
+   * type; <code>false</code> otherwise.
+   */
   public boolean hasName(String name);
+  
+  /**
+   * Checks if a variable is currently in scope.
+   *
+   * @return <code>True</code> if the variable is in scope;
+   * <code>false</code> otherwise.
+   */
   public boolean isInScope(String name);
+  
+  /**
+   * Checks if the specified variable is static.
+   *
+   * @return <code>True</code> if the variable is static;
+   * <code>false</code> otherwise.
+   */
   public boolean isVariableStatic(String name);
 
 }

@@ -55,6 +55,7 @@ public class JavaType extends Visitor implements Translatable {
     primitives.put("void", "void");
   }
 
+  // Map from C++ primitive types to the corresponding wrapper classes
   private final static Map<String, String> primitiveWrappers = new HashMap<String, String>();
   static {
     primitiveWrappers.put("unsigned char", "Byte");
@@ -67,6 +68,7 @@ public class JavaType extends Visitor implements Translatable {
     primitiveWrappers.put("char", "Character");
   }
 
+  // Map from C++ primitive types to the Java class letter
   private final static Map<String, Character> primitiveLetters = new HashMap<String, Character>();
   static {
     primitiveLetters.put("unsigned char", 'B');
@@ -79,6 +81,7 @@ public class JavaType extends Visitor implements Translatable {
     primitiveLetters.put("char", 'C');
   }
 
+  // Map from classes to their superclass
   private static Map<String, String> hierarchy = new HashMap<String, String>();
   static {
     hierarchy.put("Object", null);
@@ -86,11 +89,19 @@ public class JavaType extends Visitor implements Translatable {
     hierarchy.put("String", "Object");
   }
 
+  // Map from types to the maximum dimension of arrays of that type
   private static Map<String, Integer> arrays = new HashMap<String, Integer>();
 
+  // The dimensions of this type
   private int dimensions;
+
+  // Whether this type is static
   private boolean isStatic;
+
+  // The package the class type refers to
   private JavaPackage pkg;
+
+  // The class or primitive type
   private String classType, primitiveType;
   
 

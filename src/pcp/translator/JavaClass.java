@@ -41,18 +41,40 @@ import xtc.tree.Visitor;
  */
 public class JavaClass extends Visitor implements JavaScope, Translatable {
   
+  // A map from class names to the corresponding class objects
   private static Map<String, JavaClass> classes = new HashMap<String, JavaClass>();
 
+  // The constructors for the class
   private List<JavaConstructor> constructors;
+
+  // The type of the superclass
   private JavaType extension;
+
+  // The class variables
   private List<JavaField> fields;
+
+  // The file in which this class exists
   private JavaFile file;
-  private boolean isAbstract, isFinal, isStatic;
+
+  // Keeps track of final/static status
+  private boolean isFinal, isStatic;
+
+  // The methods in the class
   private List<JavaMethod> methods;
+
+  // The name of the class
   private String name;
+
+  // The superclass
   private JavaClass parent;
+
+  // The variables declared in this scope
   private Map<String, JavaType> variables;
+
+  // The visibility of the class
   private JavaVisibility visibility;
+
+  // The vtable for the class
   private LinkedHashMap<String, JavaMethod> vtable;
 
 
@@ -78,9 +100,6 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     JavaType.addType(name, "Object");
 
     // Initialize the modifiers to default values
-    isAbstract = false;
-    isFinal = false;
-    isStatic = false;
     visibility = JavaVisibility.PACKAGE_PRIVATE;
 
     // Instantiate the lists
@@ -100,7 +119,8 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
   // ============================ Get Methods =======================
   
   /**
-   * Gets the reference to the superclass.
+   * Gets the reference to the superclass; used by the translator to
+   * locate the actual superclass.
    *
    * @return The reference.
    */
@@ -269,16 +289,6 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
   }
 
   /**
-   * Tests whether the class is abstract.
-   *
-   * @return <code>True</code> if the class is abstract;
-   * <code>false</code> otherwise.
-   */
-  public boolean isAbstract() {
-    return isAbstract;
-  }
-  
-  /**
    * Tests whether the class is final.
    *
    * @return <code>True</code> if the class is final;
@@ -341,6 +351,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    */
   public void setParent(JavaClass parent) {
     this.parent = parent;
+    // Add class instance variables from the superclass
     JavaClass temp = parent;
     while (null != temp) {
       List<JavaField> fields = temp.getFields();
@@ -425,8 +436,6 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
         visibility = JavaVisibility.PROTECTED;
       else if (m.equals("final"))
         isFinal = true;
-      else if (m.equals("abstract"))
-        isAbstract = true;
       else if (m.equals("static"))
         isStatic = true;
     }
@@ -443,7 +452,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     if (null != vtable)
       return;
 
-    // Inherit methods from parent
+    // Inherit methods from the parent
     vtable = new LinkedHashMap<String, JavaMethod>();
     if (null != parent) {
       LinkedHashMap<String, JavaMethod> parentVTable = parent.getVTable();
@@ -505,7 +514,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
 
     if (0 != constructors.size()) {
       for (JavaConstructor con : constructors) {
-        con.translateHelperDeclaration(out);
+        con.translateHeaderDeclaration(out);
       }
     } else {
       out.indent().p("static ").p(name).p(" $__").p(name).pln("$void();");
@@ -586,6 +595,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * @return The output stream.
    */
   public Printer translateArrayTemplate(Printer out) {
+    // Create the array template specializations for this class if necessary
     Map<String, Integer> arrays = JavaType.getArrayDimensions();
     if (arrays.containsKey(name)) {
       int dim = arrays.get(name);
@@ -598,6 +608,9 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
         t.translateArraySpecialization(out);
       }
     }
+    
+    // If this is the main public class, also add the template specializations
+    // for java.lang classes and primitive types
     if (getFile().isMain() && visibility == JavaVisibility.PUBLIC) {
       Set<String> keys = arrays.keySet();
       for (String key : keys) {
@@ -634,11 +647,13 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     // Print out the constructors
     out.indent().p("__").p(name).p("::__").p(name).pln("()");
     out.indent().pln(": __vptr(&__vtable) {}").pln();
+    // Use the custom constructors if written
     if (0 != constructors.size()) {
       for (JavaConstructor c : constructors) {
         c.translate(out);
         out.pln();
       }
+    // Otherwise create the default constructor
     } else {
       out.indent().p(name).p(" __").p(name).p("::$__").p(name).pln("$void() {").incr();
       out.indent().p(name).p(" __this = new __").p(name).pln("();");

@@ -39,12 +39,25 @@ import xtc.tree.Visitor;
  */
 public class JavaField extends JavaStatement implements Translatable {
 
-  private boolean isAbstract, isFinal, isStatic;
+  // If this is a class variable, the class the field is declared in
   private JavaClass cls;
+
+  // Whether the field is final or static
+  private boolean isFinal, isStatic;
+
+  // The names of the variables declared
   private List<String> names;
+
+  // The statement wrapper
   private JavaStatement parent;
+
+  // The type of the field
   private JavaType type;
+
+  // The initial values of the variables
   private List<JavaExpression> values;
+
+  // The visibility of the field
   private JavaVisibility visibility;
 
 
@@ -80,8 +93,6 @@ public class JavaField extends JavaStatement implements Translatable {
         visibility = JavaVisibility.PRIVATE;
       else if (m.equals("protected"))
         visibility = JavaVisibility.PROTECTED;
-      else if (m.equals("abstract"))
-        isAbstract = true;
       else if (m.equals("static"))
         isStatic = true;
       else if (m.equals("final"))
@@ -244,11 +255,14 @@ public class JavaField extends JavaStatement implements Translatable {
       out.indent().p("__this->").p(names.get(i));
       if (null != values.get(i)) {
         out.p(" = ");
+        // Use the specified value if provided
         values.get(i).translate(out).pln(";");
       } else if (null == parent) {
         out.p(" = ");
+        // The default value for primitives is 0
         if (type.isPrimitive())
           out.pln("0;");
+        // The default for objects is null
         else
           out.pln("__rt::null();");
       } else {

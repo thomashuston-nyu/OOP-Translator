@@ -32,6 +32,14 @@ import xtc.tree.Printer;
  */
 public interface Translatable {
 
+  /**
+   * Translates the class and writes it to
+   * the output stream.
+   *
+   * @param out The output stream.
+   *
+   * @return The output stream.
+   */
   public Printer translate(Printer out);
 
 }

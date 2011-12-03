@@ -41,9 +41,16 @@ import xtc.tree.Visitor;
  */
 public class JavaExpression extends Visitor implements Translatable {
 
+  // The specific expression instance
   private JavaExpression e;
+
+  // The statement in which this expression appears
   private JavaStatement s;
+
+  // The resulting type of this expression
   private JavaType type;
+  
+  // The AST node 
   private GNode node;
 
 
@@ -125,7 +132,9 @@ public class JavaExpression extends Visitor implements Translatable {
   /**
    * Determines the resulting type of the expression.
    */
-  public void determineType() {}
+  public void determineType() {
+    // Nothing to do here, overridden in the various nested classes
+  }
 
   /**
    * Sets the resulting type of the expression.
@@ -428,6 +437,15 @@ public class JavaExpression extends Visitor implements Translatable {
   }
 
   /**
+   * Creates a new super expression.
+   *
+   * @param n The super expression node.
+   */
+  public void visitSuperExpression(GNode n) {
+    // Nothing to do
+  }
+
+  /**
    * Creates a new this expression.
    *
    * @param n The this expression node.
@@ -524,11 +542,14 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
+      // If the resulting type is not a string, simply perform the arithmetic
       if (!isString) {
         left.translate(out);
         out.p(" ").p(operator).p(" ");
         right.translate(out);
         return out;
+
+      // Otherwise create string stream and concatenate the expressions
       } else {
         out.pln("({");
         out.incr().indent().pln("std::ostringstream sout;");
@@ -697,6 +718,10 @@ public class JavaExpression extends Visitor implements Translatable {
 
   }
 
+  /**
+   * A call expression
+   * (for example, <code>x.toString()</code>).
+   */
   private class CallExpression extends JavaExpression {
 
     private List<JavaExpression> args;
@@ -775,6 +800,7 @@ public class JavaExpression extends Visitor implements Translatable {
 
       // First, locate the class that the method is being called on
       JavaClass cls = null;
+
       // If there is no caller, then we're using the current class
       if (null == caller && !isPrint) {
         JavaScope temp = parent.getStatement().getScope();
@@ -957,6 +983,7 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
+
       // Special case for print statements
       if (isPrint) {
         out.p("std::cout");
@@ -1001,6 +1028,8 @@ public class JavaExpression extends Visitor implements Translatable {
         if (name.equals("println"))
           out.p(" << std::endl");
         return out;
+
+      // Special case for this() or super() calls
       } else if (isThis || isSuper) {
         JavaScope temp = parent.getStatement().getScope();
         while (!temp.hasName("JavaClass"))
@@ -1026,6 +1055,8 @@ public class JavaExpression extends Visitor implements Translatable {
         if (isSuper)
           out.p(", __this");
         return out.p(")");
+
+      // Chained method calls
       } else if (null != caller && caller.hasName("CallExpression")) {
         out.pln("({").incr();
         out.indent();
@@ -1054,6 +1085,8 @@ public class JavaExpression extends Visitor implements Translatable {
         out.pln(");");
         out.decr().indent().p("})");
         return out;
+
+      // Methods called on some instance or class
       } else if (null != caller) {
         if (null != method && method.isStatic()) {
           if (!method.getClassFrom().getFile().getPackage().getNamespace().equals(""))
@@ -1062,6 +1095,8 @@ public class JavaExpression extends Visitor implements Translatable {
         } else {                                      
           caller.translate(out).p("->");
         }
+
+      // Methods called from within the current class
       } else {
         if (null != method && method.isStatic())
           out.p("__").p(method.getClassFrom().getName()).p("::");
@@ -1195,7 +1230,7 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
-      // TODO: figure out what a class literal expression is
+      // What is a class literal expression?
       return out;
     }
 
@@ -1888,6 +1923,7 @@ public class JavaExpression extends Visitor implements Translatable {
     public void determineType() {
       if (parent.hasType())
         return;
+
       // Check if this is a variable currently in scope
       if (parent.getStatement().getScope().isInScope("$" + name)) {
         parent.setType(parent.getStatement().getScope().getVariableType("$" + name));
@@ -1897,6 +1933,7 @@ public class JavaExpression extends Visitor implements Translatable {
           isClassVar = true;
         }
         return;
+
       // Check if this refers to a class
       } else {
         JavaScope temp = parent.getStatement().getScope();
@@ -1914,6 +1951,7 @@ public class JavaExpression extends Visitor implements Translatable {
             return;
           }
         }
+
         // Look in the current package
         JavaPackage pkg = cls.getFile().getPackage();
         for (JavaFile f : pkg.getFiles()) {
@@ -1926,6 +1964,7 @@ public class JavaExpression extends Visitor implements Translatable {
             return;
           }
         }
+
         // Then look in the imported packages
         Set<JavaPackage> imports = cls.getFile().getImports();
         for (JavaPackage imp : imports) {
@@ -1940,6 +1979,7 @@ public class JavaExpression extends Visitor implements Translatable {
             }
           }
         }
+
         // If it still isn't found, set the type to void
         parent.setType(new JavaType("void"));
       }
@@ -1956,25 +1996,31 @@ public class JavaExpression extends Visitor implements Translatable {
     public Printer translate(Printer out) {
       // Now that we have all classes available, determine the type
       determineType();
+
       // Check if it's a variable currently in scope
       if (parent.getStatement().getScope().isInScope("$" + name)) {
+
         // If it's a static class variable, print out the class first
         if (isClassVar) {
           JavaClass scope = (JavaClass)parent.getStatement().getScope().getVariableScope("$" + name);
           if (!scope.getFile().getPackage().getNamespace().equals(""))
             out.p(scope.getFile().getPackage().getNamespace()).p("::");
           out.p("__").p(scope.getName()).p("::");
+
         // Check if it's an instance variable
         } else if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")) {
           out.p("__this->");
         }
         return out.p("$").p(name);
+
+      // If we can't locate the variable, it might be a class
       } else {
         // If this is a class, print out the full namespace and class name
         if (isClass) {
           if (!pkg.getNamespace().equals(""))
             out.p(pkg.getNamespace()).p("::");
           return out.p("__").p(name);
+
         // Otherwise just print out the variable name
         } else {
           return out.p("$" + name);
@@ -2039,6 +2085,7 @@ public class JavaExpression extends Visitor implements Translatable {
         isVariable = true;
         return;
       }
+
       // Look in the current file
       for (JavaClass c : cls.getFile().getClasses()) {
         if (name.equals(c.getName())) {
@@ -2055,6 +2102,7 @@ public class JavaExpression extends Visitor implements Translatable {
           }
         }
       }
+
       // Look in the current package
       JavaPackage pkg = cls.getFile().getPackage();
       for (JavaFile f : pkg.getFiles()) {
@@ -2073,6 +2121,7 @@ public class JavaExpression extends Visitor implements Translatable {
           return;
         }
       }
+
       // Then look in the imported packages
       Set<JavaPackage> imports = cls.getFile().getImports();
       for (JavaPackage imp : imports) {
@@ -2292,7 +2341,7 @@ public class JavaExpression extends Visitor implements Translatable {
     public void determineType() {
       if (parent.hasType())
         return;
-      parent.setType(new JavaType("void"));// TODO: fix this
+      parent.setType(new JavaType("void"));
     }
 
     /**

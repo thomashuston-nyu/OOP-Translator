@@ -42,11 +42,20 @@ import xtc.tree.Visitor;
  */
 public class JavaStatement extends Visitor implements Translatable {
 
+  // The AST node
   private GNode node;
+
+  // The objects referenced within the statement, used for not null checks
   private Set<String> objects;
-  private Map<String, JavaExpression> stores;
+
+  // The scope in which this statement occurs
   private JavaScope parent;
+
+  // The specific instance of a nested class
   private JavaStatement s;
+
+  // Keeps track of array stores
+  private Map<String, JavaExpression> stores;
 
 
   // =========================== Constructors =======================
@@ -125,7 +134,9 @@ public class JavaStatement extends Visitor implements Translatable {
    * Makes sure to compile a full list of variables to check
    * not null on.
    */
-  public void checkNotNull() {}
+  public void checkNotNull() {
+    // Nothing to do here, overridden in the nested classes
+  }
 
 
   // =========================== Visit Methods ======================
@@ -304,7 +315,7 @@ public class JavaStatement extends Visitor implements Translatable {
      * @param n The block declaration node.
      */
     public BlockDeclaration(GNode n, JavaStatement parent) {
-      // TODO: translate block declarations
+      // C++ doesn't easily support block declarations
     }
 
     /**

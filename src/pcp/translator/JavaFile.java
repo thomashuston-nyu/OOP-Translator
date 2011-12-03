@@ -41,12 +41,22 @@ import xtc.tree.Visitor;
  */
 public class JavaFile extends Visitor implements Translatable {
   
+  // A map from file names to the corresponding file objects
   private static Map<String, JavaFile> files = new HashMap<String, JavaFile>();
 
+  // A list of all classes in this file
   private List<JavaClass> allClasses;
+
+  // The imported packages
   private Set<JavaPackage> imports;
+
+  // Whether this is the main file specified by the user
   private boolean isMain;
+
+  // The package this file is in
   private JavaPackage pkg;
+
+  // The public class in this file
   private JavaClass publicClass;
 
 
