@@ -310,8 +310,8 @@ public class JavaConstructor extends JavaMethod implements Translatable {
     if (null != superCall) {
       out.indent();
       superCall.translate(out);
-    // Otherwise call super() implicitly
-    } else if (null == thisCall) {
+    }
+    if (null == thisCall) {
       out.indent().p("__this->__super = ");
       JavaClass sup = cls.getParent();
       if (null == sup) {
