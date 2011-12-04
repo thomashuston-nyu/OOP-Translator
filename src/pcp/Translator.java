@@ -55,7 +55,7 @@ import xtc.util.Tool;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 1.4
+ * @version 2.0
  */
 public class Translator extends Tool {
   
@@ -111,7 +111,7 @@ public class Translator extends Tool {
    * @return The version.
    */
   public String getVersion() {
-    return "1.4";
+    return "2.0";
   }
 
 
