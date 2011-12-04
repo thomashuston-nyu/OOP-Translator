@@ -18,6 +18,7 @@
 package pcp.translator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -855,9 +856,135 @@ public class JavaExpression extends Visitor implements Translatable {
       // Get the class hierarchy
       Map<String, String> hierarchy = JavaType.getHierarchy();
 
+      List<List<String>> argChecks = new ArrayList<List<String>>();
+      for (JavaExpression e : args) {
+        List<String> check = new ArrayList<String>();
+        JavaType t = e.getType();
+        if (null == t) {
+          Set<String> types = hierarchy.keySet();
+          for (String s : types) {
+            check.add(s);
+          }
+        } else if (t.isPrimitive() || t.isArray()) {
+          check.add(t.getMangledType());
+        } else {
+          String type = t.getClassType();
+          while (null != type) {
+            check.add(type);
+            type = hierarchy.get(type);
+          }
+        }
+        argChecks.add(check);
+      }
+
+      List<List<String>> combos = new ArrayList<List<String>>();
+      combos.add(new ArrayList<String>());
+      for (List<String> list : argChecks) {
+        List<List<String>> temp = new ArrayList<List<String>>();
+        for (List<String> a : combos) {
+          List<String> temp2 = new ArrayList<String>();
+          for (String b : a) {
+            temp2.add(b);
+          }
+          temp.add(temp2);
+        }
+        combos = new ArrayList<List<String>>();
+        for (List<String> a : temp) {
+          for (String b : list) {
+            List<String> temp2 = new ArrayList<String>();
+            for (String c : a) {
+              temp2.add(c);
+            }
+            temp2.add(b);
+            combos.add(temp2);
+          }
+        }
+      }
+
+      int max = 0;
+      Set<String> keys = hierarchy.keySet();
+      for (String key : keys) {
+        int depth = 0;
+        while (null != hierarchy.get(key)) {
+          key = hierarchy.get(key);
+          depth++;
+        }
+        if (depth > max)
+          max = depth;
+      }
+
+      Map<Integer, List<String>> methods = new HashMap<Integer, List<String>>();
+      for (List<String> method : combos) {
+        StringBuilder temp = new StringBuilder();
+        temp.append(name);
+        int distance = 0;
+        for (int i = 0; i < method.size(); i++) {
+          temp.append("$" + method.get(i));
+          if (hierarchy.containsKey(method.get(i))) {
+            if (null == args.get(i).getType()) {
+              int depth = 0;
+              String type = method.get(i);
+              while (null != hierarchy.get(type)) {
+                type = hierarchy.get(type);
+                depth++;
+              }
+              distance += (max - depth);
+            } else {
+              String type = args.get(i).getType().getClassType();
+              while (type != method.get(i)) {
+                distance++;
+                type = hierarchy.get(type);
+              }
+            }
+          }
+        }
+        if (!methods.containsKey(distance))
+          methods.put(distance, new ArrayList<String>());
+        methods.get(distance).add(temp.toString());
+      }
+      if (0 == args.size()) {
+        List<String> method = new ArrayList<String>();
+        method.add(name + "$void");
+        methods.put(0, method);
+      }
+
+      int distance = 0;
+      while (methods.containsKey(distance)) {
+        List<String> names = methods.get(distance);
+        for (String methodName : names) {
+          if (0 == distance && 0 == args.size()) {
+            name = methodName;
+            if (null != cls && !isThis && !isSuper)
+              method = cls.getMethod(methodName);
+            return;
+          }
+          if (methodName.equals("equals$Object") ||
+              methodName.equals("charAt$int32_t")) {
+            name = methodName;
+            return;
+          }
+          if ((isThis || isSuper) && null != cls.getConstructor(methodName)) {
+            name = methodName;
+            return;
+          }
+          if (isSuper) {
+            return;
+          }
+          // Check if the specified method exists
+          if (null != cls && null != cls.getMethod(methodName)) {
+            name = methodName;
+            method = cls.getMethod(methodName);
+            return;
+          }
+        }
+        distance++;
+      }
+      /*
       // Get the types of the arguments and the depth of the type furthest from Object
       for (JavaExpression e : args) {
-        if (!e.getType().isPrimitive() && 0 == e.getType().getDimensions()) {
+        if (null == e.getType()) {
+          newArgTypes.add("null");
+        } else if (!e.getType().isPrimitive() && 0 == e.getType().getDimensions()) {
           String type = e.getType().getClassType();
           int depth = 0;
           while (null != hierarchy.get(type)) {
@@ -867,6 +994,8 @@ public class JavaExpression extends Visitor implements Translatable {
           if (depth > maxLevel)
             maxLevel = depth;
           newArgTypes.add(e.getType().getClassType());
+          
+          //newArgTypes.add("null");
         } else {
           newArgTypes.add(null);
         }
@@ -949,7 +1078,7 @@ public class JavaExpression extends Visitor implements Translatable {
         // Return if we have already reached the top of the hierarchy for all arguments
         if (level > maxLevel)
           return;
-      }
+      }*/
     }
 
     /**
