@@ -313,6 +313,7 @@ public class JavaConstructor extends JavaMethod implements Translatable {
     } else if (null == thisCall) {
       JavaClass sup = cls.getParent();
       if (null != sup) {
+        out.indent();
         if (!sup.getFile().getPackage().getNamespace().equals(""))
           out.p(sup.getFile().getPackage().getNamespace()).p("::");
         out.p("__").p(sup.getName()).p("::$__").p(sup.getName()).pln("$void(__this);");
