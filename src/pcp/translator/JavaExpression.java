@@ -1168,7 +1168,7 @@ public class JavaExpression extends Visitor implements Translatable {
         if (null != method && method.isStatic())
           out.p("__").p(method.getClassFrom().getName()).p("::");
         else if (isSuperCall)
-          out.p("__this->__super->");
+          out.p("__super->");
         else 
           out.p("__this->");
       }
