@@ -979,106 +979,6 @@ public class JavaExpression extends Visitor implements Translatable {
         }
         distance++;
       }
-      /*
-      // Get the types of the arguments and the depth of the type furthest from Object
-      for (JavaExpression e : args) {
-        if (null == e.getType()) {
-          newArgTypes.add("null");
-        } else if (!e.getType().isPrimitive() && 0 == e.getType().getDimensions()) {
-          String type = e.getType().getClassType();
-          int depth = 0;
-          while (null != hierarchy.get(type)) {
-            depth++;
-            type = hierarchy.get(type);
-          }
-          if (depth > maxLevel)
-            maxLevel = depth;
-          newArgTypes.add(e.getType().getClassType());
-          
-          //newArgTypes.add("null");
-        } else {
-          newArgTypes.add(null);
-        }
-      }
-
-      // Loop until a match is found or we have tried every combination
-      while (true) {
-        // If there are no arguments, simply locate use the original method name
-        if (0 == newArgTypes.size()) {
-          name += "$void";
-          if (null != cls && !isThis && !isSuper)
-            method = cls.getMethod(name);
-          return;
-        }
-
-        // This loop specifies the argument to climb higher in the hierarchy
-        for (int i = 0; i < newArgTypes.size(); i++) {
-          // This loop specifies how many levels further to climb for specified argument
-          for (int j = level; j <= maxLevel; j++) {
-            // Create the mangled name
-            StringBuilder s = new StringBuilder();
-            s.append(name);
-            List<String> argTypes = new ArrayList<String>();
-
-            // This loop adds the argument types to the name in order
-            for (int k = 0; k < newArgTypes.size(); k++) {
-              // If this is a primitive type, we can't climb up the hierarchy so simply append it
-              if (null == newArgTypes.get(k)) {
-                String t = args.get(k).getType().getMangledType();
-                s.append("$" + t);
-                argTypes.add(t);
-              // Otherwise climb the tree as specified by the level
-              } else {
-                // Start out with the original type of the argument
-                String type = newArgTypes.get(k);
-                // Climb the tree to the current level 
-                for (int l = 1; l < level; l++) {
-                  if (null == hierarchy.get(type))
-                    break;
-                  type = hierarchy.get(type);
-                }
-                // If this is the argument specified by the outer loop, climb extra levels
-                if (i == k) {
-                  for (int m = level; m < j; m++) {
-                    if (null == hierarchy.get(type))
-                      break;
-                    type = hierarchy.get(type);
-                  }
-                }
-                s.append("$" + type);
-                argTypes.add(type);
-              }
-            }
-            String temp = s.toString();
-
-            // Special cases for methods defined in java_lang
-            if (temp.equals("equals$Object") ||
-                temp.equals("charAt$int32_t")) {
-              name = temp;
-              return;
-            }
-            if ((isThis || isSuper) && null != cls.getConstructor(temp)) {
-              name = temp;
-              return;
-            }
-            if (isSuper) {
-              return;
-            }
-            // Check if the specified method exists
-            if (null != cls && null != cls.getMethod(temp)) {
-              name = temp;
-              method = cls.getMethod(temp);
-              return;
-            }
-          }
-        }
-
-        // If the method was not found, continue up another level in the hierarchy
-        level++;
-        // Return if we have already reached the top of the hierarchy for all arguments
-        if (level > maxLevel)
-          return;
-      }*/
     }
 
     /**
@@ -1931,83 +1831,110 @@ public class JavaExpression extends Visitor implements Translatable {
       // Get the class hierarchy
       Map<String, String> hierarchy = JavaType.getHierarchy();
 
-      // Get the types of the arguments and the depth of the type furthest from Object
+      List<List<String>> argChecks = new ArrayList<List<String>>();
       for (JavaExpression e : args) {
-        if (!e.getType().isPrimitive() && 0 == e.getType().getDimensions()) {
-          String type = e.getType().getClassType();
-          int depth = 0;
-          while (null != hierarchy.get(type)) {
-            depth++;
+        List<String> check = new ArrayList<String>();
+        JavaType t = e.getType();
+        if (null == t) {
+          Set<String> types = hierarchy.keySet();
+          for (String s : types) {
+            check.add(s);
+          }
+        } else if (t.isPrimitive() || t.isArray()) {
+          check.add(t.getMangledType());
+        } else {
+          String type = t.getClassType();
+          while (null != type) {
+            check.add(type);
             type = hierarchy.get(type);
           }
-          if (depth > maxLevel)
-            maxLevel = depth;
-          newArgTypes.add(e.getType().getClassType());
-        } else {
-          newArgTypes.add(null);
+        }
+        argChecks.add(check);
+      }
+
+      List<List<String>> combos = new ArrayList<List<String>>();
+      combos.add(new ArrayList<String>());
+      for (List<String> list : argChecks) {
+        List<List<String>> temp = new ArrayList<List<String>>();
+        for (List<String> a : combos) {
+          List<String> temp2 = new ArrayList<String>();
+          for (String b : a) {
+            temp2.add(b);
+          }
+          temp.add(temp2);
+        }
+        combos = new ArrayList<List<String>>();
+        for (List<String> a : temp) {
+          for (String b : list) {
+            List<String> temp2 = new ArrayList<String>();
+            for (String c : a) {
+              temp2.add(c);
+            }
+            temp2.add(b);
+            combos.add(temp2);
+          }
         }
       }
 
-      // Loop until a match is found or we have tried every combination
-      while (true) {
-        // If there are no arguments, simply locate use the original method name
-        if (0 == newArgTypes.size()) {
-          name += "$void";
-          return;
+      int max = 0;
+      Set<String> keys = hierarchy.keySet();
+      for (String key : keys) {
+        int depth = 0;
+        while (null != hierarchy.get(key)) {
+          key = hierarchy.get(key);
+          depth++;
         }
+        if (depth > max)
+          max = depth;
+      }
 
-        // This loop specifies the argument to climb higher in the hierarchy
-        for (int i = 0; i < newArgTypes.size(); i++) {
-          // This loop specifies how many levels further to climb for specified argument
-          for (int j = level; j <= maxLevel; j++) {
-            // Create the mangled name
-            StringBuilder s = new StringBuilder();
-            s.append(name);
-            List<String> argTypes = new ArrayList<String>();
-
-            // This loop adds the argument types to the name in order
-            for (int k = 0; k < newArgTypes.size(); k++) {
-              // If this is a primitive type, we can't climb up the hierarchy so simply append it
-              if (null == newArgTypes.get(k)) {
-                String t = args.get(k).getType().getMangledType();
-                s.append("$" + t);
-                argTypes.add(t);
-              // Otherwise climb the tree as specified by the level
-              } else {
-                // Start out with the original type of the argument
-                String type = newArgTypes.get(k);
-                // Climb the tree to the current level 
-                for (int l = 1; l < level; l++) {
-                  if (null == hierarchy.get(type))
-                    break;
-                  type = hierarchy.get(type);
-                }
-                // If this is the argument specified by the outer loop, climb extra levels
-                if (i == k) {
-                  for (int m = level; m < j; m++) {
-                    if (null == hierarchy.get(type))
-                      break;
-                    type = hierarchy.get(type);
-                  }
-                }
-                s.append("$" + type);
-                argTypes.add(type);
+      Map<Integer, List<String>> methods = new HashMap<Integer, List<String>>();
+      for (List<String> method : combos) {
+        StringBuilder temp = new StringBuilder();
+        temp.append(name);
+        int distance = 0;
+        for (int i = 0; i < method.size(); i++) {
+          temp.append("$" + method.get(i));
+          if (hierarchy.containsKey(method.get(i))) {
+            if (null == args.get(i).getType()) {
+              int depth = 0;
+              String type = method.get(i);
+              while (null != hierarchy.get(type)) {
+                type = hierarchy.get(type);
+                depth++;
               }
-            }
-            String temp = s.toString();
-
-            if (null != cls.getConstructor(temp)) {
-              name = temp;
-              return;
+              distance += (max - depth);
+            } else {
+              String type = args.get(i).getType().getClassType();
+              while (type != method.get(i)) {
+                distance++;
+                type = hierarchy.get(type);
+              }
             }
           }
         }
+        if (!methods.containsKey(distance))
+          methods.put(distance, new ArrayList<String>());
+        methods.get(distance).add(temp.toString());
+      }
+      if (0 == args.size()) {
+        List<String> method = new ArrayList<String>();
+        method.add(name + "$void");
+        methods.put(0, method);
+      }
 
-        // If the method was not found, continue up another level in the hierarchy
-        level++;
-        // Return if we have already reached the top of the hierarchy for all arguments
-        if (level > maxLevel)
-          return;
+      int distance = 0;
+      while (methods.containsKey(distance)) {
+        List<String> names = methods.get(distance);
+        for (String methodName : names) {
+          if (0 == distance && 0 == args.size() ||
+              methodName.equals("$__Object$void") ||
+              null != cls.getConstructor(methodName)) {
+            name = methodName;
+            return;
+          }
+        }
+        distance++;
       }
     
     }

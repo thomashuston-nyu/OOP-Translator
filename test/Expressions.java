@@ -229,7 +229,7 @@ public class Expressions {
     int a = 2;
     short b = 3;
     long c = 4l;
-    double d = 5.1;
+    double d = 5.0;
 
     System.out.println(a * b);
     System.out.println(b * c);

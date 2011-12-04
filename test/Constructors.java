@@ -1,0 +1,28 @@
+public class Constructors {
+
+  public Constructors() {
+    System.out.println("Constructors()");
+  }
+
+  public Constructors(int x) {
+    System.out.println("Constructors(int)");
+  }
+
+  public Constructors(String s, int x, Object o) {
+    System.out.println("Constructors(String, int, Object)");
+  }
+
+  public Constructors(Object o, int x, Object o2) {
+    System.out.println("Constructors(Object, int, Object)");
+  }
+
+  public static void main(String[] args) {
+    new Constructors();
+    new Constructors(5);
+    new Constructors("test", 5, "test");
+    new Constructors(null, 0, null);
+  }
+
+
+
+}
