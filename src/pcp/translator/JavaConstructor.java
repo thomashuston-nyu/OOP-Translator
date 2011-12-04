@@ -312,14 +312,14 @@ public class JavaConstructor extends JavaMethod implements Translatable {
       superCall.translate(out);
     }
     if (null == thisCall) {
-      out.indent().p("__this->__super = ");
+      out.indent().p("__this->__super = new ");
       JavaClass sup = cls.getParent();
       if (null == sup) {
-        out.pln("__Object::$__Object$void();");
+        out.pln("__Object();");
       } else {
         if (!sup.getFile().getPackage().getNamespace().equals(""))
           out.p(sup.getFile().getPackage().getNamespace()).p("::");
-        out.p("__").p(sup.getName()).p("::$__").p(sup.getName()).pln("$void();");
+        out.p("__").p(sup.getName()).p("::__").p(sup.getName()).pln("();");
       }
     }
 

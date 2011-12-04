@@ -657,13 +657,13 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
     } else {
       out.indent().p(name).p(" __").p(name).p("::$__").p(name).pln("$void() {").incr();
       out.indent().p(name).p(" __this = new __").p(name).pln("();");
-      out.indent().p("__this->__super = ");
+      out.indent().p("__this->__super = new ");
       if (null == parent) {
-        out.pln("__Object::$__Object$void();");
+        out.pln("__Object();");
       } else {
         if (!parent.getFile().getPackage().getNamespace().equals(""))
           out.p(parent.getFile().getPackage().getNamespace()).p("::");
-        out.p("__").p(parent.getName()).p("::$__").p(parent.getName()).pln("$void();");
+        out.p("__").p(parent.getName()).p("::__").p(parent.getName()).pln("();");
       }
       JavaClass temp = parent;
       while (null != temp) {
