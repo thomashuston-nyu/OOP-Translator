@@ -7,6 +7,10 @@ public class Sub extends Super {
     System.out.println("Sub()");
   }
 
+  public Sub(int x) {
+    System.out.println("Sub(int)");
+  }
+
   public void deep() {
     super.deep();
     System.out.println("Sub.deep()");

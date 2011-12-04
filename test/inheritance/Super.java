@@ -13,12 +13,12 @@ public class Super {
   }
 
   public Super(int x) {
-    System.out.println("Super(int x)");
+    System.out.println("Super(int)");
     this.x = x;
   }
 
   public Super(String s) {
-    System.out.println("Super(String s)");
+    System.out.println("Super(String)");
     this.s = s;
   }
 
@@ -37,17 +37,40 @@ public class Super {
   }
 
   public static void main(String[] args) {
+    System.out.println("Super sup1 = new Super():");
     Super sup1 = new Super();
-    Super sup2 = new Super(4);
-    Super sup3 = new Super("a");
-    sup1.deep();
-    sup2.deep(7);
-    System.out.println(sup3.toString());
 
-    Sub sub = new Sub();
+    System.out.println("\nSuper sup2 = new Super(4):");
+    Super sup2 = new Super(4);
+
+    System.out.println("\nSuper sup3 = new Super(\"a\"):");
+    Super sup3 = new Super("a");
+
+    System.out.println("\nsup1.deep():");
+    sup1.deep();
+
+    System.out.println("\nsup2.deep(7):");
+    sup2.deep(7);
+
+    System.out.println("\nSystem.out.println(sup3):");
+    System.out.println(sup3);
+
+    System.out.println("\nSub sub1 = new Sub():");
+    Sub sub1 = new Sub();
+
+    System.out.println("\nSub sub2 = new Sub(5):");
+    Sub sub2 = new Sub(5);
+
+    System.out.println("\nSuper sup4 = new Sub():");
     Super sup4 = new Sub();
-    sub.deep();
-    System.out.println(sub.toString());
+
+    System.out.println("\nsub1.deep():");
+    sub1.deep();
+
+    System.out.println("\nSystem.out.println(sub1):");
+    System.out.println(sub1);
+
+    System.out.println("\nsup4.deep():");
     sup4.deep();
   }
 

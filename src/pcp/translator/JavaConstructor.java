@@ -310,6 +310,14 @@ public class JavaConstructor extends JavaMethod implements Translatable {
     if (null != superCall) {
       out.indent();
       superCall.translate(out);
+    } else if (null == thisCall) {
+      JavaClass sup = cls.getParent();
+      if (null != sup) {
+        if (!sup.getFile().getPackage().getNamespace().equals(""))
+          out.p(sup.getFile().getPackage().getNamespace()).p("::");
+        out.p("__").p(sup.getName()).p("::$__").p(sup.getName()).pln("$void(__this);");
+      }
+      
     }
     if (null == thisCall) {
       out.indent().p("__this->__super = new ");
@@ -319,7 +327,7 @@ public class JavaConstructor extends JavaMethod implements Translatable {
       } else {
         if (!sup.getFile().getPackage().getNamespace().equals(""))
           out.p(sup.getFile().getPackage().getNamespace()).p("::");
-        out.p("__").p(sup.getName()).p("::__").p(sup.getName()).pln("();");
+        out.p("__").p(sup.getName()).pln("();");
       }
     }
 

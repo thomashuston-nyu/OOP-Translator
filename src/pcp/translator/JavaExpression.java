@@ -581,16 +581,21 @@ public class JavaExpression extends Visitor implements Translatable {
           } else if (x.getType().isPrimitive()) {
             out.p("(");
             x.translate(out).p(")");
+          } else if (x.hasName("StringLiteral")) {
+            x.translate(out);
           } else {
             out.pln("({").incr();
             out.indent().pln("String x;");
             out.indent();
-            x.getType().translate(out).p(" y = (");
-            x.translate(out).pln(");");
+            x.getType().translate(out).p(" y = ");
+            x.translate(out).pln(";");
             out.indent().pln("if (__rt::null() == y)");
             out.indentMore().pln("x = __rt::literal(\"null\");");
             out.indent().pln("else");
-            out.indentMore().pln("x = y->__vptr->toString$void(y);");
+            if (x.getType().getType().equals("String"))
+              out.indentMore().pln("x = y;");
+            else
+              out.indentMore().pln("x = y->__vptr->toString$void(y);");
             out.indent().pln("x;");
             out.decr().indent().p("})");
           }
@@ -1062,6 +1067,8 @@ public class JavaExpression extends Visitor implements Translatable {
           } else if (args.get(i).getType().isPrimitive()) {
             out.p("(");
             args.get(i).translate(out).p(")");
+          } else if (args.get(i).hasName("StringLiteral")) {
+            args.get(i).translate(out);
           } else {
             out.pln("({").incr();
             out.indent().pln("String x;");
@@ -1071,12 +1078,15 @@ public class JavaExpression extends Visitor implements Translatable {
             args.get(i).getType().translate(out);
             if (args.get(i).getType().isArray())
               out.p(" >");
-            out.p(" y = (");
-            args.get(i).translate(out).pln(");");
+            out.p(" y = ");
+            args.get(i).translate(out).pln(";");
             out.indent().pln("if (__rt::null() == y)");
             out.indentMore().pln("x = __rt::literal(\"null\");");
             out.indent().pln("else");
-            out.indentMore().pln("x = y->__vptr->toString$void(y);");
+            if (args.get(i).getType().getType().equals("String"))
+              out.indentMore().pln("x = y;");
+            else
+              out.indentMore().pln("x = y->__vptr->toString$void(y);");
             out.indent().pln("x;");
             out.decr().indent().p("})");
           }
