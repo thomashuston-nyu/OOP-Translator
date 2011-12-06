@@ -18,9 +18,21 @@ public class Super {
     this.x = x;
   }
 
-  public Super(String s) {
+  private Super(String s) {
     System.out.println("Super(String)");
     this.s = s;
+  }
+
+  public Super(Object o) {
+    System.out.println("Super(Object)");
+  }
+
+  private void deep(String s) {
+    System.out.println("Super.deep(String)");
+  }
+
+  public void deep(Object o) {
+    System.out.println("Super.deep(Object)");
   }
 
   public void deep() {
@@ -73,6 +85,12 @@ public class Super {
 
     System.out.println("\nsup4.deep():");
     sup4.deep();
+
+    System.out.println("\nsub1.deep(\"test\")");
+    sub1.deep("test");
+
+    System.out.println("\nsup1.deep(\"test\")");
+    sup1.deep("test");
   }
 
 }

@@ -963,13 +963,29 @@ public class JavaExpression extends Visitor implements Translatable {
 
       // Iterate over the mangled method names in order until a match is found
       int distance = 0;
+      boolean current = false;
+      if (null == caller) {
+        if (!isSuper)
+          current = true;
+      } else {
+        JavaScope temp = caller.getStatement().getScope();
+        while (!temp.hasName("JavaClass"))
+          temp = temp.getParentScope();
+        JavaClass callCls = (JavaClass)temp;
+        temp = parent.getStatement().getScope();
+        while (!temp.hasName("JavaClass"))
+          temp = temp.getParentScope();
+        JavaClass thisCls = (JavaClass)temp;
+        if (thisCls == callCls)
+          current = true;
+      }
       while (methods.containsKey(distance)) {
         List<String> names = methods.get(distance);
         for (String methodName : names) {
           if (0 == distance && 0 == args.size()) {
             name = methodName;
             if (null != cls && !isThis && !isSuper)
-              method = cls.getMethod(methodName);
+              method = cls.getMethod(methodName, current);
             return;
           }
           if (methodName.equals("equals$Object") ||
@@ -977,17 +993,18 @@ public class JavaExpression extends Visitor implements Translatable {
             name = methodName;
             return;
           }
-          if ((isThis || isSuper) && null != cls.getConstructor(methodName)) {
+          if ((isThis && null != cls.getConstructor(methodName, true) || 
+              (isSuper && null != cls.getConstructor(methodName, current)))) {
             name = methodName;
             return;
           }
           if (isSuper) {
-            return;
+            continue;
           }
           // Check if the specified method exists
-          if (null != cls && null != cls.getMethod(methodName)) {
+          if (null != cls && null != cls.getMethod(methodName, current)) {
             name = methodName;
-            method = cls.getMethod(methodName);
+            method = cls.getMethod(methodName, current);
             return;
           }
         }
@@ -1943,12 +1960,19 @@ public class JavaExpression extends Visitor implements Translatable {
 
       // Iterate over the mangled constructor names in order until a match is found
       int distance = 0;
+      boolean current = false;
+      JavaScope temp = parent.getStatement().getScope();
+      while (!temp.hasName("JavaClass"))
+        temp = temp.getParentScope();
+      JavaClass thisCls = (JavaClass)temp;
+      if (thisCls == cls)
+        current = true;
       while (methods.containsKey(distance)) {
         List<String> names = methods.get(distance);
         for (String methodName : names) {
           if (0 == distance && 0 == args.size() ||
               methodName.equals("__Object$void") ||
-              null != cls.getConstructor(methodName)) {
+              null != cls.getConstructor(methodName, current)) {
             name = methodName;
             return;
           }

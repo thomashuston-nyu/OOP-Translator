@@ -155,8 +155,23 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * <code>null</code> otherwise.
    */
   public JavaConstructor getConstructor(String name) {
+    return getConstructor(name, false);
+  }
+
+  /**
+   * Gets the constructor with the specified name if it exists.
+   *
+   * @param name The name of the constructor.
+   * @param current Whether the call is from the current class.
+   *
+   * @return The constructor if it exists;
+   * <code>null</code> otherwise.
+   */
+  public JavaConstructor getConstructor(String name, boolean current) {
     for (JavaConstructor c : constructors) {
-      if (c.getMangledName().equals(name))
+      if (c.getMangledName().equals(name) &&
+          (current || (JavaVisibility.PUBLIC == c.getVisibility() ||
+                       JavaVisibility.PROTECTED == c.getVisibility())))
         return c;
     }
     return null;
@@ -171,13 +186,30 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * <code>null</code> otherwise.
    */
   public JavaMethod getMethod(String name) {
+    return getMethod(name, false);
+  }
+
+  /**
+   * Gets the method of the specified name if it exists;
+   * includes private methods in the search only if the
+   * method is being called from within the current class.
+   *
+   * @param name The name of the method.
+   * @param current Whether the call is from the current class.
+   *
+   * @return The method if it is in the class and is accessible;
+   * <code>null</code> otherwise.
+   */
+  public JavaMethod getMethod(String name, boolean current) {
     if (null == vtable)
       initializeVTable();
     if (vtable.containsKey(name))
       return vtable.get(name);
-    for (JavaMethod m : methods) {
-      if (m.getName().equals(name))
-        return m;
+    if (current) {
+      for (JavaMethod m : methods) {
+        if (m.getName().equals(name))
+          return m;
+      }
     }
     return null;
   }
