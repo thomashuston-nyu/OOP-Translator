@@ -13,6 +13,7 @@ public class Super {
   }
 
   public Super(int x) {
+    this(null);
     System.out.println("Super(int)");
     this.x = x;
   }

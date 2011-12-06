@@ -44,14 +44,15 @@ do
 
   echo
   echo "#################################################################"
-  echo "Testing ${test}/$file"
-
-  # Compile the Java input
-  cd "${test}"
-#javac "${fullname}.java"
-#  check_exit "${test}/$file does not compile."
+  echo "#################################################################"
+  echo
+  echo "Testing ${fullname}.java ... "
 
   # Run the Java input
+  cd "${test}"
+  echo
+  echo "#################################################################"
+  echo "#################################################################"
   echo
   echo "Running Java ... "
   echo
@@ -60,6 +61,10 @@ do
 
   # Run our translator on input file $1 and generate C++ output
   cd "${main}"
+  echo
+  echo "#################################################################"
+  echo
+  echo "Translating Java to C++ ... "
   ant -quiet translate -Dfile="${test}/$file"
   check_exit "${test}/$file cannot be translated."
 
@@ -70,11 +75,11 @@ do
 
   # Run the compiled C++ code
   echo
+  echo "#################################################################"
+  echo
   echo "Running C++ ..."
   echo
   ./${filename} arg1 arg2 arg3
   check_exit "${filename} does not run correctly."
 
-  echo
 done
-#g++ output/*.cc output/include/*.cc

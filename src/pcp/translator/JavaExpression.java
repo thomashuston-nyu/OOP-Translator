@@ -587,7 +587,12 @@ public class JavaExpression extends Visitor implements Translatable {
             out.pln("({").incr();
             out.indent().pln("String x;");
             out.indent();
-            x.getType().translate(out).p(" y = ");
+            if (x.getType().isArray())
+              out.p("__rt::Ptr<");
+            x.getType().translate(out);
+            if (x.getType().isArray())
+              out.p(" >");
+            out.p(" y = ");
             x.translate(out).pln(";");
             out.indent().pln("if (__rt::null() == y)");
             out.indentMore().pln("x = __rt::literal(\"null\");");
@@ -861,6 +866,7 @@ public class JavaExpression extends Visitor implements Translatable {
       // Get the class hierarchy
       Map<String, String> hierarchy = JavaType.getHierarchy();
 
+      // Create the initial lists of possible argument types
       List<List<String>> argChecks = new ArrayList<List<String>>();
       for (JavaExpression e : args) {
         List<String> check = new ArrayList<String>();
@@ -882,6 +888,7 @@ public class JavaExpression extends Visitor implements Translatable {
         argChecks.add(check);
       }
 
+      // Compose every possible combination of argument types
       List<List<String>> combos = new ArrayList<List<String>>();
       combos.add(new ArrayList<String>());
       for (List<String> list : argChecks) {
@@ -906,6 +913,8 @@ public class JavaExpression extends Visitor implements Translatable {
         }
       }
 
+      // Determine the total distance of each combination from the types
+      // provided by the user
       int max = 0;
       Set<String> keys = hierarchy.keySet();
       for (String key : keys) {
@@ -917,7 +926,6 @@ public class JavaExpression extends Visitor implements Translatable {
         if (depth > max)
           max = depth;
       }
-
       Map<Integer, List<String>> methods = new HashMap<Integer, List<String>>();
       for (List<String> method : combos) {
         StringBuilder temp = new StringBuilder();
@@ -953,6 +961,7 @@ public class JavaExpression extends Visitor implements Translatable {
         methods.put(0, method);
       }
 
+      // Iterate over the mangled method names in order until a match is found
       int distance = 0;
       while (methods.containsKey(distance)) {
         List<String> names = methods.get(distance);
@@ -1837,6 +1846,7 @@ public class JavaExpression extends Visitor implements Translatable {
       // Get the class hierarchy
       Map<String, String> hierarchy = JavaType.getHierarchy();
 
+      // Create the initial lists of possible argument types
       List<List<String>> argChecks = new ArrayList<List<String>>();
       for (JavaExpression e : args) {
         List<String> check = new ArrayList<String>();
@@ -1858,6 +1868,7 @@ public class JavaExpression extends Visitor implements Translatable {
         argChecks.add(check);
       }
 
+      // Compose every possible combination of argument types
       List<List<String>> combos = new ArrayList<List<String>>();
       combos.add(new ArrayList<String>());
       for (List<String> list : argChecks) {
@@ -1882,6 +1893,8 @@ public class JavaExpression extends Visitor implements Translatable {
         }
       }
 
+      // Determine the total distance of each combination from the types
+      // provided by the user
       int max = 0;
       Set<String> keys = hierarchy.keySet();
       for (String key : keys) {
@@ -1893,7 +1906,6 @@ public class JavaExpression extends Visitor implements Translatable {
         if (depth > max)
           max = depth;
       }
-
       Map<Integer, List<String>> methods = new HashMap<Integer, List<String>>();
       for (List<String> method : combos) {
         StringBuilder temp = new StringBuilder();
@@ -1929,6 +1941,7 @@ public class JavaExpression extends Visitor implements Translatable {
         methods.put(0, method);
       }
 
+      // Iterate over the mangled constructor names in order until a match is found
       int distance = 0;
       while (methods.containsKey(distance)) {
         List<String> names = methods.get(distance);
