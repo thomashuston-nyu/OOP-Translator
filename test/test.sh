@@ -55,7 +55,7 @@ do
   echo
   echo "Running Java ... "
   echo
-  java -cp "${classes}" "${fullname}"
+  java -cp "${classes}" "${fullname}" "arg1" "arg2" "arg3"
   check_exit "${filename}.java does not run correctly."
 
   # Run our translator on input file $1 and generate C++ output
@@ -72,7 +72,7 @@ do
   echo
   echo "Running C++ ..."
   echo
-  ./${filename}
+  ./${filename} arg1 arg2 arg3
   check_exit "${filename} does not run correctly."
 
   echo
