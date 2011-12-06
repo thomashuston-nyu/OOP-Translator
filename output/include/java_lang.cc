@@ -28,7 +28,7 @@ namespace java {
     __Object::__Object() : __vptr(&__vtable) {
     }
 
-    Object __Object::$__Object$void(Object __this) {
+    Object __Object::__Object$void(Object __this) {
 	  if (__rt::null() == __this)
 		__this = new __Object();
       return __this;

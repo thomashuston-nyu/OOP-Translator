@@ -193,6 +193,8 @@ public class Expressions {
     boolean m = false;
     String n = "asdf";
     Object o = null;
+    String p = new String();
+    String q = new String("hey");
 
     System.out.println(a);
     System.out.println(b);
@@ -209,6 +211,8 @@ public class Expressions {
     System.out.println(m);
     System.out.println(n);
     System.out.println(o);
+    System.out.println(p);
+    System.out.println(q);
   }
 
   public static void testLogicalExpression() {

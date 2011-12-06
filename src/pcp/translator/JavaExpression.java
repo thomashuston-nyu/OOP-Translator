@@ -833,10 +833,10 @@ public class JavaExpression extends Visitor implements Translatable {
           temp = temp.getParentScope();
         cls = (JavaClass)temp;
         if (isThis) {
-          name = "$__" + cls.getName();
+          name = "__" + cls.getName();
         } else if (isSuper) {
           cls = cls.getParent();
-          name = "$__" + cls.getName();
+          name = "__" + cls.getName();
         } else if (isSuperCall) {
           cls = cls.getParent();
         }
@@ -1104,24 +1104,16 @@ public class JavaExpression extends Visitor implements Translatable {
         JavaClass cls = (JavaClass)temp;
         if (isSuper)
           cls = cls.getParent();
-        if (null == cls) {
-          out.p("java::lang::__Object::$__Object$void(");
-          if (isSuper)
-            out.p("__this");
-          return out.p(")");
-        }
+        if (null == cls)
+          return out.p("java::lang::__Object::__Object$void(__this)");
         if (!cls.getFile().getPackage().getNamespace().equals(""))
           out.p(cls.getFile().getPackage().getNamespace()).p("::");
         out.p("__").p(cls.getName()).p("::").p(name).p("(");
-        int size = args.size();
-        for (int i = 0; i < size; i++) {
-          args.get(i).translate(out);
-          if (i < size - 1)
-            out.p(", ");
+        for (JavaExpression arg : args) {
+          arg.translate(out);
+          out.p(", ");
         }
-        if (isSuper)
-          out.p(", __this");
-        return out.p(")");
+        return out.p("__this)");
 
       // Chained method calls
       } else if (null != caller && caller.hasName("CallExpression")) {
@@ -1822,6 +1814,10 @@ public class JavaExpression extends Visitor implements Translatable {
      * Determines the correct overloaded constructor.
      */
     public void determineConstructor() {
+      // If this is the constructor for a string, just return
+      if (type.getType().equals("String"))
+        return;
+
       // First, locate the class that we're constructing
       Set<String> classes = JavaClass.getJavaClassList();
       for (String className : classes) {
@@ -1830,7 +1826,7 @@ public class JavaExpression extends Visitor implements Translatable {
           break;
         }
       }
-      name = "$__" + type.getClassType();
+      name = "__" + type.getClassType();
 
       // Used for performing a breadth-first search
       int level = 0, maxLevel = 0;
@@ -1938,7 +1934,7 @@ public class JavaExpression extends Visitor implements Translatable {
         List<String> names = methods.get(distance);
         for (String methodName : names) {
           if (0 == distance && 0 == args.size() ||
-              methodName.equals("$__Object$void") ||
+              methodName.equals("__Object$void") ||
               null != cls.getConstructor(methodName)) {
             name = methodName;
             return;
@@ -1969,6 +1965,12 @@ public class JavaExpression extends Visitor implements Translatable {
      */
     public Printer translate(Printer out) {
       determineType();
+      if (type.getType().equals("String")) {
+        if (0 == args.size())
+          return out.p("__rt::literal(\"\")");
+        else
+          return args.get(0).translate(out);
+      }
       if (null != cls && !cls.getFile().getPackage().getNamespace().equals(""))
         out.p(cls.getFile().getPackage().getNamespace()).p("::");
       out.p("__").p(type.getClassType()).p("::").p(name).p("(");

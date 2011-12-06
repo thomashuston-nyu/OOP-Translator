@@ -517,7 +517,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
         con.translateHeaderDeclaration(out);
       }
     } else {
-      out.indent().p("static ").p(name).p(" $__").p(name).pln("$void();");
+      out.indent().p("static ").p(name).p(" __").p(name).pln("$void();");
     }
 
     // Destructor
@@ -674,8 +674,14 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
       }
     // Otherwise create the default constructor
     } else {
-      out.indent().p(name).p(" __").p(name).p("::$__").p(name).pln("$void() {").incr();
+      out.indent().p(name).p(" __").p(name).p("::__").p(name).pln("$void() {").incr();
       out.indent().p(name).p(" __this = new __").p(name).pln("();");
+      if (null != parent) {
+        out.indent();
+        if (!parent.getFile().getPackage().getNamespace().equals(""))
+          out.p(parent.getFile().getPackage().getNamespace()).p("::");
+        out.p("__").p(parent.getName()).p("::__").p(parent.getName()).pln("$void(__this);");
+      }
       JavaClass temp = parent;
       while (null != temp) {
         List<JavaField> parentFields = temp.getFields();

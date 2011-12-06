@@ -118,7 +118,7 @@ public class JavaConstructor extends JavaMethod implements Translatable {
    */
   public String getMangledName() {
     StringBuilder mangled = new StringBuilder();
-    mangled.append("$__" + name);
+    mangled.append("__" + name);
     Set<String> params = parameters.keySet();
     for (String param : params) {
       mangled.append("$" + parameters.get(param).getMangledType());
@@ -247,7 +247,7 @@ public class JavaConstructor extends JavaMethod implements Translatable {
    * @return The output stream.
    */
   public Printer translateHeaderDeclaration(Printer out) {
-    out.indent().p("static ").p(cls.getName()).p(" $__");
+    out.indent().p("static ").p(cls.getName()).p(" __");
     out.p(cls.getName());
     Set<String> params = parameters.keySet();
     for (String param : params) {
@@ -279,7 +279,7 @@ public class JavaConstructor extends JavaMethod implements Translatable {
   public Printer translate(Printer out) {
     // Create the mangled name based on the parameters
     Set<String> params = parameters.keySet();
-    out.indent().p(name).p(" __").p(name).p("::$__").p(name);
+    out.indent().p(name).p(" __").p(name).p("::__").p(name);
     for (String param : params) {
       out.p("$").p(parameters.get(param).getMangledType());
     }
@@ -298,12 +298,11 @@ public class JavaConstructor extends JavaMethod implements Translatable {
     out.p(name).pln(" __this) {").incr();
 
     // Call the C++ constructor
+    out.indent().pln("if (__rt::null() == __this)");
+    out.indentMore().p("__this = new __").p(name).pln("();");
     if (null != thisCall) {
-      out.indent().p("__this = ");
+      out.indent();
       thisCall.translate(out);
-    } else {
-      out.indent().pln("if (__rt::null() == __this)");
-      out.indentMore().p("__this = new __").p(name).pln("();");
     }
 
     // Use the explicit super() call if written
@@ -316,7 +315,7 @@ public class JavaConstructor extends JavaMethod implements Translatable {
         out.indent();
         if (!sup.getFile().getPackage().getNamespace().equals(""))
           out.p(sup.getFile().getPackage().getNamespace()).p("::");
-        out.p("__").p(sup.getName()).p("::$__").p(sup.getName()).pln("$void(__this);");
+        out.p("__").p(sup.getName()).p("::__").p(sup.getName()).pln("$void(__this);");
       }
       
     }
