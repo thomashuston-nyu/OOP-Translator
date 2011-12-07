@@ -56,7 +56,7 @@ do
   echo
   echo "Translating Java to C++ ... "
   ant -quiet translate -Dfile="${test}/$file"
-  check_exit "${test}/$file cannot be translated."
+  check_exit "${fullname}.java cannot be translated."
 
   # Run the Java input
   cd "${test}"
@@ -66,12 +66,12 @@ do
   echo "Running Java ... "
   echo
   java -cp "${classes}" "${fullname}" "arg1" "arg2" "arg3"
-  check_exit "${filename}.java does not run correctly."
+  check_exit "${fullname}.java does not run correctly."
 
   # Compile the generated C++ code
   cd "${output}"
   g++ *.cc include/*.cc -o ./${filename}
-  check_exit "${filename} does not compile."
+  check_exit "${fullname}.cc does not compile."
 
   # Run the compiled C++ code
   echo
@@ -80,6 +80,6 @@ do
   echo "Running C++ ..."
   echo
   ./${filename} arg1 arg2 arg3
-  check_exit "${filename} does not run correctly."
+  check_exit "${fullname}.cc does not run correctly."
 
 done
