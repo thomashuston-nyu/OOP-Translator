@@ -48,25 +48,25 @@ do
   echo
   echo "Testing ${fullname}.java ... "
 
+  # Run our translator on input file and generate C++ output
+  cd "${main}"
+  echo
+  echo "#################################################################"
+  echo "#################################################################"
+  echo
+  echo "Translating Java to C++ ... "
+  ant -quiet translate -Dfile="${test}/$file"
+  check_exit "${test}/$file cannot be translated."
+
   # Run the Java input
   cd "${test}"
   echo
-  echo "#################################################################"
   echo "#################################################################"
   echo
   echo "Running Java ... "
   echo
   java -cp "${classes}" "${fullname}" "arg1" "arg2" "arg3"
   check_exit "${filename}.java does not run correctly."
-
-  # Run our translator on input file $1 and generate C++ output
-  cd "${main}"
-  echo
-  echo "#################################################################"
-  echo
-  echo "Translating Java to C++ ... "
-  ant -quiet translate -Dfile="${test}/$file"
-  check_exit "${test}/$file cannot be translated."
 
   # Compile the generated C++ code
   cd "${output}"

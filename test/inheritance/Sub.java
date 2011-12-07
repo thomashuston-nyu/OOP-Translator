@@ -20,10 +20,6 @@ public class Sub extends Super {
   public void deep(Object o) {
     System.out.println("Sub.deep(Object)");
   }
-  
-  public void deep(String s) {
-    System.out.println("Sub.deep(String)");
-  }
 
   public String toString() {
     return "Sub.toString()";

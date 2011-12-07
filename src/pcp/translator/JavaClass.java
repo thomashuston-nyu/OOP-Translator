@@ -37,7 +37,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 2.0
+ * @version 2.1.1
  */
 public class JavaClass extends Visitor implements JavaScope, Translatable {
   
@@ -549,7 +549,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
         con.translateHeaderDeclaration(out);
       }
     } else {
-      out.indent().p("static ").p(name).p(" __").p(name).pln("$void();");
+      out.indent().p("static ").p(name).p(" ").p(name).pln("$void();");
     }
 
     // Destructor
@@ -706,7 +706,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
       }
     // Otherwise create the default constructor
     } else {
-      out.indent().p(name).p(" __").p(name).p("::__").p(name).pln("$void() {").incr();
+      out.indent().p(name).p(" __").p(name).p("::").p(name).pln("$void() {").incr();
       out.indent().p(name).p(" __this = new __").p(name).pln("();");
       if (null != parent) {
         out.indent();

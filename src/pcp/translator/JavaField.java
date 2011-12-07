@@ -35,7 +35,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 2.0
+ * @version 2.1.1
  */
 public class JavaField extends JavaStatement implements Translatable {
 

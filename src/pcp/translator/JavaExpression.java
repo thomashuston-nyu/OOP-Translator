@@ -38,7 +38,7 @@ import xtc.tree.Visitor;
  * @author Mike Morreale
  * @author Marta Wilgan
  *
- * @version 2.0
+ * @version 2.1.1
  */
 public class JavaExpression extends Visitor implements Translatable {
 
@@ -838,10 +838,10 @@ public class JavaExpression extends Visitor implements Translatable {
           temp = temp.getParentScope();
         cls = (JavaClass)temp;
         if (isThis) {
-          name = "__" + cls.getName();
+          name = cls.getName();
         } else if (isSuper) {
           cls = cls.getParent();
-          name = "__" + cls.getName();
+          name = cls.getName();
         } else if (isSuperCall) {
           cls = cls.getParent();
         }
@@ -1852,7 +1852,7 @@ public class JavaExpression extends Visitor implements Translatable {
           break;
         }
       }
-      name = "__" + type.getClassType();
+      name = type.getClassType();
 
       // Used for performing a breadth-first search
       int level = 0, maxLevel = 0;
@@ -1971,7 +1971,7 @@ public class JavaExpression extends Visitor implements Translatable {
         List<String> names = methods.get(distance);
         for (String methodName : names) {
           if (0 == distance && 0 == args.size() ||
-              methodName.equals("__Object$void") ||
+              methodName.equals("Object$void") ||
               null != cls.getConstructor(methodName, current)) {
             name = methodName;
             return;
