@@ -6,6 +6,7 @@ public class A {
 
   public void m() {
     System.out.println("class A method m");
+    B b = new B();
   }
 
 }

@@ -19,6 +19,9 @@ files=(
 "Packages.java"
 "Constructors.java"
 "inheritance/Super.java"
+"finale/Final.java"
+"ConstructorOverloading.java"
+#"OccurrencesInArray.java"
 )
 
 # Directories

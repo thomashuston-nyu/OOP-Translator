@@ -1,4 +1,3 @@
-import packages.*;
 import packages.A;
 
 public class Packages {

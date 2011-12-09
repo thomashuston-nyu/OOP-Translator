@@ -16,6 +16,14 @@ public class Constructors {
     System.out.println("Constructors(Object, int, Object)");
   }
 
+  public static void Constructors$void() {
+    System.out.println("Constructors.Constructors$void()");
+  }
+
+  public static void Constructors$int32_t() {
+    System.out.println("Constructors.Constructors$int32_t()");
+  }
+
   public static void main(String[] args) {
     new Constructors();
     new Constructors(5);

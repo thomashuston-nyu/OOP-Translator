@@ -2192,7 +2192,8 @@ public class JavaExpression extends Visitor implements Translatable {
    */
   private class SelectionExpression extends JavaExpression {
 
-    private boolean isClass, isSuper, isThis, isVariable;
+    private boolean isClass, isStatic, isSuper, isThis, isVariable;
+    private JavaClass cls;
     private JavaExpression identifier, parent;
     private String selection;
 
@@ -2236,7 +2237,7 @@ public class JavaExpression extends Visitor implements Translatable {
       JavaScope temp = parent.getStatement().getScope();
       while (!temp.hasName("JavaClass"))
         temp = temp.getParentScope();
-      JavaClass cls = (JavaClass)temp;
+      cls = (JavaClass)temp;
       if (isThis || isSuper) {
         parent.setType(parent.getStatement().getScope().getVariableType("$" + selection));
         isVariable = true;
@@ -2247,8 +2248,11 @@ public class JavaExpression extends Visitor implements Translatable {
       for (JavaClass c : cls.getFile().getClasses()) {
         if (name.equals(c.getName())) {
           cls = c;
-          if (null != identifier && identifier.getType().isStatic() &&
-              cls.isInScope("$" + selection)) {
+          if (cls.isInScope("$" + selection) && cls.isVariableStatic("$" + selection)) {
+            parent.setType(cls.getVariableType("$" + selection));
+            isVariable = true;
+            isStatic = true;
+          } else if (cls.isInScope("$" + selection)) {
             parent.setType(cls.getVariableType("$" + selection));
             isVariable = true;
           } else {
@@ -2257,6 +2261,7 @@ public class JavaExpression extends Visitor implements Translatable {
             parent.setType(type);
             isClass = true;
           }
+          return;
         }
       }
 
@@ -2321,8 +2326,14 @@ public class JavaExpression extends Visitor implements Translatable {
           return identifier.translate(out).p("->").p(selection);
         } else if (isClass) {
           return identifier.translate(out).p("->$").p(selection);
-        } else {
+        } else if (isStatic) {
+          if (!cls.getFile().getPackage().getNamespace().equals(""))
+            out.p(cls.getFile().getPackage().getNamespace()).p("::");
+          out.p("__").p(cls.getName()).p("::");
+        } else if (identifier.getType().isStatic()) {
           identifier.translate(out).p("::");
+        } else {
+          identifier.translate(out).p("->");
         }
       }
       if (isVariable)
