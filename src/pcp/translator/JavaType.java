@@ -44,7 +44,7 @@ public class JavaType extends Visitor implements Translatable {
   // Includes void for convenience
   public final static Map<String, String> primitives = new HashMap<String, String>();
   static {
-    primitives.put("byte", "unsigned char");
+    primitives.put("byte", "signed char");
     primitives.put("short", "int16_t");
     primitives.put("int", "int32_t");
     primitives.put("long", "int64_t");
@@ -58,7 +58,7 @@ public class JavaType extends Visitor implements Translatable {
   // Map from C++ primitive types to the corresponding wrapper classes
   private final static Map<String, String> primitiveWrappers = new HashMap<String, String>();
   static {
-    primitiveWrappers.put("unsigned char", "Byte");
+    primitiveWrappers.put("signed char", "Byte");
     primitiveWrappers.put("int16_t", "Short");
     primitiveWrappers.put("int32_t", "Integer");
     primitiveWrappers.put("int64_t", "Long");
@@ -71,7 +71,7 @@ public class JavaType extends Visitor implements Translatable {
   // Map from C++ primitive types to the Java class letter
   private final static Map<String, Character> primitiveLetters = new HashMap<String, Character>();
   static {
-    primitiveLetters.put("unsigned char", 'B');
+    primitiveLetters.put("signed char", 'B');
     primitiveLetters.put("int16_t", 'S');
     primitiveLetters.put("int32_t", 'I');
     primitiveLetters.put("int64_t", 'J');

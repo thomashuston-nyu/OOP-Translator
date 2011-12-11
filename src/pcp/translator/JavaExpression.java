@@ -575,7 +575,7 @@ public class JavaExpression extends Visitor implements Translatable {
           } else if (x.getType().getType().equals("bool")) {
             out.p("(");
             x.translate(out).p(" ? \"true\" : \"false\")");
-          } else if (x.getType().getType().equals("unsigned char")) {
+          } else if (x.getType().getType().equals("signed char")) {
             out.p("((int16_t)");
             x.translate(out).p(")");
           } else if (x.getType().isPrimitive()) {
@@ -1087,7 +1087,7 @@ public class JavaExpression extends Visitor implements Translatable {
           } else if (args.get(i).getType().getType().equals("bool")) {
             out.p("((");
             args.get(i).translate(out).p(") ? \"true\" : \"false\")");
-          } else if (args.get(i).getType().getType().equals("unsigned char")) {
+          } else if (args.get(i).getType().getType().equals("signed char")) {
             out.p("((int16_t)");
             args.get(i).translate(out).p(")");
           } else if (args.get(i).getType().isPrimitive()) {
