@@ -250,7 +250,7 @@ public class JavaField extends JavaStatement implements Translatable {
   public Printer translateConstructor(Printer out) {
     int size = names.size();
     for (int i = 0; i < size; i++) {
-      if (isStatic)
+      if (isStatic || (!type.isPrimitive() && null == values.get(i)))
         continue;
       out.indent().p("__this->").p(names.get(i));
       if (null != values.get(i)) {

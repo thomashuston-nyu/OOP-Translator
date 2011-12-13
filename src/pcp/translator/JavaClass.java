@@ -724,9 +724,8 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
         temp = temp.getParent();
       }
       for (JavaField f : fields) {
-        if (!f.isStatic()) {
+        if (!f.isStatic())
           f.translateConstructor(out);
-        }
       }
       out.indent().pln("return __this;");
       out.decr().indent().pln("}").pln();
