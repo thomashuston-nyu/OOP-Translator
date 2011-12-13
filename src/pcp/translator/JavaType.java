@@ -51,7 +51,7 @@ public class JavaType extends Visitor implements Translatable {
     primitives.put("float", "float");
     primitives.put("double", "double");
     primitives.put("boolean", "bool");
-    primitives.put("char", "char");
+    primitives.put("char", "unsigned char");
     primitives.put("void", "void");
   }
 
@@ -65,7 +65,7 @@ public class JavaType extends Visitor implements Translatable {
     primitiveWrappers.put("float", "Float");
     primitiveWrappers.put("double", "Double");
     primitiveWrappers.put("bool", "Boolean");
-    primitiveWrappers.put("char", "Character");
+    primitiveWrappers.put("unsigned char", "Character");
   }
 
   // Map from C++ primitive types to the Java class letter
@@ -78,7 +78,7 @@ public class JavaType extends Visitor implements Translatable {
     primitiveLetters.put("float", 'F');
     primitiveLetters.put("double", 'D');
     primitiveLetters.put("bool", 'Z');
-    primitiveLetters.put("char", 'C');
+    primitiveLetters.put("unsigned char", 'C');
   }
 
   // Map from classes to their superclass
@@ -403,7 +403,7 @@ public class JavaType extends Visitor implements Translatable {
   public void visitType(GNode n) {
     dispatch(n.getNode(0));
     if (null != n.get(1))
-      dimensions = n.getNode(1).size();
+      setDimensions(n.getNode(1).size());
   }
 
   /**
@@ -439,6 +439,16 @@ public class JavaType extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translateArraySpecialization(Printer out) {
+    if (null != primitiveType && 1 == dimensions) {
+      out.indent().pln("template<>");
+      out.indent().p("Array<").p(primitives.get(primitiveType)).p(">");
+      out.pln("::Array(const int32_t length)");
+      out.indent().p(": __vptr(&__vtable), length(length), __data(new ");
+      out.p(primitives.get(primitiveType)).pln("[length]) {");
+      out.indentMore().p("std::memset(__data, 0, length * sizeof(");
+      out.p(primitives.get(primitiveType)).pln("));");
+      out.indent().pln("}").pln();
+    }
     out.indent().pln("template<>");
     out.indent().p("java::lang::Class Array<");
     for (int i = 1; i < dimensions; i++) {

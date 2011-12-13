@@ -344,6 +344,15 @@ public class JavaPackage implements Translatable {
     // Include the header file
     out.p("#include \"").p(getFilename()).pln(".h\"").pln();
 
+    // Print the array template specializations for the classes in this package
+    out.pln("namespace __rt {").incr();
+    for (JavaFile f : files) {
+      for (JavaClass cls : f.getClasses()) {
+        cls.translateArrayTemplate(out);
+      }
+    }
+    out.decr().pln("}").pln();
+
     // Add the namespace
     for (String part : pkg) {
       out.indent().p("namespace ").p(part).pln(" {").incr();
@@ -361,15 +370,6 @@ public class JavaPackage implements Translatable {
     for (int i = 0; i < pkg.size(); i++) {
       out.decr().indent().pln("}");
     }
-
-    // Print the array template specializations for the classes in this package
-    out.pln("namespace __rt {").incr();
-    for (JavaFile f : files) {
-      for (JavaClass cls : f.getClasses()) {
-        cls.translateArrayTemplate(out);
-      }
-    }
-    out.decr().pln("}").pln();
 
     // If this package contains the main file, print the main method here
     if (null != main) {

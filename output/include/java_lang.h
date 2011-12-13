@@ -135,7 +135,7 @@ namespace java {
       static bool equals$Object(String, Object);
       static String toString$void(String);
       static int32_t length$void(String);
-      static char charAt$int32_t(String, int32_t);
+      static unsigned char charAt$int32_t(String, int32_t);
 
       // The function returning the class object representing
       // java.lang.String.
@@ -156,7 +156,7 @@ namespace java {
       Class (*getClass$void)(String);
       String (*toString$void)(String);
       int32_t (*length$void)(String);
-      char (*charAt$int32_t)(String, int32_t);
+      unsigned char (*charAt$int32_t)(String, int32_t);
       
       __String_VT()
       : __isa(__String::__class()),

@@ -257,14 +257,9 @@ public class JavaField extends JavaStatement implements Translatable {
         out.p(" = ");
         // Use the specified value if provided
         values.get(i).translate(out).pln(";");
-      } else if (null == parent) {
-        out.p(" = ");
-        // The default value for primitives is 0
-        if (type.isPrimitive())
-          out.pln("0;");
-        // The default for objects is null
-        else
-          out.pln("__rt::null();");
+      } else if (null == parent && type.isPrimitive()) {
+        // Initialize primitives to 0
+        out.pln(" = 0;");
       } else {
         out.pln(";");
       }
@@ -300,12 +295,8 @@ public class JavaField extends JavaStatement implements Translatable {
       if (null != values.get(i)) {
         out.p(" = ");
         values.get(i).translate(out).pln(";");
-      } else if (null == parent) {
-        out.p(" = ");
-        if (type.isPrimitive())
-          out.pln("0;");
-        else
-          out.pln("__rt::null();");
+      } else if (null == parent && type.isPrimitive()) {
+        out.pln(" = 0;");
       } else {
         out.pln(";");
       }

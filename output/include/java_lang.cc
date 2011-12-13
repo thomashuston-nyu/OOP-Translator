@@ -126,7 +126,7 @@ namespace java {
     }
 
     // java.lang.String.charAt()
-    char __String::charAt$int32_t(String __this, int32_t idx) {
+    unsigned char __String::charAt$int32_t(String __this, int32_t idx) {
       if (0 > idx || idx >= __this->data.length()) {
         throw IndexOutOfBoundsException();
       }

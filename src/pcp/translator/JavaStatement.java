@@ -549,20 +549,21 @@ public class JavaStatement extends Visitor implements Translatable {
         }
       }
 
+      // Get the body of the for loop
+      body = new JavaBlock(n.getGeneric(1), parent.getScope());
+
       // Get the condition
+      JavaStatement bodyStatement = new JavaStatement(null, body);
       if (null != n.getNode(0).get(3))
-        condition = new JavaExpression(n.getNode(0).getGeneric(3), parent);
+        condition = new JavaExpression(n.getNode(0).getGeneric(3), bodyStatement);
 
       // Get the updates
       if (null != n.getNode(0).get(4)) {
         updates = new ArrayList<JavaExpression>();
         for (Object o : n.getNode(0).getNode(4)) {
-          updates.add(new JavaExpression((GNode)o, parent));
+          updates.add(new JavaExpression((GNode)o, bodyStatement));
         }
       }
-
-      // Get the body of the for loop
-      body = new JavaBlock(n.getGeneric(1), parent.getScope());
 
       // Add any variables to the scope of the for loop
       for (String var : vars) {
