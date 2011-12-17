@@ -39,7 +39,7 @@ import xtc.tree.Visitor;
  *
  * @version 2.1.1
  */
-public class JavaBlock extends Visitor implements JavaScope, Translatable {
+public class JavaBlock extends Visitor implements Scope, Translatable {
 
   // If this is a constructor, keep a reference to the constructor object
   private JavaConstructor constructor;
@@ -51,7 +51,7 @@ public class JavaBlock extends Visitor implements JavaScope, Translatable {
   private String name;
 
   // The parent scope
-  private JavaScope parent;
+  private Scope parent;
 
   // The statements making up the body of the block
   private List<JavaStatement> statements;
@@ -68,7 +68,7 @@ public class JavaBlock extends Visitor implements JavaScope, Translatable {
    * @param n The block node.
    * @param parent The parent scope.
    */
-  public JavaBlock(GNode n, JavaScope parent) {
+  public JavaBlock(GNode n, Scope parent) {
     this(n, parent, null);
   }
 
@@ -79,7 +79,7 @@ public class JavaBlock extends Visitor implements JavaScope, Translatable {
    * @param parent The parent scope.
    * @param method The constructor/method this is a block for.
    */
-  public JavaBlock(GNode n, JavaScope parent, JavaMethod method) {
+  public JavaBlock(GNode n, Scope parent, JavaMethod method) {
     // Set the parent scope
     this.parent = parent;
 
@@ -156,7 +156,7 @@ public class JavaBlock extends Visitor implements JavaScope, Translatable {
    *
    * @return The parent scope.
    */
-  public JavaScope getParentScope() {
+  public Scope getParentScope() {
     return parent;
   }
 
@@ -168,7 +168,7 @@ public class JavaBlock extends Visitor implements JavaScope, Translatable {
    * @return The scope of the variable if it exists;
    * <code>null</code> otherwise.
    */
-  public JavaScope getVariableScope(String name) {
+  public Scope getVariableScope(String name) {
     if (variables.containsKey(name))
       return this;
     return parent.getVariableScope(name);

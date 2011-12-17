@@ -51,7 +51,7 @@ public class JavaType extends Visitor implements Translatable {
     primitives.put("float", "float");
     primitives.put("double", "double");
     primitives.put("boolean", "bool");
-    primitives.put("char", "unsigned char");
+    primitives.put("char", "char");
     primitives.put("void", "void");
   }
 
@@ -65,7 +65,7 @@ public class JavaType extends Visitor implements Translatable {
     primitiveWrappers.put("float", "Float");
     primitiveWrappers.put("double", "Double");
     primitiveWrappers.put("bool", "Boolean");
-    primitiveWrappers.put("unsigned char", "Character");
+    primitiveWrappers.put("char", "Character");
   }
 
   // Map from C++ primitive types to the Java class letter
@@ -78,15 +78,28 @@ public class JavaType extends Visitor implements Translatable {
     primitiveLetters.put("float", 'F');
     primitiveLetters.put("double", 'D');
     primitiveLetters.put("bool", 'Z');
-    primitiveLetters.put("unsigned char", 'C');
+    primitiveLetters.put("char", 'C');
+  }
+
+  // Map from primitive types to larger related types
+  private static Map<String, String> primitiveHierarchy = new HashMap<String, String>();
+  static {
+    primitiveHierarchy.put("byte", "short");
+    primitiveHierarchy.put("short", "int");
+    primitiveHierarchy.put("int", "long");
+    primitiveHierarchy.put("long", null);
+    primitiveHierarchy.put("float", "double");
+    primitiveHierarchy.put("double", null);
+    primitiveHierarchy.put("boolean", null);
+    primitiveHierarchy.put("char", null);
   }
 
   // Map from classes to their superclass
-  private static Map<String, String> hierarchy = new HashMap<String, String>();
+  private static Map<String, String> classHierarchy = new HashMap<String, String>();
   static {
-    hierarchy.put("Object", null);
-    hierarchy.put("Class", "Object");
-    hierarchy.put("String", "Object");
+    classHierarchy.put("Object", null);
+    classHierarchy.put("Class", "Object");
+    classHierarchy.put("String", "Object");
   }
 
   // Map from types to the maximum dimension of arrays of that type
@@ -545,7 +558,7 @@ public class JavaType extends Visitor implements Translatable {
    * @param parent The name of its parent class.
    */
   public static void addType(String type, String parent) {
-    hierarchy.put(type, parent);
+    classHierarchy.put(type, parent);
   }
 
   /**
@@ -562,8 +575,17 @@ public class JavaType extends Visitor implements Translatable {
    *
    * @return The class hierarchy.
    */
-  public static Map<String, String> getHierarchy() {
-    return hierarchy;
+  public static Map<String, String> getClassHierarchy() {
+    return classHierarchy;
+  }
+
+  /**
+   * Gets the primitive type hierarchy.
+   *
+   * @return The primitive type hierarchy.
+   */
+  public static Map<String, String> getPrimitiveHierarchy() {
+    return primitiveHierarchy;
   }
 
   /**

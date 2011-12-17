@@ -30,7 +30,7 @@ import java.util.Map;
  * 
  * @version 2.1.1
  */
-public interface JavaScope {
+public interface Scope {
 
   /**
    * Adds a variable to the scope.
@@ -45,7 +45,7 @@ public interface JavaScope {
    *
    * @return The parent scope.
    */
-  public JavaScope getParentScope();
+  public Scope getParentScope();
 
   /**
    * Gets the scope in which the specified variable is declared.
@@ -55,7 +55,7 @@ public interface JavaScope {
    * @return The scope of the variable if it exists;
    * <code>null</code> otherwise.
    */
-  public JavaScope getVariableScope(String name);
+  public Scope getVariableScope(String name);
   
   /**
    * Gets the type of the specified variable.

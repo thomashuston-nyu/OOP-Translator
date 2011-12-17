@@ -39,7 +39,7 @@ import xtc.tree.Visitor;
  *
  * @version 2.1.1
  */
-public class JavaClass extends Visitor implements JavaScope, Translatable {
+public class JavaClass extends Visitor implements Scope, Translatable {
   
   // A map from class names to the corresponding class objects
   private static Map<String, JavaClass> classes = new HashMap<String, JavaClass>();
@@ -239,9 +239,9 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    *
    * @return The parent scope.
    */
-  public JavaScope getParentScope() {
+  public Scope getParentScope() {
     if (null != parent)
-      return (JavaScope)parent;
+      return (Scope)parent;
     return null;
   }
 
@@ -253,7 +253,7 @@ public class JavaClass extends Visitor implements JavaScope, Translatable {
    * @return The scope of the variable if it exists;
    * <code>null</code> otherwise.
    */
-  public JavaScope getVariableScope(String name) {
+  public Scope getVariableScope(String name) {
     if (variables.containsKey(name))
       return this;
     if (null != parent)

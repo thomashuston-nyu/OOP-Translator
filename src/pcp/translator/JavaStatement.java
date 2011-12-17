@@ -49,7 +49,7 @@ public class JavaStatement extends Visitor implements Translatable {
   private Set<String> objects;
 
   // The scope in which this statement occurs
-  private JavaScope parent;
+  private Scope parent;
 
   // The specific instance of a nested class
   private JavaStatement s;
@@ -71,7 +71,7 @@ public class JavaStatement extends Visitor implements Translatable {
    * @param n The statement node.
    * @param parent The scope the statement is in.
    */
-  public JavaStatement(GNode n, JavaScope parent) {
+  public JavaStatement(GNode n, Scope parent) {
     this.node = n;
     this.parent = parent;
     objects = new HashSet<String>();
@@ -98,7 +98,7 @@ public class JavaStatement extends Visitor implements Translatable {
    *
    * @return The variable scope.
    */
-  public JavaScope getScope() {
+  public Scope getScope() {
     return parent;
   }
 

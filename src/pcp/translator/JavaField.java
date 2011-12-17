@@ -71,9 +71,9 @@ public class JavaField extends JavaStatement implements Translatable {
    * @param parent The wrapper statement.
    * @param scope The scope the field is in.
    */
-  public JavaField(GNode n, JavaStatement parent, JavaScope scope) {
+  public JavaField(GNode n, JavaStatement parent, Scope scope) {
     // Set the parent class
-    JavaScope temp = scope;
+    Scope temp = scope;
     while (!temp.hasName("JavaClass"))
       temp = temp.getParentScope();
     cls = (JavaClass)temp;
@@ -137,7 +137,7 @@ public class JavaField extends JavaStatement implements Translatable {
    * @param n The field declaration node.
    * @param scope The scope the field is in.
    */
-  public JavaField(GNode n, JavaScope scope) {
+  public JavaField(GNode n, Scope scope) {
     this(n, null, scope);
   }
   
@@ -158,7 +158,7 @@ public class JavaField extends JavaStatement implements Translatable {
    *
    * @return The variable scope.
    */
-  public JavaScope getScope() {
+  public Scope getScope() {
     return cls;
   }
 

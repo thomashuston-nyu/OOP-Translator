@@ -833,7 +833,7 @@ public class JavaExpression extends Visitor implements Translatable {
 
       // If there is no caller, then we're using the current class
       if (null == caller && !isPrint) {
-        JavaScope temp = parent.getStatement().getScope();
+        Scope temp = parent.getStatement().getScope();
         while (!temp.hasName("JavaClass"))
           temp = temp.getParentScope();
         cls = (JavaClass)temp;
@@ -864,7 +864,8 @@ public class JavaExpression extends Visitor implements Translatable {
       List<String> newArgTypes = new ArrayList<String>();
 
       // Get the class hierarchy
-      Map<String, String> hierarchy = JavaType.getHierarchy();
+      Map<String, String> hierarchy = JavaType.getClassHierarchy();
+      Map<String, String> primitives = JavaType.getPrimitiveHierarchy();
 
       // Create the initial lists of possible argument types
       List<List<String>> argChecks = new ArrayList<List<String>>();
@@ -877,7 +878,11 @@ public class JavaExpression extends Visitor implements Translatable {
             check.add(s);
           }
         } else if (t.isPrimitive() || t.isArray()) {
-          check.add(t.getMangledType());
+          String type = t.getJavaType();
+          while (null != type) {
+            check.add(new JavaType(type).getMangledType());
+            type = primitives.get(type);
+          }
         } else {
           String type = t.getClassType();
           while (null != type) {
@@ -968,7 +973,7 @@ public class JavaExpression extends Visitor implements Translatable {
         if (!isSuper)
           current = true;
       } else {
-        JavaScope temp = caller.getStatement().getScope();
+        Scope temp = caller.getStatement().getScope();
         while (!temp.hasName("JavaClass"))
           temp = temp.getParentScope();
         JavaClass callCls = (JavaClass)temp;
@@ -1124,7 +1129,7 @@ public class JavaExpression extends Visitor implements Translatable {
 
       // Special case for this() or super() calls
       } else if (isThis || isSuper) {
-        JavaScope temp = parent.getStatement().getScope();
+        Scope temp = parent.getStatement().getScope();
         while (!temp.hasName("JavaClass"))
           temp = temp.getParentScope();
         JavaClass cls = (JavaClass)temp;
@@ -1861,7 +1866,8 @@ public class JavaExpression extends Visitor implements Translatable {
       List<String> newArgTypes = new ArrayList<String>();
 
       // Get the class hierarchy
-      Map<String, String> hierarchy = JavaType.getHierarchy();
+      Map<String, String> hierarchy = JavaType.getClassHierarchy();
+      Map<String, String> primitives = JavaType.getPrimitiveHierarchy();
 
       // Create the initial lists of possible argument types
       List<List<String>> argChecks = new ArrayList<List<String>>();
@@ -1874,7 +1880,11 @@ public class JavaExpression extends Visitor implements Translatable {
             check.add(s);
           }
         } else if (t.isPrimitive() || t.isArray()) {
-          check.add(t.getMangledType());
+          String type = t.getJavaType();
+          while (null != type) {
+            check.add(new JavaType(type).getMangledType());
+            type = primitives.get(type);
+          }
         } else {
           String type = t.getClassType();
           while (null != type) {
@@ -1961,7 +1971,7 @@ public class JavaExpression extends Visitor implements Translatable {
       // Iterate over the mangled constructor names in order until a match is found
       int distance = 0;
       boolean current = false;
-      JavaScope temp = parent.getStatement().getScope();
+      Scope temp = parent.getStatement().getScope();
       while (!temp.hasName("JavaClass"))
         temp = temp.getParentScope();
       JavaClass thisCls = (JavaClass)temp;
@@ -2093,7 +2103,7 @@ public class JavaExpression extends Visitor implements Translatable {
 
       // Check if this refers to a class
       } else {
-        JavaScope temp = parent.getStatement().getScope();
+        Scope temp = parent.getStatement().getScope();
         while (!temp.hasName("JavaClass"))
           temp = temp.getParentScope();
         JavaClass cls = (JavaClass)temp;
@@ -2234,7 +2244,7 @@ public class JavaExpression extends Visitor implements Translatable {
         name = identifier.getType().getType();
       else
         name = selection;
-      JavaScope temp = parent.getStatement().getScope();
+      Scope temp = parent.getStatement().getScope();
       while (!temp.hasName("JavaClass"))
         temp = temp.getParentScope();
       cls = (JavaClass)temp;
