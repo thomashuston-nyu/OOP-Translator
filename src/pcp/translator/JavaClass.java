@@ -549,7 +549,8 @@ public class JavaClass extends Visitor implements Scope, Translatable {
         con.translateHeaderDeclaration(out);
       }
     } else {
-      out.indent().p("static ").p(name).p(" ").p(name).pln("$void();");
+      out.indent().p("static ").p(name).p(" ").p(name).p("$void(");
+      out.p(name).pln(" __this = __rt::null());");
     }
 
     // Destructor
@@ -686,6 +687,7 @@ public class JavaClass extends Visitor implements Scope, Translatable {
         out.p(parent.getFile().getPackage().getNamespace()).p("::");
       out.p("__").p(parent.getName()).pln("();");
     }
+    out.pln();
 
 
     // Initialize any static fields
@@ -706,13 +708,15 @@ public class JavaClass extends Visitor implements Scope, Translatable {
       }
     // Otherwise create the default constructor
     } else {
-      out.indent().p(name).p(" __").p(name).p("::").p(name).pln("$void() {").incr();
-      out.indent().p(name).p(" __this = new __").p(name).pln("();");
+      out.indent().p(name).p(" __").p(name).p("::").p(name).p("$void(");
+      out.p(name).pln(" __this) {").incr();
+      out.indent().pln("if (__rt::null() == __this)");
+      out.indentMore().p("__this = new __").p(name).pln("();");
       if (null != parent) {
         out.indent();
         if (!parent.getFile().getPackage().getNamespace().equals(""))
           out.p(parent.getFile().getPackage().getNamespace()).p("::");
-        out.p("__").p(parent.getName()).p("::__").p(parent.getName()).pln("$void(__this);");
+        out.p("__").p(parent.getName()).p("::").p(parent.getName()).pln("$void(__this);");
       }
       JavaClass temp = parent;
       while (null != temp) {

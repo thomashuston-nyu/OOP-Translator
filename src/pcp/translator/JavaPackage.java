@@ -221,34 +221,26 @@ public class JavaPackage implements Translatable {
    * Orders the files based on dependencies.
    */
   public void orderFiles() {
-    List<JavaFile> ordered = new ArrayList<JavaFile>();
-    for (JavaFile file : files) {
-      if (file.isMain())
-        main = file;
-      if (ordered.contains(file))
-        continue;
-      if (!file.getPublicClass().hasParent()) {
-        ordered.add(file);
-        continue;
-      }
-      JavaFile parent = file.getPublicClass().getParent().getFile();
-      if (null != parent.getPackage() && null != file.getPackage()) {
-        if (!parent.getPackage().equals(file.getPackage())) {          
-          ordered.add(file);
-        } else {
-          if (!ordered.contains(parent))
-            ordered.add(parent);
-          ordered.add(file);
-        }
-      } else if (null != parent.getPackage() || null != file.getPackage()) {
-        ordered.add(file);
-      } else {
-        if (!ordered.contains(parent))
-          ordered.add(parent);
-        ordered.add(file);
-      }
+    List<JavaFile> old = files;
+    files = new ArrayList<JavaFile>();
+    for (JavaFile file : old) {
+      order(file);
     }
-    files = ordered;
+  }
+
+  /**
+   * Recursively orders files based on dependencies.
+   *
+   * @param file The file to add to the list.
+   */
+  private void order(JavaFile file) {
+    if (file.isMain())
+      main = file;
+    if (files.contains(file))
+      return;
+    if (file.getPublicClass().hasParent())
+      order(file.getPublicClass().getParent().getFile());
+    files.add(file);
   }
 
   // =========================== Other Methods ======================
@@ -360,10 +352,8 @@ public class JavaPackage implements Translatable {
 
     // Print all the files in the package
     for (JavaFile f : files) {
-      for (JavaClass cls : f.getClasses()) {
-        cls.translate(out);
-        out.pln();
-      }
+      f.translate(out);
+      out.pln();
     }
 
     // Close the namespace

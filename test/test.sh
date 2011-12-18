@@ -10,18 +10,19 @@ function check_exit() {
 
 # List of test files to run
 files=(
-"CommandLineArguments.java"
-"DefaultValues.java"
-"Expressions.java"
-"Statements.java"
-"MethodChaining.java"
-"Naming.java"
-"Packages.java"
-"Constructors.java"
-"inheritance/Super.java"
-"finale/Final.java"
-"ConstructorOverloading.java"
+#"CommandLineArguments.java"
+#"DefaultValues.java"
+#"Expressions.java"
+#"Statements.java"
+#"MethodChaining.java"
+#"Naming.java"
+#"Packages.java"
+#"Constructors.java"
+#"inheritance/Super.java"
+#"finale/Final.java"
+#"ConstructorOverloading.java"
 #"OccurrencesInArray.java"
+"Magic.java"
 )
 
 # Directories

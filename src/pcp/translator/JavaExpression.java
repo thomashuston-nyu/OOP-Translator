@@ -1136,7 +1136,7 @@ public class JavaExpression extends Visitor implements Translatable {
         if (isSuper)
           cls = cls.getParent();
         if (null == cls)
-          return out.p("java::lang::__Object::__Object$void(__this)");
+          return out.p("java::lang::Object::Object$void(__this)");
         if (!cls.getFile().getPackage().getNamespace().equals(""))
           out.p(cls.getFile().getPackage().getNamespace()).p("::");
         out.p("__").p(cls.getName()).p("::").p(name).p("(");
@@ -2042,6 +2042,7 @@ public class JavaExpression extends Visitor implements Translatable {
     private String name;
     private JavaExpression parent;
     private JavaPackage pkg;
+    private JavaClass scope;
 
     /**
      * Creates a new primary identifier.
@@ -2098,6 +2099,7 @@ public class JavaExpression extends Visitor implements Translatable {
         if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")
             && parent.getStatement().getScope().getVariableType("$" + name).isStatic()) {
           isClassVar = true;
+          scope = (JavaClass)parent.getStatement().getScope().getVariableScope("$" + name);
         }
         return;
 
@@ -2116,6 +2118,12 @@ public class JavaExpression extends Visitor implements Translatable {
             type.setStatic();
             parent.setType(type);
             return;
+          } else if (c.isInScope("$" + name) &&
+              c.getVariableType("$" + name).isStatic()) {
+            isClassVar = true;
+            scope = (JavaClass)c.getVariableScope("$" + name);
+            parent.setType(c.getVariableType("$" + name));
+            return;
           }
         }
 
@@ -2128,6 +2136,12 @@ public class JavaExpression extends Visitor implements Translatable {
             JavaType type = new JavaType(name);
             type.setStatic();
             parent.setType(type);
+            return;
+          } else if (f.getPublicClass().isInScope("$" + name) &&
+              f.getPublicClass().getVariableType("$" + name).isStatic()) {
+            isClassVar = true;
+            scope = (JavaClass)f.getPublicClass().getVariableScope("$" + name);
+            parent.setType(f.getPublicClass().getVariableType("$" + name));
             return;
           }
         }
@@ -2142,6 +2156,12 @@ public class JavaExpression extends Visitor implements Translatable {
               JavaType type = new JavaType(name);
               type.setStatic();
               parent.setType(type);
+              return;
+            } else if (f.getPublicClass().isInScope("$" + name) &&
+                f.getPublicClass().getVariableType("$" + name).isStatic()) {
+              isClassVar = true;
+              scope = (JavaClass)f.getPublicClass().getVariableScope("$" + name);
+              parent.setType(f.getPublicClass().getVariableType("$" + name));
               return;
             }
           }
@@ -2163,21 +2183,19 @@ public class JavaExpression extends Visitor implements Translatable {
     public Printer translate(Printer out) {
       // Now that we have all classes available, determine the type
       determineType();
+      
+      // If it's a static class variable, print out the class first
+      if (isClassVar) {
+        if (!scope.getFile().getPackage().getNamespace().equals(""))
+          out.p(scope.getFile().getPackage().getNamespace()).p("::");
+        return out.p("__").p(scope.getName()).p("::$").p(name);
+      }
 
       // Check if it's a variable currently in scope
       if (parent.getStatement().getScope().isInScope("$" + name)) {
-
-        // If it's a static class variable, print out the class first
-        if (isClassVar) {
-          JavaClass scope = (JavaClass)parent.getStatement().getScope().getVariableScope("$" + name);
-          if (!scope.getFile().getPackage().getNamespace().equals(""))
-            out.p(scope.getFile().getPackage().getNamespace()).p("::");
-          out.p("__").p(scope.getName()).p("::");
-
         // Check if it's an instance variable
-        } else if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass")) {
+        if (parent.getStatement().getScope().getVariableScope("$" + name).hasName("JavaClass"))
           out.p("__this->");
-        }
         return out.p("$").p(name);
 
       // If we can't locate the variable, it might be a class

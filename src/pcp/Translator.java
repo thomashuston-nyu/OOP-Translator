@@ -294,6 +294,7 @@ public class Translator extends Tool {
     // Set the superclass
     for (JavaClass cd : c.getClasses()) {
       if (cd.hasParent()) {
+        boolean found = false;
         String extCls = cd.getExtension().getType();
         String ext = cd.getExtension().getPath();
         String extpath;
@@ -301,16 +302,19 @@ public class Translator extends Tool {
         for (JavaClass cls : cd.getFile().getClasses()) {
           if (cls.getName().equals(extCls)) {
             cd.setParent(cls);
-            return;
+            found = true;
+            break;
           }
         }
+        if (found)
+          continue;
         // If the superclass path is given explicitly, use that path
         int index = ext.lastIndexOf("/");
         if (-1 < index) {
           extpath = classpath + ext;
           if (null != JavaFile.getJavaFile(extpath)) {
             cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
-            return;
+            continue;
           }
         } else {
           // Check the package
@@ -321,7 +325,7 @@ public class Translator extends Tool {
               extpath = classpath + pkg.getPath() + "/" + ext;
             if (null != JavaFile.getJavaFile(extpath)) {
               cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
-              return;
+              continue;
             }
           }
           // Check the imports
@@ -329,10 +333,13 @@ public class Translator extends Tool {
             extpath = classpath + i.getPath();
             if (null != JavaFile.getJavaFile(extpath)) {
               cd.setParent(JavaFile.getJavaFile(extpath).getPublicClass());
-              return;
+              found = true;
+              break;
             }
           }
         }                                         
+        if (found)
+          continue;
         runtime.errConsole().p("Superclass not found: ").p(ext).pln().flush();
       }
     }

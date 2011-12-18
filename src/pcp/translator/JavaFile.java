@@ -152,6 +152,30 @@ public class JavaFile extends Visitor implements Translatable {
   // ============================ Set Methods =======================
 
   /**
+   * Orders classes in by dependencies.
+   */
+  public void orderClasses() {
+    List<JavaClass> old = allClasses;
+    allClasses = new ArrayList<JavaClass>();
+    for (JavaClass cls : old) {
+      order(cls);
+    }
+  }
+
+  /**
+   * Recursively orders classes based on dependencies.
+   *
+   * @param cls The class to add to the list.
+   */
+  private void order(JavaClass cls) {
+    if (allClasses.contains(cls))
+      return;
+    if (cls.hasParent())
+      order(cls.getParent());
+    allClasses.add(cls);
+  }
+
+  /**
    * Marks this as the main file for the program.
    */
   public void setMain() {
@@ -239,6 +263,7 @@ public class JavaFile extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
+    orderClasses();
     for (JavaClass cls : allClasses) {
       cls.translate(out).pln();
     }

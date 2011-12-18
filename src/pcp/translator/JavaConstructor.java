@@ -319,7 +319,6 @@ public class JavaConstructor extends JavaMethod implements Translatable {
           out.p(sup.getFile().getPackage().getNamespace()).p("::");
         out.p("__").p(sup.getName()).p("::").p(sup.getName()).pln("$void(__this);");
       }
-      
     }
 
     // Initialize class fields
