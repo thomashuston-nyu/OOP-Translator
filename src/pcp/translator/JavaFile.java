@@ -170,7 +170,7 @@ public class JavaFile extends Visitor implements Translatable {
   private void order(JavaClass cls) {
     if (allClasses.contains(cls))
       return;
-    if (cls.hasParent())
+    if (cls.hasParent() && cls.getParent().getFile() == this)
       order(cls.getParent());
     allClasses.add(cls);
   }
@@ -263,7 +263,6 @@ public class JavaFile extends Visitor implements Translatable {
    * @return The output stream.
    */
   public Printer translate(Printer out) {
-    orderClasses();
     for (JavaClass cls : allClasses) {
       cls.translate(out).pln();
     }

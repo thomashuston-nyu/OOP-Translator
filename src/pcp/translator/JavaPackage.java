@@ -300,6 +300,7 @@ public class JavaPackage implements Translatable {
 
     // Declare the class structs
     for (JavaFile file : files) {
+      file.orderClasses();
       for (JavaClass cls : file.getClasses()) {
         String className = cls.getName();
         out.indent().p("struct __").p(className).pln(";");
@@ -352,7 +353,9 @@ public class JavaPackage implements Translatable {
 
     // Print all the files in the package
     for (JavaFile f : files) {
-      f.translate(out);
+      for (JavaClass cls : f.getClasses()) {
+        cls.translate(out).pln();
+      }
       out.pln();
     }
 
