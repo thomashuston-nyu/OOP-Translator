@@ -22,8 +22,8 @@ files=(
 #"finale/Final.java"
 #"ConstructorOverloading.java"
 #"OccurrencesInArray.java"
-#"Magic.java"
-#"xtc/oop/Test.java"
+"xtc/oop/Test.java"
+"Magic.java"
 "Demo.java"
 )
 
