@@ -23,7 +23,8 @@ files=(
 #"ConstructorOverloading.java"
 #"OccurrencesInArray.java"
 #"Magic.java"
-"xtc/oop/Test.java"
+#"xtc/oop/Test.java"
+"Demo.java"
 )
 
 # Directories
@@ -63,6 +64,9 @@ do
   ant -quiet translate -Dfile="${test}/$file"
   check_exit "${fullname}.java cannot be translated."
 
+  # command line arguments
+  arg1="trueahdfjklashdflak"
+
   # Run the Java input
   cd "${test}"
   echo
@@ -70,7 +74,7 @@ do
   echo
   echo "Running Java ... "
   echo
-  java -cp "${classes}" "${fullname}" "arg1" "arg2" "arg3"
+  java -cp "${classes}" "${fullname}" $arg1 $arg2 $arg3
   check_exit "${fullname}.java does not run correctly."
 
   # Compile the generated C++ code
@@ -84,7 +88,7 @@ do
   echo
   echo "Running C++ ..."
   echo
-  ./${filename} arg1 arg2 arg3
+  ./${filename} $arg1 $arg2 $arg3
   check_exit "${fullname}.cc does not run correctly."
 
 done
